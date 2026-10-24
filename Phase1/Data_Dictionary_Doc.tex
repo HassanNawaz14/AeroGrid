@@ -1,0 +1,32 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\title{\textbf{Data Dictionary}\\[0.5cm] \textbf{AeroGrid}\\[0.3cm] Low-Altitude Airspace Intelligence Warehouse}
+\author{AeroGrid Development Team}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+This document serves as the formal Data Dictionary for the AeroGrid Data Warehouse, detailing all dimension and fact tables, columns, data types, key classifications, and business descriptions.
+
+\section{Summary of Tables}
+\begin{itemize}
+    \item \textbf{Dimensions:} \texttt{DimTime}, \texttt{DimVehicle}, \texttt{DimAirspaceZone}, \texttt{DimWeather}, \texttt{DimSpatialGrid}.
+    \item \textbf{Facts:} \texttt{FactVehicleTracking}, \texttt{FactFlightJourney}, \texttt{FactCloseEncounter}, \texttt{FactRestrictionActivation}, \texttt{FactAirspaceOccupancy}.
+\end{itemize}
+
+\section{Key Standards}
+\begin{itemize}
+    \item Surrogate keys (\texttt{\_key}) are utilized across all dimension tables.
+    \item Natural keys (\texttt{\_id}) preserve source system identifiers for lineage tracking.
+    \item Altitude measures are standardized to feet MSL (\texttt{altitude\_ft}).
+\end{itemize}
+
+\section{Detailed Schema Reference}
+For complete column definitions, data types, and analytical use cases, refer to the master data dictionary in \texttt{data/data\_dictionary.md}.
+
+\end{document}

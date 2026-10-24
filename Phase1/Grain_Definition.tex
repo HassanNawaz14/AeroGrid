@@ -1,0 +1,38 @@
+\documentclass[11pt,a4paper]{article}
+
+\title{\textbf{Grain Definition Document}\\[0.5cm] \textbf{AeroGrid}\\[0.3cm] Low-Altitude Airspace Intelligence Warehouse}
+\author{AeroGrid Development Team}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+Defining precise grain statements for each fact table is critical to prevent double-counting, ensure data integrity, and guide physical database implementation in the AeroGrid Data Warehouse.
+
+\section{Fact Table Grain Statements}
+
+\begin{enumerate}
+    \item \textbf{FactVehicleTracking Grain:} \\
+    \textit{``One row represents one position report (state vector) from one vehicle at one exact timestamp.''} \\
+    \textbf{Purpose:} Enables instantaneous density calculations and continuous position tracking.
+
+    \item \textbf{FactFlightJourney Grain:} \\
+    \textit{``One row represents a complete flight journey or distinct flight segment from takeoff or monitored area entry to landing or exit.''} \\
+    \textbf{Purpose:} Evaluates route choice efficiency, journey duration, and altitude profiles.
+
+    \item \textbf{FactCloseEncounter Grain:} \\
+    \textit{``One row represents a detected safety conflict event where two vehicles breach minimum safe horizontal and vertical separation thresholds.''} \\
+    \textbf{Purpose:} Quantifies near-midair collision risks across airspace sectors and weather conditions.
+
+    \item \textbf{FactRestrictionActivation Grain:} \\
+    \textit{``One row represents an active restriction event or TFR evaluation per time interval.''} \\
+    \textbf{Purpose:} Measures regulatory compliance and traffic rerouting around restricted airspace.
+
+    \item \textbf{FactAirspaceOccupancy Grain:} \\
+    \textit{``One row represents a periodic (hourly) utilization snapshot of vehicles occupying a specific spatial grid cell and altitude band.''} \\
+    \textbf{Purpose:} Supports long-term capacity planning and corridor congestion analysis.
+\end{enumerate}
+
+\end{document}

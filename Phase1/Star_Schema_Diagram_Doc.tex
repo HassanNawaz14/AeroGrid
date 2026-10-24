@@ -1,0 +1,24 @@
+\documentclass[11pt,a4paper]{article}
+
+\title{\textbf{Star Schema Diagram Documentation}\\[0.5cm] \textbf{AeroGrid}\\[0.3cm] Low-Altitude Airspace Intelligence Warehouse}
+\author{AeroGrid Development Team}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Schema Architecture}
+The AeroGrid Data Warehouse utilizes a Star Schema architecture optimized for OLAP aggregations. The core structure centers around five fact tables radiating out to shared dimension tables.
+
+\section{Core Dimensions and Star Topology}
+\begin{itemize}
+    \item \textbf{Star Core (\texttt{DimTime}):} Connected to all five fact tables via \texttt{time\_key}, enabling uniform temporal filtering and drill-down analysis.
+    \item \textbf{Actor Star (\texttt{DimVehicle}):} Connected to tracking, journey, and close encounter facts. Uses role-playing foreign keys (\texttt{vehicle\_key\_1} and \texttt{vehicle\_key\_2}) for multi-vehicle conflict analysis in \texttt{FactCloseEncounter}.
+    \item \textbf{Spatial Star (\texttt{DimSpatialGrid} and \texttt{DimAirspaceZone}):} Links position reports, close encounters, and occupancy snapshots to geographic grid cells and FAA restriction boundaries.
+\end{itemize}
+
+\section{Schema Summary}
+The complete database model is formalized in DBML format (\texttt{data/diagrams/aerogrid\_schema.dbml}), ensuring seamless visualization in tools like dbdiagram.io and automated schema migration.
+
+\end{document}

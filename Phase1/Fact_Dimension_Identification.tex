@@ -1,0 +1,35 @@
+\documentclass[11pt,a4paper]{article}
+
+\title{\textbf{Fact and Dimension Identification}\\[0.5cm] \textbf{AeroGrid}\\[0.3cm] Low-Altitude Airspace Intelligence Warehouse}
+\author{AeroGrid Development Team}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Overview}
+This document formally identifies and justifies the fact tables and supporting dimension tables for the AeroGrid Data Warehouse, based on our five core business processes and sample data inspection.
+
+\section{Fact Tables (Business Processes)}
+\begin{enumerate}
+    \item \textbf{FactVehicleTracking:} Captures individual position reports (state vectors) from live and historical surveillance feeds.
+    \item \textbf{FactFlightJourney:} Records complete flight journeys and segments from takeoff/entry to landing/exit.
+    \item \textbf{FactCloseEncounter:} Logs safety conflict events where vehicles breach minimum safe separation thresholds in space and time.
+    \item \textbf{FactRestrictionActivation:} Evaluates regulatory compliance and traffic density around active temporary flight restrictions (TFRs).
+    \item \textbf{FactAirspaceOccupancy:} Stores periodic utilization snapshots of vehicles occupying 3D spatial grid cells and altitude bands.
+\end{enumerate}
+
+\section{Dimension Tables}
+\begin{enumerate}
+    \item \textbf{DimTime:} Time dimension enabling hierarchical drill-downs from year down to the hour level.
+    \item \textbf{DimVehicle:} Master dimension capturing aircraft, drones, and eVTOL vehicles with unified categorization and identifiers.
+    \item \textbf{DimAirspaceZone:} Spatial dimension representing FAA restricted zones, TFRs, and SFRA subzones.
+    \item \textbf{DimWeather:} Meteorological dimension capturing surface observations (METAR) aligned with flight operations.
+    \item \textbf{DimSpatialGrid:} Geographic 3D grid partitioning airspace into standardized latitude, longitude, and altitude tiers.
+\end{enumerate}
+
+\section{Conclusion}
+This dimensional architecture directly bridges raw operational feeds with high-performance BI analytics.
+
+\end{document}
