@@ -1,0 +1,5 @@
+flight_id,timestamp,latitude,longitude,altitude_ft,ground_speed_kts,heading_deg,vertical_rate_fps,aircraft_type
+TRN-501,1772035200,-77.0365,38.8945,1450,118.2,175.5,-2.1,B738
+TRN-501,1772035210,-77.0366,38.8932,1400,117.8,176.0,-4.5,B738
+TRN-502,1772035200,-77.0410,38.8910,115,22.0,85.0,0.5,UAV_QUAD
+TRN-502,1772035210,-77.0395,38.8911,120,24.1,88.0,1.2,UAV_QUAD

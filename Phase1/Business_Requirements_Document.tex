@@ -1,0 +1,42 @@
+\documentclass[11pt,a4paper]{article}
+
+\title{\textbf{Business Requirements Document (BRD)}\\[0.5cm] \textbf{AeroGrid}\\[0.3cm] Low-Altitude Airspace Intelligence Warehouse}
+\author{AeroGrid Development Team}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Document Purpose}
+This Business Requirements Document (BRD) details the stakeholder needs, operational business processes, analytical requirements, and operational constraints for the AeroGrid project.
+
+\section{Business Aims \& Analytical Focus}
+The warehouse serves both day-to-day monitoring and long-term planning by addressing the following core needs:
+\begin{itemize}
+    \item Delivering a unified operational awareness view for low-altitude airspace traffic.
+    \item Quantifying airspace utilization across altitude layers and geographic grids.
+    \item Detecting, locating, and analyzing close encounters (near-midair conflicts).
+    \item Evaluating the operational impact of regulatory restrictions and adverse weather.
+    \item Informing strategic expansion and corridor design for emerging drone operations.
+\end{itemize}
+
+\section{Business Processes}
+The warehouse is structured around five core business processes representing actual operations in low-altitude airspace:
+
+\begin{enumerate}
+    \item \textbf{Continuous Vehicle Tracking:} Captures ongoing position reports (position, height, speed, heading) broadcast by active aircraft and drones, forming the foundation for real-time awareness and density calculations.
+    \item \textbf{Complete Flight Journey Recording:} Records the entire path of each journey (takeoff to landing or monitored area entry/exit) to analyze route choices, duration, altitude profiles, and traffic flow.
+    \item \textbf{Restriction Activation and Coverage:} Records standing and temporary flight restrictions (TFRs around airports, stadiums, security sites), including effective time windows and geographic boundary polygons.
+    \item \textbf{Close Encounter Detection:} Identifies and logs instances where vehicles breach minimum safe separation distances in space and time, turning raw telemetry into measurable safety events.
+    \item \textbf{Airspace Occupancy Snapshot:} Calculates periodic utilization metrics (vehicle counts, occupancy duration per grid cell, busiest altitude bands) to support capacity planning.
+\end{enumerate}
+
+\section{Scope \& Constraints}
+\begin{itemize}
+    \item \textbf{Data Scope:} Publicly available surveillance feeds (OpenSky), FAA UAS datasets, TartanAviation trajectories, and weather services.
+    \item \textbf{Users:} Traffic management service providers, regulatory authorities, commercial drone operators, and municipal city planners.
+    \item \textbf{Technical Constraints:} Designed using standard dimensional data warehousing principles (Star/Snowflake schemas) optimized for complex analytical queries.
+\end{itemize}
+
+\end{document}

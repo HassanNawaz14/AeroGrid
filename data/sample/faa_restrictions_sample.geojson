@@ -1,0 +1,29 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-77.050, 38.880],
+            [-77.030, 38.880],
+            [-77.030, 38.900],
+            [-77.050, 38.900],
+            [-77.050, 38.880]
+          ]
+        ]
+      },
+      "properties": {
+        "restriction_id": "TFR-9941",
+        "name": "Washington DC Special Flight Rules Area (SFRA) Subzone",
+        "effective_start": "2026-03-01T00:00:00Z",
+        "effective_end": "2026-12-31T23:59:59Z",
+        "lower_limit_ft": 0,
+        "upper_limit_ft": 18000,
+        "restriction_type": "TFR"
+      }
+    }
+  ]
+}

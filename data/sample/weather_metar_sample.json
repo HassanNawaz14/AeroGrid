@@ -1,0 +1,13 @@
+[
+  {
+    "icao": "KDCA",
+    "observation_time": "2026-03-01T12:00:00Z",
+    "raw_metar": "KDCA 011200Z 18010KT 10SM FEW045 15/08 A3002 RMK AO2 SLP165",
+    "wind_direction_deg": 180,
+    "wind_speed_kts": 10,
+    "visibility_sm": 10.0,
+    "cloud_ceiling_ft": 4500,
+    "temperature_c": 15.0,
+    "altimeter_inhg": 30.02
+  }
+]

@@ -1,0 +1,42 @@
+\documentclass[11pt,a4paper]{article}
+
+\title{\textbf{Project Proposal}\\[0.5cm] \textbf{AeroGrid}\\[0.3cm] Low-Altitude Airspace Intelligence Warehouse for Unmanned Aircraft System Traffic Management and Mixed Traffic}
+\author{AeroGrid Development Team}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Project Overview}
+As automated drones expand and new types of aerial vehicles (such as eVTOL and short-hop thruster craft) appear, organizations responsible for traffic management need better visibility into how crowded the lower skies are, where risks of close encounters occur, how restrictions and weather affect operations, and where new flight corridors can safely be opened. 
+
+The \textbf{AeroGrid} project builds an advanced data warehouse focused on low-altitude airspace. The goal is to support safe and efficient management of drones, manned aircraft, and emerging aerial vehicles that share the same airspace near the ground. This warehouse combines real surveillance data, airspace restriction information, weather conditions, and trajectory records into one unified analytical system.
+
+Designed around clear business processes and analytical questions rather than simply copying operational tables, the warehouse empowers decision-makers---including traffic management service providers, regulators, drone operators, and city planners---to understand current conditions, detect safety risks, measure utilization, and plan future capacity.
+
+\section{Exact Data Sources and Formats}
+The warehouse draws from multiple real and publicly available sources in diverse formats, reflecting industrial data challenges:
+
+\begin{itemize}
+    \item \textbf{OpenSky Network:} Real-time and historical aircraft position reports (location, altitude, speed, direction, identity, on-ground status). Accessed via live JSON programming interfaces and historical CSV/Avro dumps.
+    \item \textbf{Federal Aviation Administration (FAA) UAS Data Delivery System:} Maps of automatic approval zones, temporary and permanent flight restrictions (TFRs), national security restrictions, and airspace boundary polygons in GeoJSON, CSV, KML, and Shapefile formats.
+    \item \textbf{TartanAviation Dataset (Carnegie Mellon University):} High-quality aircraft trajectory records collected near airports over months, along with related weather observations in CSV and text formats.
+    \item \textbf{Public Aviation Weather Services:} Surface weather conditions (wind, visibility, cloud ceiling) via JSON/CSV interfaces to form the weather dimension.
+    \item \textbf{Public Unmanned Aircraft Telemetry Benchmarks:} Sample drone flight logs and synthetic low-altitude paths modeling emerging mixed traffic.
+\end{itemize}
+
+\section{Project Scope \& Objectives}
+The primary aims of the AeroGrid are:
+\begin{enumerate}
+    \item Provide traffic management organizations with a single, reliable view of activity in the lower sky.
+    \item Measure crowding across altitude layers and geographic areas.
+    \item Detect and quantify close encounters between vehicles to mitigate safety risks.
+    \item Analyze the operational impact of temporary flight restrictions and weather conditions.
+    \item Support strategic planning, such as recommending new flight corridors and capacity expansion.
+\end{enumerate}
+
+\section{Conclusion}
+By consolidating multi-source surveillance, meteorological, and restriction data into a robust dimensional architecture, the AeroGrid establishes an indispensable intelligence platform for modern low-altitude traffic management.
+
+\end{document}

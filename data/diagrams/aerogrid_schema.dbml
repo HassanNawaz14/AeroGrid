@@ -1,0 +1,104 @@
+// AeroGrid Data Warehouse - dbdiagram.io (DBML) Schema
+
+Table DimTime {
+  time_key int [pk, note: "Surrogate key YYYYMMDDHH"]
+  full_date date
+  year int
+  quarter int
+  month int
+  month_name varchar
+  day_of_week varchar
+  hour_of_day int
+  is_weekend boolean
+}
+
+Table DimVehicle {
+  vehicle_key int [pk]
+  vehicle_id varchar [note: "ICAO24 hex or drone serial"]
+  callsign varchar
+  registration_number varchar
+  vehicle_category varchar [note: "Manned, UAS Quad, eVTOL"]
+  operator_name varchar
+  engine_type varchar
+}
+
+Table DimAirspaceZone {
+  zone_key int [pk]
+  restriction_id varchar [note: "e.g. TFR-9941"]
+  zone_name varchar
+  restriction_type varchar
+  lower_limit_ft float
+  upper_limit_ft float
+  polygon_wkt text
+}
+
+Table DimWeather {
+  weather_key int [pk]
+  station_icao varchar
+  observation_timestamp timestamp
+  temperature_c float
+  wind_speed_kts float
+  wind_direction_deg int
+  visibility_sm float
+  cloud_ceiling_ft int
+  altimeter_inhg float
+}
+
+Table DimSpatialGrid {
+  grid_key int [pk]
+  grid_cell_id varchar
+  latitude_center float
+  longitude_center float
+  altitude_band_name varchar
+}
+
+Table FactVehicleTracking {
+  tracking_id int [pk]
+  time_key int [ref: > DimTime.time_key]
+  vehicle_key int [ref: > DimVehicle.vehicle_key]
+  grid_key int [ref: > DimSpatialGrid.grid_key]
+  altitude_ft float
+  ground_speed_kts float
+  heading_deg float
+  vertical_rate_fps float
+  on_ground boolean
+}
+
+Table FactFlightJourney {
+  journey_id int [pk]
+  time_key int [ref: > DimTime.time_key]
+  vehicle_key int [ref: > DimVehicle.vehicle_key]
+  flight_duration_sec int
+  max_altitude_ft float
+  total_distance_nm float
+  avg_speed_kts float
+}
+
+Table FactCloseEncounter {
+  encounter_id int [pk]
+  time_key int [ref: > DimTime.time_key]
+  vehicle_key_1 int [ref: > DimVehicle.vehicle_key]
+  vehicle_key_2 int [ref: > DimVehicle.vehicle_key]
+  grid_key int [ref: > DimSpatialGrid.grid_key]
+  min_horizontal_sep_nm float
+  min_vertical_sep_ft float
+  conflict_duration_sec int
+  risk_severity_score float
+}
+
+Table FactRestrictionActivation {
+  activation_id int [pk]
+  time_key int [ref: > DimTime.time_key]
+  zone_key int [ref: > DimAirspaceZone.zone_key]
+  affected_traffic_count int
+  compliance_rate_pct float
+}
+
+Table FactAirspaceOccupancy {
+  occupancy_id int [pk]
+  time_key int [ref: > DimTime.time_key]
+  grid_key int [ref: > DimSpatialGrid.grid_key]
+  active_vehicle_count int
+  total_occupancy_minutes float
+  avg_traffic_speed_kts float
+}
