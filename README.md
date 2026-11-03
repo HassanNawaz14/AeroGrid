@@ -1,46 +1,164 @@
-# AeroGrid: AeroGrid Low-Altitude Airspace Intelligence Warehouse
+# AeroGrid: Low-Altitude Airspace Intelligence Warehouse
 
-## Project Overview
-**AeroGrid** is an advanced data warehousing and intelligence system designed for low-altitude airspace management, Unmanned Aircraft System (UAS) traffic management (UTM), and mixed-traffic operations (drones, manned aircraft, and emerging eVTOL/thruster vehicles).
+AeroGrid is a data-warehousing project for low-altitude airspace intelligence. It
+combines real public flight telemetry, weather, and airspace-restriction data to study
+mixed manned/UAS traffic, close encounters, restriction compliance, and corridor
+capacity.
 
----
+## Current status
 
-## Repository Structure
+| Phase | State |
+|---|---|
+| Phase 1 | Complete and frozen as the historical design baseline |
+| Phase 2 | Documentation baseline ready for human review |
+| Phase 2 implementation | **Not authorized** |
+| Current human gate | `G1 - Human prerequisites` |
+
+Nothing in `Phase1/` should be edited. Phase 2 work is controlled from
+[`Phase2/`](Phase2/README.md), and the current status, blockers, and human action queue
+are in [`Phase2/PROGRESS.md`](Phase2/PROGRESS.md).
+
+## Start here
+
+| Audience | Read |
+|---|---|
+| Human reviewer | [`Phase2/README.md`](Phase2/README.md), then [`Phase2/docs/10_human_operating_manual.md`](Phase2/docs/10_human_operating_manual.md) |
+| Coding agent | [`AGENTS.md`](AGENTS.md), then [`Phase2/AGENTS.md`](Phase2/AGENTS.md), then [`Phase2/docs/09_agent_operating_manual.md`](Phase2/docs/09_agent_operating_manual.md) |
+| New team member | [`Phase2/docs/08_team_work_division.md`](Phase2/docs/08_team_work_division.md) |
+| Architecture | [`Phase2/docs/02_architecture_and_platform.md`](Phase2/docs/02_architecture_and_platform.md) |
+| Sources and licenses | [`Phase2/docs/03_data_sources_and_licensing.md`](Phase2/docs/03_data_sources_and_licensing.md) |
+| Data model | [`Phase2/docs/04_data_model.md`](Phase2/docs/04_data_model.md) |
+| Work packages | [`Phase2/dev_plan/01_work_breakdown.md`](Phase2/dev_plan/01_work_breakdown.md) |
+| Decisions | [`Phase2/DECISIONS.md`](Phase2/DECISIONS.md) |
+
+## Phase 2 objective
+
+Build a shared, cloud-hosted PostgreSQL warehouse with:
+
+- `project_staging`, `project_dw`, and `project_reporting` schemas.
+- Real source acquisition, cleaning, rejects, and provenance.
+- Six dimensions and five facts with surrogate keys.
+- At least 100 dimension rows and 10,000 fact rows from real data.
+- Data-quality checks and two PDF reports.
+- SQL and Python ETL scripts in a public GitHub repository.
+- Read access for all five team members.
+- Weekly or manual scheduled automation.
+
+The Phase 2 course brief is
+[`Phase2/DWBI Lab Phase 2.pdf`](Phase2/DWBI%20Lab%20Phase%202.pdf).
+
+## Non-negotiable constraints
+
+- **Real public data only.** No synthetic flights, weather, vehicles, restrictions, or
+  encounters.
+- **No local PostgreSQL dependency.** The warehouse is cloud-hosted and shared.
+- **No Docker**, dev containers, or local service containers.
+- **Free tiers only.** No credit card, paid plan, trial conversion, or billing account.
+- **Weekly or manual refresh.** No five-minute polling.
+- **All five members can read** the shared warehouse.
+- **Raw data stays out of Git** and in cloud object storage with a provenance manifest.
+- **No secrets in the repository.** Humans add them through GitHub/Neon UI.
+- **Phase 1 is frozen.** Do not edit its `.tex` or PDF files.
+- **Implementation waits for `G1`.** No SQL, ETL, workflows, or database resources yet.
+
+## Proposed Phase 2 architecture
+
+| Layer | Proposed choice | Purpose |
+|---|---|---|
+| Warehouse | Neon Free PostgreSQL, `aws-us-east-2` | Shared staging, warehouse, reporting schemas |
+| Raw archive | Neon Object Storage | Source archives with URL/license/hash manifest |
+| Automation | GitHub Actions, weekly + manual | Ingest, stage, load, validate, publish reports |
+| ETL | Python 3.11, psycopg2, pandas, boto3, shapely | No Docker, no local database |
+| Reports | ReportLab | Data Cleaning and Data Quality PDFs |
+| Access | Neon organization + read-only SQL role | Five-member shared read access |
+
+These are proposed decisions pending human approval in
+[`Phase2/DECISIONS.md`](Phase2/DECISIONS.md). No cloud resource exists yet.
+
+## Proposed real-data scope
+
+- **TartanAviation KBTP ADS-B:** primary historical manned traffic, CC BY 4.0.
+- **Nightjar PA UAS flights:** real 10 Hz DJI telemetry, CC BY 4.0.
+- **Nominal-io DJI:** real Colorado/Palos Verdes flight CSVs, MIT.
+- **FAA UDDS:** airspace, UAS facility maps, and restrictions, public data.
+- **NOAA AWC / IEM ASOS:** current and historical METAR, public data.
+- **OpenSky:** optional only; historical Trino access is not assumed.
+
+The full source list, URLs, caveats, and validation status is in
+[`Phase2/docs/03_data_sources_and_licensing.md`](Phase2/docs/03_data_sources_and_licensing.md).
+
+## Model at a glance
+
+Dimensions:
+
+`dim_time`, `dim_site`, `dim_vehicle`, `dim_spatial_grid`, `dim_weather`,
+`dim_airspace_zone`
+
+Facts:
+
+`fact_vehicle_tracking`, `fact_flight_journey`, `fact_close_encounter`,
+`fact_restriction_activation`, `fact_airspace_occupancy`
+
+Phase 2 keeps the five Phase 1 business processes and adds a site dimension, exact
+fact timestamps, provenance, altitude datums, weather keys, journey endpoints,
+restriction windows, and reporting views. See
+[`Phase2/docs/04_data_model.md`](Phase2/docs/04_data_model.md).
+
+## Team division
+
+| Member | Scope |
+|---|---|
+| Member A | Platform, CI, access, integration, release |
+| Member B | Sources, raw archive, staging, cleaning |
+| Member C | Schema, dimensions, keys, data dictionary |
+| Member D | Tracking and journey facts |
+| Member E | Derived facts, data quality, reporting views, PDFs |
+
+Members A-E are placeholders until the human assigns real names in
+[`Phase2/PROGRESS.md`](Phase2/PROGRESS.md).
+
+## Repository map
+
 ```text
 AeroGrid/
-├── Phase1/
-│   ├── DWBI Lab Phase 1.pdf                # Lab guidelines
-│   ├── Project_Proposal.tex / .pdf          # Deliverable 1: Project Proposal
-│   ├── Business_Requirements_Document.tex / .pdf # Deliverable 2: BRD
-│   └── Business_Questions.tex / .pdf        # Deliverable 3: 10 Business Questions
-├── data/
-│   └── all_data_summary.md                  # Comprehensive data source & ingestion guide
-├── docs/
-│   └── LowAltitude_Airspace_Intelligence_Warehouse_Phase1_Guide.md # Core project guide
-└── README.md                                # Project monitoring & documentation
+├── AGENTS.md                 # Repository-wide agent contract
+├── Phase1/                   # Frozen historical design artifacts
+├── Phase2/                   # Phase 2 control point
+│   ├── AGENTS.md             # Phase-specific agent contract
+│   ├── README.md             # Phase 2 dashboard
+│   ├── PROGRESS.md           # Status, gates, human actions, handoffs
+│   ├── DECISIONS.md          # Decision log
+│   ├── docs/                 # Canonical Phase 2 documentation
+│   ├── dev_plan/             # Work packages, dependencies, acceptance
+│   ├── templates/            # Work package and review templates
+│   ├── sql/                  # Future DDL (empty by design)
+│   ├── etl/                  # Future ETL package (empty by design)
+│   ├── tests/                # Future tests (empty by design)
+│   └── reports/              # Future PDFs (empty by design)
+├── data/                     # Phase 1 data documentation and legacy samples
+├── docs/                     # Phase 1 guide and overview PDFs
+└── .github/workflows/        # Future workflows (no YAML yet)
 ```
 
----
+## Data status
 
-## Phase 1 Status & Deliverables
-| Deliverable | Status | File Location |
-|---|---|---|
-| **Project Proposal** | Completed | `Phase1/Project_Proposal.pdf` |
-| **Business Requirements Document (BRD)** | Completed | `Phase1/Business_Requirements_Document.pdf` |
-| **10 Business Questions** | Completed | `Phase1/Business_Questions.pdf` |
-| **Fact & Dimension Identification** | Pending | Next in Phase 1 |
-| **Grain Definition Document** | Pending | Next in Phase 1 |
-| **Star/Snowflake Schema Diagram** | Pending | Next in Phase 1 |
-| **Data Dictionary** | Pending | Next in Phase 1 |
+- The data documentation under `data/` has been synchronized with the Phase 2 model.
+- The legacy `data/sample/` files are synthetic demo artifacts and are excluded from
+  Phase 2. They remain tracked from the earlier repository state; `H-008` in
+  [`Phase2/PROGRESS.md`](Phase2/PROGRESS.md) tracks their human review and removal or
+  quarantine. They must not be loaded or cited as real data.
+- Raw Phase 2 archives belong in object storage, not in Git.
 
----
+## What happens next
 
-## Automated Data Warehouse Pipeline & CI/CD
-AeroGrid is engineered as a fully automated data pipeline:
-- **Live Ingestion via GitHub Actions:** Automated cron workflows poll live APIs (OpenSky Network state vectors and NOAA Weather observations) to feed staging tables without manual intervention.
-- **Incremental Schedules:**
-  - **OpenSky Live State Vectors:** Polled every **5 minutes**.
-  - **Aviation Weather (METAR):** Polled **hourly**.
-  - **FAA Airspace Restrictions (UDDS):** Checked **weekly**.
-  - **TartanAviation & Telemetry Logs:** Bulk batch loaded initially with scheduled updates.
-- **Pipeline Architecture:** Bronze (Staging) $\rightarrow$ Silver (Cleaned/Integrated) $\rightarrow$ Gold (Dimensional Star Schema Warehouse).
+The next action belongs to the human:
+
+1. Review the Phase 2 baseline.
+2. Confirm or amend the proposed decisions.
+3. Assign real names to Members A-E.
+4. Create the Neon and GitHub resources.
+5. Complete the human action queue in
+   [`Phase2/PROGRESS.md`](Phase2/PROGRESS.md).
+6. Explicitly authorize implementation.
+
+Do not create Phase 2 code, database objects, or workflows before that authorization.
