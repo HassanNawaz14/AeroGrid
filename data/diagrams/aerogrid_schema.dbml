@@ -1,104 +1,302 @@
-// AeroGrid Data Warehouse - dbdiagram.io (DBML) Schema
+// AeroGrid Phase 2 logical schema for dbdiagram.io
+// Status: proposed; Phase 2 implementation is not authorized.
+// Source of truth: data/data_dictionary.md and Phase2/docs/04_data_model.md
+// Staging row tables are omitted for readability; run/log/DQ metadata is shown.
+// project_reporting contains views over project_dw, not physical tables.
 
-Table DimTime {
-  time_key int [pk, note: "Surrogate key YYYYMMDDHH"]
-  full_date date
-  year int
-  quarter int
-  month int
-  month_name varchar
-  day_of_week varchar
-  hour_of_day int
-  is_weekend boolean
+Table project_staging.etl_run_log {
+  etl_run_id bigint [pk, increment]
+  run_mode varchar(16) [not null]
+  started_at timestamptz [not null]
+  finished_at timestamptz
+  status varchar(16) [not null]
+  code_version varchar(64)
+  rows_read bigint
+  rows_accepted bigint
+  rows_rejected bigint
+  rows_duplicate bigint
+  facts_inserted bigint
+  critical_dq_failures integer
+  failure_reason text
+  created_at timestamptz [not null]
 }
 
-Table DimVehicle {
-  vehicle_key int [pk]
-  vehicle_id varchar [note: "ICAO24 hex or drone serial"]
-  callsign varchar
-  registration_number varchar
-  vehicle_category varchar [note: "Manned, UAS Quad, eVTOL"]
-  operator_name varchar
-  engine_type varchar
+Table project_staging.source_manifest {
+  source_manifest_id bigint [pk, increment]
+  source_name varchar(64) [not null]
+  source_url text [not null]
+  license_name varchar(64) [not null]
+  attribution text
+  fetched_at timestamptz [not null]
+  file_name text
+  byte_size bigint
+  sha256 char(64) [not null]
+  object_key text
+  content_type varchar(64)
+  source_version varchar(64)
+  created_at timestamptz [not null]
+
+  indexes {
+    (source_name, sha256) [unique]
+  }
 }
 
-Table DimAirspaceZone {
-  zone_key int [pk]
-  restriction_id varchar [note: "e.g. TFR-9941"]
-  zone_name varchar
-  restriction_type varchar
-  lower_limit_ft float
-  upper_limit_ft float
-  polygon_wkt text
+Table project_staging.dq_result {
+  dq_result_id bigint [pk, increment]
+  etl_run_id bigint [not null, ref: > project_staging.etl_run_log.etl_run_id]
+  check_id varchar(16) [not null]
+  check_name varchar(160) [not null]
+  severity varchar(12) [not null]
+  table_name varchar(120)
+  status varchar(8) [not null]
+  observed_value text
+  expected_value text
+  details text
+  checked_at timestamptz [not null]
 }
 
-Table DimWeather {
-  weather_key int [pk]
-  station_icao varchar
-  observation_timestamp timestamp
-  temperature_c float
-  wind_speed_kts float
-  wind_direction_deg int
-  visibility_sm float
-  cloud_ceiling_ft int
-  altimeter_inhg float
+Table project_dw.dim_time {
+  time_key bigint [pk, increment]
+  hour_ts timestamptz [not null, unique]
+  full_date date [not null]
+  year smallint [not null]
+  quarter smallint [not null]
+  month smallint [not null]
+  month_name varchar(20) [not null]
+  day_of_month smallint [not null]
+  day_of_week smallint [not null]
+  day_name varchar(20) [not null]
+  hour_of_day smallint [not null]
+  is_weekend boolean [not null]
+  time_of_day_band varchar(20) [not null]
 }
 
-Table DimSpatialGrid {
-  grid_key int [pk]
-  grid_cell_id varchar
-  latitude_center float
-  longitude_center float
-  altitude_band_name varchar
+Table project_dw.dim_site {
+  site_key bigint [pk, increment]
+  site_code varchar(32) [not null, unique]
+  site_name varchar(120) [not null]
+  site_type varchar(32) [not null]
+  city varchar(80)
+  state varchar(40)
+  country varchar(40) [not null]
+  latitude numeric(9,6) [not null]
+  longitude numeric(9,6) [not null]
+  bbox_min_lat numeric(9,6) [not null]
+  bbox_min_lon numeric(9,6) [not null]
+  bbox_max_lat numeric(9,6) [not null]
+  bbox_max_lon numeric(9,6) [not null]
+  source_system varchar(32) [not null]
+  description text
 }
 
-Table FactVehicleTracking {
-  tracking_id int [pk]
-  time_key int [ref: > DimTime.time_key]
-  vehicle_key int [ref: > DimVehicle.vehicle_key]
-  grid_key int [ref: > DimSpatialGrid.grid_key]
-  altitude_ft float
-  ground_speed_kts float
-  heading_deg float
-  vertical_rate_fps float
+Table project_dw.dim_vehicle {
+  vehicle_key bigint [pk, increment]
+  source_system varchar(32) [not null]
+  source_entity_id varchar(128) [not null]
+  icao24 varchar(16)
+  serial_number varchar(128)
+  callsign varchar(32)
+  registration_number varchar(32)
+  vehicle_category varchar(32) [not null]
+  vehicle_subcategory varchar(48)
+  operator_name varchar(120)
+  engine_type varchar(32)
+  first_seen_ts timestamptz
+  last_seen_ts timestamptz
+
+  indexes {
+    (source_system, source_entity_id) [unique]
+  }
+}
+
+Table project_dw.dim_spatial_grid {
+  grid_key bigint [pk, increment]
+  grid_cell_id varchar(64) [not null, unique]
+  site_key bigint [not null, ref: > project_dw.dim_site.site_key]
+  latitude_center numeric(9,6) [not null]
+  longitude_center numeric(9,6) [not null]
+  latitude_min numeric(9,6) [not null]
+  latitude_max numeric(9,6) [not null]
+  longitude_min numeric(9,6) [not null]
+  longitude_max numeric(9,6) [not null]
+  altitude_band_name varchar(32) [not null]
+  altitude_min_ft integer [not null]
+  altitude_max_ft integer [not null]
+  cell_size_deg numeric(8,6) [not null]
+  altitude_band_order smallint [not null]
+}
+
+Table project_dw.dim_weather {
+  weather_key bigint [pk, increment]
+  station_icao varchar(8) [not null]
+  observation_ts timestamptz [not null]
+  site_key bigint [not null, ref: > project_dw.dim_site.site_key]
+  raw_text text
+  flight_category varchar(8)
+  temperature_c numeric(5,2)
+  dewpoint_c numeric(5,2)
+  wind_speed_kts numeric(6,2)
+  wind_gust_kts numeric(6,2)
+  wind_direction_deg smallint
+  visibility_sm numeric(6,2)
+  cloud_ceiling_ft integer
+  altimeter_inhg numeric(6,2)
+  source_system varchar(16) [not null]
+
+  indexes {
+    (station_icao, observation_ts) [unique]
+  }
+}
+
+Table project_dw.dim_airspace_zone {
+  zone_key bigint [pk, increment]
+  source_system varchar(32) [not null]
+  source_object_id varchar(128) [not null]
+  site_key bigint [not null, ref: > project_dw.dim_site.site_key]
+  restriction_id varchar(64)
+  zone_name varchar(200) [not null]
+  restriction_type varchar(48) [not null]
+  lower_limit_ft integer
+  upper_limit_ft integer
+  effective_start_ts timestamptz
+  effective_end_ts timestamptz
+  is_static boolean [not null]
+  geometry_wkt text [not null]
+  bbox_min_lat numeric(9,6)
+  bbox_min_lon numeric(9,6)
+  bbox_max_lat numeric(9,6)
+  bbox_max_lon numeric(9,6)
+  source_url text
+  first_seen_ts timestamptz [not null]
+  last_seen_ts timestamptz [not null]
+
+  indexes {
+    (source_system, source_object_id) [unique]
+  }
+}
+
+Table project_dw.fact_vehicle_tracking {
+  tracking_id bigint [pk, increment]
+  event_ts timestamptz [not null]
+  time_key bigint [not null, ref: > project_dw.dim_time.time_key]
+  site_key bigint [not null, ref: > project_dw.dim_site.site_key]
+  vehicle_key bigint [not null, ref: > project_dw.dim_vehicle.vehicle_key]
+  grid_key bigint [not null, ref: > project_dw.dim_spatial_grid.grid_key]
+  weather_key bigint [not null, ref: > project_dw.dim_weather.weather_key]
+  altitude_msl_ft numeric(8,2)
+  altitude_agl_ft numeric(8,2)
+  altitude_source varchar(16)
+  ground_speed_kts numeric(7,2)
+  heading_deg numeric(6,2)
+  vertical_rate_fps numeric(7,2)
   on_ground boolean
+  source_quality_flag varchar(32)
+  source_system varchar(32) [not null]
+  source_record_id varchar(160) [not null]
+  source_file text
+  etl_run_id bigint [not null, ref: > project_staging.etl_run_log.etl_run_id]
+  loaded_at timestamptz [not null]
+  algorithm_version varchar(32) [not null]
+
+  indexes {
+    (source_system, source_record_id) [unique]
+    (event_ts)
+    (site_key, event_ts)
+  }
 }
 
-Table FactFlightJourney {
-  journey_id int [pk]
-  time_key int [ref: > DimTime.time_key]
-  vehicle_key int [ref: > DimVehicle.vehicle_key]
-  flight_duration_sec int
-  max_altitude_ft float
-  total_distance_nm float
-  avg_speed_kts float
+Table project_dw.fact_flight_journey {
+  journey_id bigint [pk, increment]
+  vehicle_key bigint [not null, ref: > project_dw.dim_vehicle.vehicle_key]
+  site_key bigint [not null, ref: > project_dw.dim_site.site_key]
+  start_ts timestamptz [not null]
+  end_ts timestamptz [not null]
+  start_time_key bigint [not null, ref: > project_dw.dim_time.time_key]
+  end_time_key bigint [not null, ref: > project_dw.dim_time.time_key]
+  origin_grid_key bigint [not null, ref: > project_dw.dim_spatial_grid.grid_key]
+  destination_grid_key bigint [not null, ref: > project_dw.dim_spatial_grid.grid_key]
+  flight_duration_sec integer [not null]
+  max_altitude_ft numeric(8,2)
+  total_distance_nm numeric(9,3) [not null]
+  avg_speed_kts numeric(7,2)
+  journey_source varchar(16) [not null]
+  segment_reason varchar(64)
+  source_system varchar(32) [not null]
+  source_record_id varchar(160) [not null]
+  etl_run_id bigint [not null, ref: > project_staging.etl_run_log.etl_run_id]
+  loaded_at timestamptz [not null]
+  algorithm_version varchar(32) [not null]
+
+  indexes {
+    (source_system, source_record_id) [unique]
+    (site_key, start_ts)
+  }
 }
 
-Table FactCloseEncounter {
-  encounter_id int [pk]
-  time_key int [ref: > DimTime.time_key]
-  vehicle_key_1 int [ref: > DimVehicle.vehicle_key]
-  vehicle_key_2 int [ref: > DimVehicle.vehicle_key]
-  grid_key int [ref: > DimSpatialGrid.grid_key]
-  min_horizontal_sep_nm float
-  min_vertical_sep_ft float
-  conflict_duration_sec int
-  risk_severity_score float
+Table project_dw.fact_close_encounter {
+  encounter_id bigint [pk, increment]
+  start_ts timestamptz [not null]
+  end_ts timestamptz [not null]
+  start_time_key bigint [not null, ref: > project_dw.dim_time.time_key]
+  site_key bigint [not null, ref: > project_dw.dim_site.site_key]
+  grid_key bigint [not null, ref: > project_dw.dim_spatial_grid.grid_key]
+  weather_key bigint [not null, ref: > project_dw.dim_weather.weather_key]
+  vehicle_key_1 bigint [not null, ref: > project_dw.dim_vehicle.vehicle_key]
+  vehicle_key_2 bigint [not null, ref: > project_dw.dim_vehicle.vehicle_key]
+  min_tracking_id_1 bigint [ref: > project_dw.fact_vehicle_tracking.tracking_id]
+  min_tracking_id_2 bigint [ref: > project_dw.fact_vehicle_tracking.tracking_id]
+  min_horizontal_sep_nm numeric(7,3) [not null]
+  min_vertical_sep_ft numeric(8,2)
+  conflict_duration_sec integer [not null]
+  closing_speed_kts numeric(7,2)
+  risk_severity_class varchar(16) [not null]
+  risk_severity_score numeric(7,3)
+  algorithm_version varchar(32) [not null]
+  etl_run_id bigint [not null, ref: > project_staging.etl_run_log.etl_run_id]
+  loaded_at timestamptz [not null]
+
+  indexes {
+    (vehicle_key_1, vehicle_key_2, start_ts, algorithm_version) [unique]
+    (site_key, start_ts)
+  }
 }
 
-Table FactRestrictionActivation {
-  activation_id int [pk]
-  time_key int [ref: > DimTime.time_key]
-  zone_key int [ref: > DimAirspaceZone.zone_key]
-  affected_traffic_count int
-  compliance_rate_pct float
+Table project_dw.fact_restriction_activation {
+  activation_id bigint [pk, increment]
+  time_key bigint [not null, ref: > project_dw.dim_time.time_key]
+  evaluation_ts timestamptz [not null]
+  site_key bigint [not null, ref: > project_dw.dim_site.site_key]
+  zone_key bigint [not null, ref: > project_dw.dim_airspace_zone.zone_key]
+  is_active boolean [not null]
+  affected_traffic_count integer
+  compliant_count integer
+  compliance_rate_pct numeric(6,2)
+  source_system varchar(32) [not null]
+  source_record_id varchar(160)
+  source_snapshot_ts timestamptz
+  etl_run_id bigint [not null, ref: > project_staging.etl_run_log.etl_run_id]
+  loaded_at timestamptz [not null]
+  algorithm_version varchar(32) [not null]
+
+  indexes {
+    (zone_key, evaluation_ts, source_system) [unique]
+  }
 }
 
-Table FactAirspaceOccupancy {
-  occupancy_id int [pk]
-  time_key int [ref: > DimTime.time_key]
-  grid_key int [ref: > DimSpatialGrid.grid_key]
-  active_vehicle_count int
-  total_occupancy_minutes float
-  avg_traffic_speed_kts float
+Table project_dw.fact_airspace_occupancy {
+  occupancy_id bigint [pk, increment]
+  time_key bigint [not null, ref: > project_dw.dim_time.time_key]
+  site_key bigint [not null, ref: > project_dw.dim_site.site_key]
+  grid_key bigint [not null, ref: > project_dw.dim_spatial_grid.grid_key]
+  active_vehicle_count integer [not null]
+  total_occupancy_minutes numeric(10,2) [not null]
+  avg_traffic_speed_kts numeric(7,2)
+  supporting_tracking_count integer [not null]
+  algorithm_version varchar(32) [not null]
+  etl_run_id bigint [not null, ref: > project_staging.etl_run_log.etl_run_id]
+  loaded_at timestamptz [not null]
+
+  indexes {
+    (time_key, grid_key, algorithm_version) [unique]
+  }
 }

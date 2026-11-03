@@ -1,0 +1,67 @@
+# Secrets and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+credentials/
+
+# Local database artifacts
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+*.backup
+*.sql.gz
+*.sql.bz2
+
+# Raw and large data
+data/raw/
+data/sample/*
+!data/sample/README.md
+Phase2/raw/
+Phase2/etl/raw/
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+
+# Generated report drafts
+Phase2/reports/tmp/
+Phase2/reports/*.tmp
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# Build and packaging
+build/
+dist/
+*.egg-info/
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+
+# Local environment
+.env.local
+.env.dev
