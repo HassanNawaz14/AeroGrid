@@ -144,6 +144,10 @@ upgrade silently.
    - `NEON_S3_BUCKET` — `aerogrid-raw`.
    - `NEON_S3_ACCESS_KEY_ID`.
    - `NEON_S3_SECRET_ACCESS_KEY`.
+   Neon's generated `.env` may use the generic AWS names `AWS_ACCESS_KEY_ID`,
+   `AWS_SECRET_ACCESS_KEY`, `AWS_ENDPOINT_URL_S3`, and `AWS_REGION`. Map them to the
+   `NEON_S3_*` GitHub secret names above; the values are the same. Do not rename the
+   GitHub secrets or commit the `.env`.
 4. Optional: add `OPENSKY_CLIENT_ID` and `OPENSKY_CLIENT_SECRET` as environment
    secrets only if OpenSky access is approved; add `SOURCE_TIMEZONE` and
    `REPORT_PUBLISH_MODE` as environment variables only if overriding the defaults.
