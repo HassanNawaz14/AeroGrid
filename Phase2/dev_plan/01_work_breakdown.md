@@ -18,7 +18,8 @@
 | `WP-11` | CI, access, and deployment | A | B + C | NOT_STARTED |
 | `WP-12` | Integration, acceptance, and release | A | B-E | NOT_STARTED |
 
-Members A-E are placeholders. The human assigns real names before implementation.
+Member A is HassanNawaz14; Members B-E are placeholders. The human assigns real names
+before implementation.
 
 ---
 
@@ -98,7 +99,7 @@ implementation.
 ### Scope
 
 - Human reads and approves the baseline.
-- Real names replace Members A-E.
+- Real names replace Members B-E (Member A is HassanNawaz14).
 - Neon project and raw bucket created.
 - GitHub `warehouse` environment and secrets created.
 - Member invitations and read-only access planned.

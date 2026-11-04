@@ -16,7 +16,7 @@ conflicts with them, the higher-level file wins.
 - Do not create SQL, ETL code, workflows, database objects, or infrastructure until
   the human clears `G1` and a work package is assigned.
 
-If asked to implement before then, stop and point to `H-001` through `H-008` in
+If asked to implement before then, stop and point to the open human actions in
 [`../PROGRESS.md`](../PROGRESS.md).
 
 ## Session start checklist

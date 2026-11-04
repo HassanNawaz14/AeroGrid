@@ -20,8 +20,16 @@ credentials/
 
 # Raw and large data
 data/raw/
+# Legacy synthetic demo samples are intentionally tracked for offline evaluator
+# viewing only. Never load them into Phase 2. Other files under data/sample/ stay
+# ignored.
 data/sample/*
 !data/sample/README.md
+!data/sample/drone_telemetry_sample.csv
+!data/sample/faa_restrictions_sample.geojson
+!data/sample/opensky_sample.json
+!data/sample/tartan_trajectory_sample.csv
+!data/sample/weather_metar_sample.json
 Phase2/raw/
 Phase2/etl/raw/
 *.zip

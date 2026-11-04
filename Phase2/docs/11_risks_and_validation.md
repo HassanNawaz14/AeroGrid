@@ -49,7 +49,7 @@ human decision before the dependent work package proceeds.
 | `R-26` | Report claims cannot be reproduced | Medium | High | E | Store counts/checks, run IDs, code version; report evidence | PDF has no database evidence |
 | `R-27` | Rubric mismatch | Low | High | A | Map every rubric item to acceptance evidence | Missing staging/report/DB evidence |
 | `R-28` | Course policy on public data/AI use is unclear | Low | High | Human | Confirm policy; document real-data provenance and agent role | Instructor raises concern |
-| `R-29` | Legacy synthetic sample files remain tracked | Medium | High | Human + A | Exclude from loads, document as legacy, and resolve `H-008` before implementation | Synthetic file appears in a load/report |
+| `R-29` | Legacy synthetic samples are mistaken for real Phase 2 data | Low | High | Human + A | Retain only as clearly labeled demo-only samples under `data/sample/`; exclude from every load, report, and evidence path; `D-017` resolved `H-008` | A synthetic file appears in a load/report or is presented as real data |
 
 ## Validation plan
 

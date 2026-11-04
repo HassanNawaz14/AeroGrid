@@ -36,13 +36,23 @@ The canonical queue is in [`../PROGRESS.md`](../PROGRESS.md). Current actions:
 | ID | Action | Why |
 |---|---|---|
 | `H-001` | Review and approve the Phase 2 baseline documents | Confirms scope, model, sources, and plan |
-| `H-002` | Replace Members A-E with real names | Assigns accountability without inventing identities |
-| `H-003` | Create Neon project and raw bucket | Provides the shared cloud warehouse |
+| `H-002` | Replace Members B-E with real names | Assigns accountability without inventing identities; Member A is HassanNawaz14 |
+| `H-003` | Create Neon project `AeroGrid-DW` and raw bucket `aerogrid-raw` | Provides the shared cloud warehouse |
 | `H-004` | Add GitHub environment secrets | Allows CI to write without local credentials |
 | `H-005` | Invite members and create read-only access | Ensures all five can read shared data |
 | `H-006` | Confirm licenses and optional OpenSky terms | Manages legal and source risk |
 | `H-007` | Authorize implementation after G1 | Opens the implementation phase |
-| `H-008` | Review/remove tracked legacy synthetic samples | Prevents synthetic demo files from being mistaken for real Phase 2 data |
+| `H-008` | Confirm handling of tracked legacy synthetic samples | Prevents synthetic demo files from being mistaken for real Phase 2 data; resolved by retaining them as documented demo-only artifacts |
+
+`H-003` is complete: project `AeroGrid-DW`, branch `br-royal-cherry-beij6hxw`,
+database `neondb`, bucket `aerogrid-raw`, and the storage endpoint are recorded in
+[`../PROGRESS.md`](../PROGRESS.md) → Neon resource record. `H-008` is resolved by
+`D-017`: the five sample files are intentionally retained for offline user/evaluator
+viewing and are never loaded into Phase 2. `H-002` remains blocked until Members B-E
+choose roles and provide real names.
+
+Detailed steps for `H-004` to `H-007` are in
+[`../PROGRESS.md`](../PROGRESS.md) under `G1 execution checklist`.
 
 Do not start `WP-02` or later until `H-001` through `H-008` are resolved in the order
 that the work package requires.
@@ -55,13 +65,14 @@ Before marking `G1` done:
 - [ ] The human accepts the free-tier platform and its limits.
 - [ ] The human accepts the source list and license posture.
 - [ ] The human accepts the multi-site model and `dim_site`.
-- [ ] Members A-E have real names, or the placeholders are explicitly accepted for
-      planning only.
-- [ ] A Neon project and raw bucket exist.
+- [ ] Member A is HassanNawaz14; Members B-E have real names, or the B-E placeholders
+      are explicitly accepted for planning only.
+- [x] The Neon project `AeroGrid-DW` and raw bucket `aerogrid-raw` exist.
 - [ ] The GitHub `warehouse` environment exists.
 - [ ] Required secrets are stored in GitHub, not in the repository.
 - [ ] Members can be invited and read-only access is planned.
-- [ ] Legacy synthetic samples are removed from Git or explicitly quarantined.
+- [ ] Legacy synthetic samples are explicitly documented as demo-only and excluded
+      from Phase 2 (`D-017`).
 - [ ] `implementation_authorized` is set to `YES` only after all of the above.
 
 If an item cannot be completed, record it as a blocker. Do not mark the gate done.
@@ -91,7 +102,7 @@ accepted.
 ## Step 2: Replace placeholders
 
 Edit `Phase2/PROGRESS.md` and `Phase2/docs/08_team_work_division.md` to replace
-Members A-E with real names. If names are not ready, keep the placeholders and mark
+Members B-E with real names. If names are not ready, keep the placeholders and mark
 `H-002` blocked. Do not let an agent guess names.
 
 ## Step 3: Create the Neon project
@@ -99,14 +110,24 @@ Members A-E with real names. If names are not ready, keep the placeholders and m
 In the Neon UI:
 
 1. Create or join the organization.
-2. Create a project in `aws-us-east-2`.
-3. Create the database.
-4. Create a private object-storage bucket.
-5. Copy the write connection string into GitHub, not into a file or chat.
-6. Create the ETL and read-only roles after the schema package is ready.
-7. Create a CI storage credential with read/write access.
-8. Create a member storage credential with read-only access if needed.
-9. Invite the other four members.
+2. Create a project named `AeroGrid-DW` in `aws-us-east-2`.
+3. Under **Services**, keep Postgres enabled and enable **Object storage**, then
+   create the project.
+4. Neon creates branch `production` (main), database `neondb`, and role
+   `neondb_owner`. Use `neondb` or create a dedicated database; record the database
+   name.
+5. Select the `production` branch, open **Object storage**, and create a private
+   bucket named `aerogrid-raw`. Record the bucket name and storage endpoint.
+6. Create the `aerogrid_etl` role early enough to build `DATABASE_URL`; grant
+   schema/table privileges after `WP-04`/`WP-05`. Create `aerogrid_reader` after the
+   schema and reporting views exist.
+7. Store the write connection string in the GitHub `warehouse` environment, not in a
+   file or chat.
+8. Create a CI storage credential with read/write access (`storage:read`,
+   `storage:write`).
+9. Create a member storage credential with read-only access (`storage:read`) if
+   needed.
+10. Invite the other four members.
 
 If Neon asks for a card or paid plan, stop and record a capacity decision. Do not
 upgrade silently.
@@ -115,14 +136,25 @@ upgrade silently.
 
 1. Confirm the repository is public, or accept the private-repo Actions budget.
 2. Create an environment named `warehouse`.
-3. Add the secrets listed in `07_operations_access_and_security.md`.
-4. Require approval for the environment if available.
-5. Protect `main`:
+3. Add these as **environment secrets**, not repository secrets:
+   - `DATABASE_URL` — direct connection string for `aerogrid_etl`, never
+     `neondb_owner`.
+   - `NEON_S3_ENDPOINT` — `https://br-royal-cherry-beij6hxw.storage.c-9.us-east-2.aws.neon.tech`.
+   - `NEON_S3_REGION` — `us-east-2`.
+   - `NEON_S3_BUCKET` — `aerogrid-raw`.
+   - `NEON_S3_ACCESS_KEY_ID`.
+   - `NEON_S3_SECRET_ACCESS_KEY`.
+4. Optional: add `OPENSKY_CLIENT_ID` and `OPENSKY_CLIENT_SECRET` as environment
+   secrets only if OpenSky access is approved; add `SOURCE_TIMEZONE` and
+   `REPORT_PUBLISH_MODE` as environment variables only if overriding the defaults.
+5. Require approval for the environment if available.
+6. Protect `main`:
    - Require pull requests.
    - Require at least one approval.
    - Require status checks after workflows exist.
    - Disallow direct pushes.
-6. Do not put real values in repository variables or files.
+7. Do not put real values in repository variables or files. Delete the Neon-generated
+   `.env` after transferring values through the GitHub UI.
 
 ## Step 5: Share read-only access
 

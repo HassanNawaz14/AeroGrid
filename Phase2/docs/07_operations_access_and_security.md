@@ -31,9 +31,9 @@ or workflow exists yet. The human owns all account and secret actions.
 
 ### Neon
 
-- One project in `aws-us-east-2` (Ohio), subject to human confirmation.
-- One primary database for the shared warehouse.
-- One private object-storage bucket for raw archives.
+- One project named `AeroGrid-DW` in `aws-us-east-2` (Ohio).
+- One primary database named `neondb` for the shared warehouse.
+- One private object-storage bucket named `aerogrid-raw` for raw archives.
 - One write credential for CI.
 - One read-only storage credential for member access if needed.
 - Database roles:
@@ -92,9 +92,12 @@ The human performs these steps. Member A may provide checklists but must not exe
 account actions.
 
 1. Create or join the Neon organization.
-2. Create a project in `aws-us-east-2`.
-3. Create the database and private raw bucket.
-4. Create the ETL role and read-only role after the schema work package is ready.
+2. Create a project named `AeroGrid-DW` in `aws-us-east-2` with Object storage enabled.
+3. Confirm or create the database and a private raw bucket named `aerogrid-raw` on the
+   `production` branch.
+4. Create the `aerogrid_etl` role early enough to build `DATABASE_URL`; grant
+   schema/table privileges after `WP-04`/`WP-05`. Create `aerogrid_reader` after the
+   schema and reporting views exist.
 5. Create the CI storage credential with `storage:read` and `storage:write`.
 6. Create a member storage credential with `storage:read` only, if needed.
 7. Invite the other four members to the Neon organization.

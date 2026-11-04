@@ -107,7 +107,8 @@ Phase 2 is successful when:
 ### Fixed constraints
 
 - Real public data only.
-- No synthetic records.
+- No synthetic records. Pre-existing synthetic demo files under `data/sample/` are
+  retained only for offline illustration and are never loaded into Phase 2 (`D-017`).
 - No local database or Docker.
 - Free tools and free tiers only.
 - Weekly or manual refresh.

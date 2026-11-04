@@ -163,9 +163,11 @@ Each used source file must record:
 
 ## Synthetic legacy files
 
-The files in [`sample/`](sample/README.md) are legacy synthetic demo artifacts. They
-are excluded from Phase 2, ignored by Git, and must not be loaded, cited, or used as
-extraction evidence.
+The files in [`sample/`](sample/README.md) are legacy synthetic demo artifacts
+retained intentionally for offline user/evaluator viewing. They are excluded from
+Phase 2, are never loaded, cited, or used as extraction evidence, and are not a source.
+`.gitignore` intentionally keeps these files tracked; other files under `data/sample/`
+remain ignored. See [`../Phase2/DECISIONS.md`](../Phase2/DECISIONS.md) `D-017`.
 
 ## Related documents
 

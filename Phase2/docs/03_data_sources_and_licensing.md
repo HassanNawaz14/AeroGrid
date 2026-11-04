@@ -250,6 +250,11 @@ dependency for the initial warehouse.
 | Large drone video archives | Not needed for the warehouse; adds storage and privacy risk |
 | Kaggle datasets without clear licenses | License/provenance risk |
 
+The legacy synthetic files under [`../../data/sample/`](../../data/sample/) are
+retained only for offline demonstration and evaluator review. They are not a Phase 2
+source, are excluded from every load, and must never be cited as real data or
+extraction evidence. See [`../DECISIONS.md`](../DECISIONS.md) `D-017`.
+
 ## Attribution requirements
 
 The final repository and reports must include:

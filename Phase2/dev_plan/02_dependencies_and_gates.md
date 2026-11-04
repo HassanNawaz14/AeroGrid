@@ -99,7 +99,8 @@ Evidence:
 Exit criteria:
 
 - Human approves scope, architecture, sources, licenses, and model.
-- Members A-E have real names, or placeholders are explicitly accepted for planning.
+- Member A is HassanNawaz14; Members B-E have real names, or the B-E placeholders are
+  explicitly accepted for planning.
 - Neon project, database, and raw bucket exist.
 - GitHub `warehouse` environment and required secret names exist.
 - Read-only access plan is approved.

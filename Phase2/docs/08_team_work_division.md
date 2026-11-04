@@ -3,8 +3,8 @@
 ## Purpose
 
 Phase 2 is split by warehouse layer so all five members have independent, reviewable
-work. Names are intentionally placeholders. The human replaces Members A-E with real
-names in `Phase2/PROGRESS.md`; agents must not guess identities.
+work. Member A is HassanNawaz14. The human replaces Members B-E with real names in
+`Phase2/PROGRESS.md`; agents must not guess identities.
 
 ## Ownership model
 

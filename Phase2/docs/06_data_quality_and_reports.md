@@ -9,6 +9,8 @@ canonical quality plan until implementation changes it through a recorded decisi
 ## Quality principles
 
 - Validate real data; never fabricate a passing result.
+- The legacy synthetic files under `data/sample/` are demo-only and are excluded from
+  every Phase 2 load, check, and report (`D-017`).
 - Store every check result, including passes.
 - Separate source gaps from pipeline defects.
 - Fail closed on critical integrity issues.
