@@ -33,6 +33,9 @@ decision. Use the template in [templates/DECISION_RECORD.md](templates/DECISION_
 | `D-014` | Use the Phase 1 five facts and add one site dimension | `ACCEPTED` | Accepted by HassanNawaz14 |
 | `D-015` | Freeze Phase 1 artifacts; Phase 2 documents are canonical for Phase 2 | `ACCEPTED` | Documentation baseline |
 | `D-016` | Work in gated work packages with named owners A-E | `ACCEPTED` | Documentation baseline |
+| `D-017` | Retain legacy synthetic samples in `data/sample/` as documented demo-only artifacts | `ACCEPTED` | Accepted by HassanNawaz14 |
+| `D-018` | Keep GitHub Actions scheduled workflow as the Phase 2 scheduler; no external Python/OS cron host | `ACCEPTED` | Accepted by HassanNawaz14 |
+| `D-019` | Weekly Monday 06:00 UTC schedule; artifact report mode | `ACCEPTED` | Accepted by HassanNawaz14 |
 
 ## D-001: Neon Free PostgreSQL
 
@@ -283,6 +286,69 @@ explicit dependencies, acceptance evidence, and stop conditions.
 
 **Consequences:** Agents work on one package at a time. Human-only actions block the
 package rather than being improvised.
+
+## D-017: Retain legacy synthetic samples as demo-only artifacts
+
+**Status:** `ACCEPTED`
+
+**Context:** `data/sample/` contains five small synthetic files from Phase 1. Phase 2
+uses real data only, but users and evaluators may want offline sample files without
+accessing the shared Neon warehouse.
+
+**Decision:** Keep the five files tracked in Git under `data/sample/` as clearly
+labeled demonstration artifacts. They are not a Phase 2 source, are excluded from all
+ETL, staging, warehouse, reporting, and DQ loads, and must never be cited as evidence
+or presented as real data.
+
+**Rationale:** Provides an offline sample for reviewers and evaluators without
+introducing synthetic records into the shared warehouse. Clear labeling prevents the
+files from being mistaken for real observations.
+
+**Consequences:**
+- `data/sample/README.md` states the demo-only status and handling rules.
+- `.gitignore` intentionally keeps the five sample files tracked; other files under
+  `data/sample/` remain ignored.
+- Every load, DQ check, report, and evidence path excludes them.
+- Any demo use must label the files as synthetic.
+- `H-008` is resolved and `B-006` is closed.
+
+**Alternatives considered:** Delete the files from Git or quarantine them outside the
+repository. Rejected because the human wants offline samples available to users and
+evaluators.
+
+## D-018: Keep GitHub Actions as the scheduler
+
+**Status:** `ACCEPTED`
+
+**Context:** A suggestion was made to consider Python cron jobs for the weekly
+ingestion instead of GitHub Actions.
+
+**Decision:** Keep the accepted GitHub Actions workflow with `on.schedule.cron` as the
+scheduler and `workflow_dispatch` for manual runs. The Python ETL remains a CLI entry
+point (`python -m etl.run --mode weekly`) and is scheduler-agnostic.
+
+**Rationale:** No always-on host, no card, no second writer, protected secrets, audit
+logs, artifacts, and reproducibility. An external cron host would add hosting,
+secret-management, and operational burden and conflict with `D-002`, `D-005`, `D-006`,
+and `D-008`.
+
+**Consequences:** `warehouse.yml` uses a weekly cron schedule; no five-minute polling.
+A future requirement for an external cron host needs a new human decision.
+
+## D-019: Weekly Monday 06:00 UTC schedule; artifact report mode
+
+**Status:** `ACCEPTED`
+
+**Context:** The project requires a reproducible, low-maintenance weekly ingestion and reporting cadence.
+
+**Decision:**
+- **Schedule:** Monday 06:00 UTC.
+- **Manual inputs:** defaults to the last 7 days, `publish_reports: true`, sites `KBTP`, `KAGC`.
+- **Report mode:** `artifact`.
+
+**Rationale:** Captures the full weekend, ensures availability for the team, and avoids expensive serverless hosting. `artifact` mode keeps reports in Git-accessible Action run artifacts rather than polluting the commit history.
+
+**Consequences:** `warehouse.yml` must be configured with this cron schedule. Reports are accessible via Action artifacts.
 
 ## Change process
 

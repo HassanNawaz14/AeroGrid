@@ -39,6 +39,8 @@ Implement the Phase 2 deliverables required by
 
 - **Real data only.** No synthetic flights, weather, vehicles, restrictions, or
   encounters.
+- **Legacy samples are demo-only.** The small synthetic files under `data/sample/` are
+  retained for offline user/evaluator viewing and are never loaded into Phase 2.
 - **Cloud-only shared warehouse.** Neon Free PostgreSQL is the current proposal.
 - **No Docker** and no local PostgreSQL dependency.
 - **Free tiers only.** No credit card, paid plan, trial, or billing account.
@@ -111,8 +113,9 @@ Statuses use the vocabulary in [AGENTS.md](AGENTS.md). Detail is in
 **Blocker:** implementation is intentionally blocked until the human completes `G1`.
 
 **Next human action:** review this documentation baseline, confirm or change the
-proposed decisions, assign real names to Members A-E, and complete the human action
-queue in [PROGRESS.md](PROGRESS.md).
+proposed decisions, assign real names to Members B-E, and complete the human action
+queue in [PROGRESS.md](PROGRESS.md). `H-002` remains blocked until Members B-E choose
+roles and provide real names.
 
 Do not create Neon, GitHub, or database resources from an agent session. The human
 operating manual lists the exact prerequisites and safe order.

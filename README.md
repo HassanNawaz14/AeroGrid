@@ -114,8 +114,8 @@ restriction windows, and reporting views. See
 | Member D | Tracking and journey facts |
 | Member E | Derived facts, data quality, reporting views, PDFs |
 
-Members A-E are placeholders until the human assigns real names in
-[`Phase2/PROGRESS.md`](Phase2/PROGRESS.md).
+Member A is HassanNawaz14; Members B-E are placeholders until the human assigns real
+names in [`Phase2/PROGRESS.md`](Phase2/PROGRESS.md).
 
 ## Repository map
 
@@ -143,10 +143,10 @@ AeroGrid/
 ## Data status
 
 - The data documentation under `data/` has been synchronized with the Phase 2 model.
-- The legacy `data/sample/` files are synthetic demo artifacts and are excluded from
-  Phase 2. They remain tracked from the earlier repository state; `H-008` in
-  [`Phase2/PROGRESS.md`](Phase2/PROGRESS.md) tracks their human review and removal or
-  quarantine. They must not be loaded or cited as real data.
+- The legacy `data/sample/` files are synthetic demo artifacts retained intentionally
+  for offline user/evaluator viewing. They are excluded from Phase 2, are never loaded
+  or cited as real data, and are documented in
+  [`data/sample/README.md`](data/sample/README.md) (`D-017`).
 - Raw Phase 2 archives belong in object storage, not in Git.
 
 ## What happens next
@@ -155,7 +155,7 @@ The next action belongs to the human:
 
 1. Review the Phase 2 baseline.
 2. Confirm or amend the proposed decisions.
-3. Assign real names to Members A-E.
+3. Assign real names to Members B-E.
 4. Create the Neon and GitHub resources.
 5. Complete the human action queue in
    [`Phase2/PROGRESS.md`](Phase2/PROGRESS.md).
