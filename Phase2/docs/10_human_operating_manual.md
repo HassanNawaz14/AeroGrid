@@ -44,14 +44,15 @@ The canonical queue is in [`../PROGRESS.md`](../PROGRESS.md). Current actions:
 | `H-007` | Authorize implementation after G1 | Opens the implementation phase |
 | `H-008` | Confirm handling of tracked legacy synthetic samples | Prevents synthetic demo files from being mistaken for real Phase 2 data; resolved by retaining them as documented demo-only artifacts |
 
-`H-003` is complete: project `AeroGrid-DW`, branch `br-royal-cherry-beij6hxw`,
-database `neondb`, bucket `aerogrid-raw`, and the storage endpoint are recorded in
-[`../PROGRESS.md`](../PROGRESS.md) → Neon resource record. `H-008` is resolved by
-`D-017`: the five sample files are intentionally retained for offline user/evaluator
-viewing and are never loaded into Phase 2. `H-002` remains blocked until Members B-E
-choose roles and provide real names.
+`H-003` and `H-004` are complete: project `AeroGrid-DW`, branch
+`br-royal-cherry-beij6hxw`, database `neondb`, bucket `aerogrid-raw`, and the storage
+endpoint are recorded in [`../PROGRESS.md`](../PROGRESS.md) → Neon resource record.
+The GitHub `warehouse` environment and its six required secrets are in place; `main`
+is protected. `H-008` is resolved by `D-017`: the five sample files are intentionally
+retained for offline user/evaluator viewing and are never loaded into Phase 2. `H-002`
+remains blocked until Members B-E choose roles and provide real names.
 
-Detailed steps for `H-004` to `H-007` are in
+Detailed steps for `H-005` to `H-007` are in
 [`../PROGRESS.md`](../PROGRESS.md) under `G1 execution checklist`.
 
 Do not start `WP-02` or later until `H-001` through `H-008` are resolved in the order
@@ -61,17 +62,18 @@ that the work package requires.
 
 Before marking `G1` done:
 
-- [ ] The human has read the scope, architecture, sources, model, and plan.
-- [ ] The human accepts the free-tier platform and its limits.
+- [x] The human has read the scope, architecture, sources, model, and plan.
+- [x] The human accepts the free-tier platform and its limits.
 - [ ] The human accepts the source list and license posture.
-- [ ] The human accepts the multi-site model and `dim_site`.
+- [x] The human accepts the multi-site model and `dim_site`.
 - [ ] Member A is HassanNawaz14; Members B-E have real names, or the B-E placeholders
       are explicitly accepted for planning only.
 - [x] The Neon project `AeroGrid-DW` and raw bucket `aerogrid-raw` exist.
-- [ ] The GitHub `warehouse` environment exists.
-- [ ] Required secrets are stored in GitHub, not in the repository.
+- [x] The GitHub `warehouse` environment exists.
+- [x] Required secrets are stored in GitHub, not in the repository.
+- [x] `main` is protected with pull requests, review, and force-push/deletion blocks.
 - [ ] Members can be invited and read-only access is planned.
-- [ ] Legacy synthetic samples are explicitly documented as demo-only and excluded
+- [x] Legacy synthetic samples are explicitly documented as demo-only and excluded
       from Phase 2 (`D-017`).
 - [ ] `implementation_authorized` is set to `YES` only after all of the above.
 
