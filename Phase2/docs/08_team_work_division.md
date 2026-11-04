@@ -17,13 +17,13 @@ work. Member A is HassanNawaz14. The human replaces Members B-E with real names 
 
 ## Member roles
 
-| Placeholder | Role | Primary scope | Secondary scope |
+| Name / Username | Role | Primary scope | Secondary scope |
 |---|---|---|---|
 | HassanNawaz14 (Member A) | Platform and integration lead | Cloud setup, CI, access, integration, release | Documentation, human action queue, demo |
-| Member B | Source and staging engineer | Source clients, raw archive, staging, cleaning | Source validation, reject analysis |
-| Member C | Data model engineer | Schema, dimensions, keys, dictionary, ERD | Integrity checks, SQL review |
-| Member D | Flight analytics engineer | Tracking and journey facts | Reconciliation, trajectory logic |
-| Member E | Derived analytics and quality engineer | Derived facts, DQ, reporting views, PDFs | Reporting demos, threshold analysis |
+| Hamid4325 (Member B) | Source and staging engineer | Source clients, raw archive, staging, cleaning | Source validation, reject analysis |
+| HarveyWebbs (Member C) | Data model engineer | Schema, dimensions, keys, dictionary, ERD | Integrity checks, SQL review |
+| ahmadazad-dev (Member D) | Flight analytics engineer | Tracking and journey facts | Reconciliation, trajectory logic |
+| x-abdullah-saeed-x (Member E) | Derived analytics and quality engineer | Derived facts, DQ, reporting views, PDFs | Reporting demos, threshold analysis |
 
 ## Work package ownership
 

@@ -7,8 +7,8 @@ read it before acting. Update it at the end of every work session.
 |---|---|
 | Last updated | `2026-11-04` |
 | Phase state | `BASELINE_ACCEPTED_GATE_G1_IN_PROGRESS` |
-| Implementation authorized | `NO` |
-| Current gate | `G1 - Human prerequisites` |
+| Implementation authorized | `YES` |
+| Current gate | `G1 Cleared / WP-02 and WP-03 Ready` |
 | Current gate status | `BLOCKED_ON_HUMAN` |
 | Active work package | `WP-01` human prerequisites and shared platform |
 | Active work package status | `BLOCKED_ON_HUMAN` |
@@ -55,9 +55,9 @@ Gate definitions are canonical in
 | WP | Title | Owner | Depends on | Status | Next action |
 |---|---|---|---|---|---|
 | `WP-00` | Documentation and folder baseline | HassanNawaz14 | none | `DONE` | Accepted via `H-001` |
-| `WP-01` | Human prerequisites and shared platform | HassanNawaz14 | `WP-00` | `BLOCKED_ON_HUMAN` | HassanNawaz14 executes `G-02` (`H-002` deferred; `H-003` to `H-006`, `G-01`, and `H-008` resolved) |
-| `WP-02` | Platform validation and access proof | HassanNawaz14 | `WP-01` | `NOT_STARTED` | Wait for `G1` |
-| `WP-03` | Source validation and georeferencing | Member B | `WP-01` | `NOT_STARTED` | Wait for `G1`; can prepare read-only checks |
+| `WP-01` | Human prerequisites and shared platform | HassanNawaz14 | `WP-00` | `DONE` | G1 cleared; proceed with WP-02 and WP-03. |
+| `WP-02` | Platform validation and access proof | HassanNawaz14 | `WP-01` | `READY` | Begin WP-02 |
+| `WP-03` | Source validation and georeferencing | Member B | `WP-01` | `READY` | Wait for Member B |
 | `WP-04` | Staging DDL and loaders | Member B | `WP-03` | `NOT_STARTED` | Wait for `G2` |
 | `WP-05` | Dimensions, keys, and dictionary | Member C | `WP-02`, model approval | `NOT_STARTED` | Wait for `G2` |
 | `WP-06` | Tracking and journey facts | Member D | `WP-04`, `WP-05` | `NOT_STARTED` | Wait for `G3` |
@@ -78,7 +78,7 @@ Gate definitions are canonical in
 | `H-004` | Add GitHub environment secrets for the warehouse | CI cannot connect to Neon without secrets | `warehouse` environment created and the six required secrets added; values not recorded | `DONE` |
 | `H-005` | Invite the other members and create read-only access | All five members must read the shared warehouse | Invitations sent to members; `aerogrid_reader` role and read-only plan recorded | `DONE` |
 | `H-006` | Confirm data licenses, attribution, and optional OpenSky access | Redistribution and source-use terms must be confirmed | Confirmed data licenses, attribution requirements, and optional OpenSky access (`D-011`, `D-012`, `D-013`, `docs/03_data_sources_and_licensing.md`) | `DONE` |
-| `H-007` | Explicitly authorize Phase 2 implementation | Opens the implementation phase | After `H-002` to `H-006` complete (`H-008` resolved), HassanNawaz14 sets `implementation_authorized: YES` and assigns `WP-02`/`WP-03` | `OPEN` |
+| `H-007` | Explicitly authorize Phase 2 implementation | Opens the implementation phase | **DONE 2026-11-04** — Authorized implementation; G1 closed; WP-02/WP-03 assigned | `DONE` |
 | `H-008` | Confirm handling of the tracked legacy synthetic samples under `data/sample/` | Prevents synthetic demo files from being mistaken for real Phase 2 data | HassanNawaz14 confirmed the five files are intentionally retained as demo-only artifacts for offline user/evaluator viewing; excluded from all Phase 2 loads and reports; `D-017` | `DONE` |
 
 `H-002` remains `BLOCKED` until Members B-E choose roles and provide real names.
@@ -123,7 +123,7 @@ canonical steps for the Neon setup are also in
 | ID | Blocker | Impact | Human action | Status |
 |---|---|---|---|---|
 | `B-001` | Phase 2 implementation is not authorized | No SQL, ETL, CI, or cloud resource work can begin | `H-007` | `OPEN` |
-| `B-002` | Member access is incomplete | Cannot give Members B-E read access | `H-002`, `H-005` | `OPEN` |
+| `B-002` | Member access is incomplete | Cannot give Members B-E read access | `H-005` | `RESOLVED` (Members invited; H-002 deferred) |
 | `B-003` | Proposed platform and source decisions need confirmation | Cannot freeze architecture or source contracts | `H-001`, `H-006` | `RESOLVED` (Accepted by HassanNawaz14 via `H-001`) |
 | `B-004` | TartanAviation georeferencing is not yet validated | Spatial facts may need a fallback design | Authorize `WP-03` source spike | `OPEN` |
 | `B-005` | Documentation baseline is awaiting human acceptance | `G0`/`G1` cannot close | `H-001` | `RESOLVED` (Accepted by HassanNawaz14) |

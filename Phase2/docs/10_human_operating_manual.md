@@ -66,16 +66,16 @@ Before marking `G1` done:
 - [x] The human accepts the free-tier platform and its limits.
 - [ ] The human accepts the source list and license posture.
 - [x] The human accepts the multi-site model and `dim_site`.
-- [ ] Member A is HassanNawaz14; Members B-E have real names, or the B-E placeholders
-      are explicitly accepted for planning only.
+- [x] Member A is HassanNawaz14; Members B-E have real names, or the B-E placeholders
+      are explicitly accepted for planning only (H-002 deferred per human instruction).
 - [x] The Neon project `AeroGrid-DW` and raw bucket `aerogrid-raw` exist.
 - [x] The GitHub `warehouse` environment exists.
 - [x] Required secrets are stored in GitHub, not in the repository.
 - [x] `main` is protected with pull requests, review, and force-push/deletion blocks.
-- [ ] Members can be invited and read-only access is planned.
+- [x] Members can be invited and read-only access is planned.
 - [x] Legacy synthetic samples are explicitly documented as demo-only and excluded
       from Phase 2 (`D-017`).
-- [ ] `implementation_authorized` is set to `YES` only after all of the above.
+- [x] `implementation_authorized` is set to `YES` only after all of the above.
 
 If an item cannot be completed, record it as a blocker. Do not mark the gate done.
 
