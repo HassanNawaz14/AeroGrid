@@ -35,6 +35,7 @@ decision. Use the template in [templates/DECISION_RECORD.md](templates/DECISION_
 | `D-016` | Work in gated work packages with named owners A-E | `ACCEPTED` | Documentation baseline |
 | `D-017` | Retain legacy synthetic samples in `data/sample/` as documented demo-only artifacts | `ACCEPTED` | Accepted by HassanNawaz14 |
 | `D-018` | Keep GitHub Actions scheduled workflow as the Phase 2 scheduler; no external Python/OS cron host | `ACCEPTED` | Accepted by HassanNawaz14 |
+| `D-019` | Weekly Monday 06:00 UTC schedule; artifact report mode | `ACCEPTED` | Accepted by HassanNawaz14 |
 
 ## D-001: Neon Free PostgreSQL
 
@@ -333,6 +334,21 @@ and `D-008`.
 
 **Consequences:** `warehouse.yml` uses a weekly cron schedule; no five-minute polling.
 A future requirement for an external cron host needs a new human decision.
+
+## D-019: Weekly Monday 06:00 UTC schedule; artifact report mode
+
+**Status:** `ACCEPTED`
+
+**Context:** The project requires a reproducible, low-maintenance weekly ingestion and reporting cadence.
+
+**Decision:**
+- **Schedule:** Monday 06:00 UTC.
+- **Manual inputs:** defaults to the last 7 days, `publish_reports: true`, sites `KBTP`, `KAGC`.
+- **Report mode:** `artifact`.
+
+**Rationale:** Captures the full weekend, ensures availability for the team, and avoids expensive serverless hosting. `artifact` mode keeps reports in Git-accessible Action run artifacts rather than polluting the commit history.
+
+**Consequences:** `warehouse.yml` must be configured with this cron schedule. Reports are accessible via Action artifacts.
 
 ## Change process
 
