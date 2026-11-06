@@ -275,7 +275,18 @@ GRANT USAGE ON SCHEMA project_staging TO aerogrid_reader;
 GRANT SELECT ON project_staging.wp02_read_probe TO aerogrid_reader;
 ```
 
-Then connect with the `aerogrid_reader` connection string and run each block:
+If you are already connected as the project owner, you do not need a second
+connection: assume the role for the checks instead. Role membership is required the
+first time; `REVOKE` it afterwards if you want the owner to stop being a member.
+
+```sql
+GRANT aerogrid_reader TO neondb_owner;  -- owner only; one-time, reversible
+SET ROLE aerogrid_reader;
+SELECT current_user;                    -- must print aerogrid_reader
+```
+
+Then run each block, and finish with `RESET ROLE;`. Otherwise connect with the
+`aerogrid_reader` connection string and run the same blocks:
 
 ```sql
 -- Expected: one row with count 1.
