@@ -4,8 +4,8 @@
 
 This document defines the accepted operating model. The Neon project, database,
 bucket, `aerogrid_etl` and `aerogrid_reader` roles, GitHub `warehouse` environment,
-and required secrets exist. The `WP-02` validation workflow has run and proved CI
-writer and storage access; the read-only proof, schema grants, ETL, and the production
+and required secrets exist. The `WP-02` validation workflow passed on 2026-11-07,
+proving CI writer, storage, and read-only access; schema grants, ETL, and the production
 workflow remain pending. The human owns all account and secret actions.
 
 ## Operating model
@@ -58,13 +58,13 @@ workflow remain pending. The human owns all account and secret actions.
 
 - Neon project `AeroGrid-DW`, branch `production`, database `neondb`, bucket
   `aerogrid-raw`: created.
-- `aerogrid_etl` and `aerogrid_reader` roles: created; schema/table grants follow
-  `WP-04`/`WP-05`/`WP-10`.
+- `aerogrid_etl` and `aerogrid_reader` roles: created; the reader was recreated from SQL
+  on 2026-11-07 without `neon_superuser`; schema/table grants follow `WP-04`/`WP-05`/`WP-10`.
 - GitHub `warehouse` environment and six required secrets: created.
 - `main` protection: confirmed.
 - Member invitations: sent.
 - Platform validation workflow `.github/workflows/platform-validation.yml` and probe
-  script `.github/scripts/platform_probe.py`: created and executed 2026-11-06; result
+  script `.github/scripts/platform_probe.py`: executed 2026-11-07 with `PASS`; result
   recorded in [`../PROGRESS.md`](../PROGRESS.md).
 - Production workflow YAML: not created.
 
@@ -243,14 +243,19 @@ it manually.
 
 ### Recorded result
 
-Run [42266493857](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42266493857)
-on 2026-11-06 returned `PARTIAL`: 13 pass, 2 warn, 1 skip, 0 fail. It proved the writer
-connection, temporary-table write, statement timeout, database size, bucket
-put/head/read-back/delete, warm connection, and free-tier headroom. The two warnings
-were the expected absent schemas and the absent probe table; the skip was the
-unconfigured reader connection. Neon terminates client TLS at its proxy, so
-`pg_stat_ssl` cannot show TLS on the compute; an established `sslmode=require`
-connection is the accepted encryption proof.
+Run [42276737288](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42276737288)
+on 2026-11-07 returned `PASS`: 22 pass, 1 warn, 0 fail, 0 skip. It proved the writer
+connection over TLS, temporary-table write, statement timeout, database size, bucket
+put/head/read-back/delete, warm connection, free-tier headroom, and that
+`aerogrid_reader` is rejected with SQLSTATE `42501` on insert, update, delete, create
+table, and create schema while still selecting. The one warning is the absent
+`project_dw` and `project_reporting` schemas, which `WP-04`/`WP-05` create. Neon
+terminates client TLS at its proxy, so `pg_stat_ssl` cannot show TLS on the compute; an
+established `sslmode=require` connection is the accepted encryption proof.
+
+Earlier runs on 2026-11-06 were `PARTIAL` and then `FAIL`; the failure exposed
+`aerogrid_reader` inheriting `neon_superuser` (see `B-007` in
+[`../PROGRESS.md`](../PROGRESS.md)). The role was replaced and the rerun passed.
 
 ### Manual read-only proof
 

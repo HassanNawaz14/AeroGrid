@@ -6,14 +6,14 @@ read it before acting. Update it at the end of every work session.
 | Field | Value |
 |---|---|
 | Last updated | `2026-11-06` |
-| Phase state | `G2_IN_PROGRESS_WP-02_BLOCKED_ON_HUMAN_WP-03_READY` |
+| Phase state | `G2_IN_PROGRESS_WP-02_READY_FOR_REVIEW_WP-03_READY` |
 | Implementation authorized | `YES` (`H-007`, 2026-11-04) |
 | Current gate | `G2 - Platform and source readiness` |
-| Current gate status | `IN_PROGRESS (WP-02 writer/storage pass; reader write privilege blocks B-007; WP-03 READY)` |
+| Current gate status | `IN_PROGRESS (WP-02 READY_FOR_REVIEW; WP-03 READY)` |
 | Active work package | `WP-02` platform validation and access proof |
-| Active work package status | `BLOCKED_ON_HUMAN` |
+| Active work package status | `READY_FOR_REVIEW` |
 | Next work package | `WP-03` source validation (Member B; may run in parallel) |
-| Next action owner | HassanNawaz14 (Member A) for the read-only proof in `H-009`; Hamid4325 (Member B) for WP-03 |
+| Next action owner | Members B and C for WP-02 review; Hamid4325 (Member B) for WP-03 |
 
 ## Status vocabulary
 
@@ -41,7 +41,7 @@ Gate definitions are canonical in
 |---|---|---|---|
 | `G0` | Documentation, plan, and folder baseline exist and links are valid | `DONE` | HassanNawaz14 |
 | `G1` | Human approvals, named owners, Neon/GitHub access, and secrets ready | `DONE` (`H-007`; `H-002` deferred) | HassanNawaz14 |
-| `G2` | Platform access and source validation spikes pass | `IN_PROGRESS` (`WP-02` CI proof `PASS`; read-only proof open) | HassanNawaz14 / Member B |
+| `G2` | Platform access and source validation spikes pass | `IN_PROGRESS` (`WP-02` `READY_FOR_REVIEW`; `WP-03` `READY`) | HassanNawaz14 / Member B |
 | `G3` | Staging, physical schema, constraints, indexes, keys, and seeds validated | `NOT_STARTED` | Members B/C |
 | `G4` | Core tracking and journey facts loaded and reconciled | `NOT_STARTED` | Member D |
 | `G5` | Derived facts and approved thresholds validated | `NOT_STARTED` | Member E |
@@ -56,7 +56,7 @@ Gate definitions are canonical in
 |---|---|---|---|---|---|
 | `WP-00` | Documentation and folder baseline | HassanNawaz14 | none | `DONE` | Accepted via `H-001` |
 | `WP-01` | Human prerequisites and shared platform | HassanNawaz14 | `WP-00` | `DONE` | G1 cleared; proceed with WP-02 and WP-03. |
-| `WP-02` | Platform validation and access proof | HassanNawaz14 | `WP-01` | `BLOCKED_ON_HUMAN` | Writer and storage proofs pass; reader write privilege must be revoked (`B-007`) and rerun (`H-009`) |
+| `WP-02` | Platform validation and access proof | HassanNawaz14 | `WP-01` | `READY_FOR_REVIEW` | Final run [42276737288](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42276737288) `PASS`; awaiting review by Members B and C and merge of PR #3 |
 | `WP-03` | Source validation and georeferencing | Member B | `WP-01` | `READY` | Member B may begin; start with Tartan georeferencing (`B-004`) |
 | `WP-04` | Staging DDL and loaders | Member B | `WP-03` | `NOT_STARTED` | Wait for `G2` |
 | `WP-05` | Dimensions, keys, and dictionary | Member C | `WP-02`, model approval | `NOT_STARTED` | Wait for `G2` |
@@ -80,7 +80,7 @@ Gate definitions are canonical in
 | `H-006` | Confirm data licenses, attribution, and optional OpenSky access | Redistribution and source-use terms must be confirmed | Confirmed data licenses, attribution requirements, and optional OpenSky access (`D-011`, `D-012`, `D-013`, `docs/03_data_sources_and_licensing.md`) | `DONE` |
 | `H-007` | Explicitly authorize Phase 2 implementation | Opens the implementation phase | **DONE 2026-11-04** — Authorized implementation; G1 closed; WP-02/WP-03 assigned | `DONE` |
 | `H-008` | Confirm handling of the tracked legacy synthetic samples under `data/sample/` | Prevents synthetic demo files from being mistaken for real Phase 2 data | HassanNawaz14 confirmed the five files are intentionally retained as demo-only artifacts for offline user/evaluator viewing; excluded from all Phase 2 loads and reports; `D-017` | `DONE` |
-| `H-009` | Run the `WP-02` validation workflow and confirm read-only access | The probe needs the `warehouse` secrets, and the read-only connection string is member-only | Runs [42266493857](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42266493857) and [42272052476](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42272052476) are done; `READONLY_DATABASE_URL` is now a `warehouse` secret. **Remaining:** delete `aerogrid_reader` in the Neon Console, recreate it from SQL with `SELECT`-only grants, reset its password, update the secret, then let the agent rerun the workflow. Never paste secret values. | `OPEN` |
+| `H-009` | Run the `WP-02` validation workflow and confirm read-only access | The probe needs the `warehouse` secrets, and the read-only connection string is member-only | Runs [42266493857](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42266493857) and [42272052476](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42272052476) are done. `aerogrid_reader` was replaced on 2026-11-07 (console delete, SQL recreate, password reset, secret updated). Final run [42276737288](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42276737288) `PASS`: 22 pass, 1 warn, 0 fail, 0 skip; every negative reader check rejected with SQLSTATE `42501`. | `DONE` |
 
 `H-002` remains `BLOCKED` until Members B-E choose roles and provide real names.
 `H-008` is resolved by `D-017`; the legacy samples are retained as demo-only artifacts
@@ -129,7 +129,7 @@ canonical steps for the Neon setup are also in
 | `B-004` | TartanAviation georeferencing is not yet validated | Spatial facts may need a fallback design | `WP-03` (authorized 2026-11-04) | `OPEN` |
 | `B-005` | Documentation baseline is awaiting human acceptance | `G0`/`G1` cannot close | `H-001` | `RESOLVED` (Accepted by HassanNawaz14) |
 | `B-006` | Legacy synthetic files remain tracked under `data/sample/` | They are intentionally retained for offline demo/evaluator viewing and must not be mistaken for real data | `H-008`, `D-017` | `RESOLVED` (Retained as documented demo-only samples via `D-017`) |
-| `B-007` | `aerogrid_reader` can insert into `project_staging.wp02_read_probe` | The read-only guarantee is not met, and `WP-02`/`G2` cannot close | Root cause: the role is a member of `neon_superuser`, and `neondb_owner` has no ADMIN on it, so it cannot be revoked, altered, or dropped from SQL. Fix: delete the role in the Neon Console, recreate it from SQL, reset its password, update `READONLY_DATABASE_URL` (`docs/07`). | `OPEN` |
+| `B-007` | `aerogrid_reader` could insert into `project_staging.wp02_read_probe` | The read-only guarantee was not met, and `WP-02`/`G2` could not close | Root cause: the platform-created role was a member of `neon_superuser`, and `neondb_owner` has no ADMIN on it, so it could not be revoked, altered, or dropped from SQL. Fixed 2026-11-07 by deleting the role in the Neon Console and recreating it from SQL with `SELECT`-only grants; run `42276737288` shows `42501` on insert, update, delete, create table, and create schema. | `RESOLVED` |
 
 ## Documentation baseline evidence
 
@@ -207,6 +207,22 @@ replaced through the Neon Console and recreated from SQL. The run left probe row
 in the table; the probe now removes that row when the insert unexpectedly succeeds,
 and the remediation steps in `docs/07` delete the existing one.
 
+Third run, [42276737288](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42276737288)
+(2026-11-07), after the role was replaced: `PASS`, 22 pass, 1 warn, 0 fail, 0 skip.
+
+| Check | Result | Evidence |
+|---|---|---|
+| Reader connection | `PASS` | connected as `aerogrid_reader` in 72 ms |
+| Reader select | `PASS` | `SELECT 1` succeeded |
+| Reader select probe table | `PASS` | 1 row visible |
+| Reader insert / update / delete | `PASS` | each rejected with SQLSTATE `42501` |
+| Reader create table / create schema | `PASS` | each rejected with SQLSTATE `42501` |
+| Writer, storage, TLS, timeout, size, quota | `PASS` | same evidence as the first run; warm connection 90 ms |
+
+The single warning is the absent `project_dw` and `project_reporting` schemas, which
+`WP-04`/`WP-05` create. `project_staging` now exists because `WP-02` needed a probe
+object; `WP-04` owns the real staging tables.
+
 Caveats:
 
 1. Neon terminates client TLS at its proxy, so `pg_stat_ssl` on the compute reports no
@@ -235,6 +251,7 @@ Caveats:
 | `2026-11-06` | HassanNawaz14 | Human | `WP-02` | Authored the platform validation probe and manual-dispatch workflow; documented the manual read-only proof; opened `H-009` to run it. No database or storage write was executed by the agent. | `.github/scripts/platform_probe.py`, `.github/workflows/platform-validation.yml`, `.github/workflows/README.md`, `Phase2/docs/07`, `Phase2/docs/10`, `Phase2/PROGRESS.md` | Python compile, YAML parse, link and secret scans | Human completes `H-009`, then record run evidence and close `G2` |
 | `2026-11-06` | HassanNawaz14 | Human | `WP-02` | Ran the validation workflow on `phase2/wp-02-platform-validation` under explicit delegation. Final run [42266493857](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42266493857): 13 pass, 2 warn, 1 skip, 0 fail. Writer connect/write, storage put/head/read-back/delete, timeout, size, and quotas proven; TLS accepted via `sslmode=require`; read-only proof still open. Temporary push trigger removed and environment protection restored. | `.github/scripts/platform_probe.py`, `.github/workflows/platform-validation.yml`, `Phase2/PROGRESS.md` | Five workflow runs; log review; environment protection re-checked | Complete the read-only proof in `H-009`, then close `WP-02` and `G2` |
 | `2026-11-06` | HassanNawaz14 | Human | `WP-02` | Reader proof run [42272052476](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42272052476) with the rotated reader secret: 17 pass, 1 warn, 1 fail. Reader can `SELECT` but also `INSERT`, so `B-007` opened; probe negative cases made non-destructive and the leaked test row is cleaned up. | `.github/scripts/platform_probe.py`, `.github/workflows/platform-validation.yml`, `Phase2/PROGRESS.md`, `Phase2/docs/07` | Workflow run log review; YAML and Python checks | Human revokes reader write privilege, then rerun `H-009` |
+| `2026-11-07` | HassanNawaz14 | Reviewers B/C | `WP-02` | Replaced the platform-created reader role with a `SELECT`-only role, then reran validation: [42276737288](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42276737288) `PASS` (22 pass, 1 warn, 0 fail, 0 skip; all negative reader checks `42501`). `B-007` and `H-009` closed; `WP-02` moved to `READY_FOR_REVIEW`. Temporary push trigger removed and environment protection restored. | `.github/workflows/platform-validation.yml`, `Phase2/PROGRESS.md`, `Phase2/docs/07`, `Phase2/docs/10`, `README.md`, `AGENTS.md`, `Phase2/README.md`, `Phase2/AGENTS.md`, `Phase2/dev_plan/01`-`02`, `Phase2/dev_plan/README.md`, `Phase2/docs/01`, `Phase2/docs/09` | Run log review; YAML parse; link and stale-status greps | Members B and C review PR #3 and sign off; then close `WP-02` and `G2` |
 
 ## Change log
 
@@ -253,6 +270,7 @@ Caveats:
 | `2026-11-06` | Added the `WP-02` probe and manual-dispatch validation workflow; `WP-02` is `BLOCKED_ON_HUMAN` on `H-009` | HassanNawaz14 | `WP-02`, `H-009` |
 | `2026-11-06` | Executed the `WP-02` validation runs: CI writer and storage proof passed; TLS accepted via `sslmode=require`; read-only proof remains | HassanNawaz14 | `WP-02`, `H-009` |
 | `2026-11-06` | Reader proof failed: `aerogrid_reader` holds write access to the probe table (`B-007`); remediation documented and rerun required | HassanNawaz14 | `WP-02`, `H-009`, `B-007` |
+| `2026-11-07` | Closed `B-007`/`H-009` after replacing the reader role; `WP-02` is `READY_FOR_REVIEW` with a `PASS` validation run | HassanNawaz14 | `WP-02`, `H-009`, `B-007` |
 
 ## Update protocol
 

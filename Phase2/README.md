@@ -7,10 +7,9 @@ Phase 2 documentation, planning, status, and future implementation.
 **Implementation status: AUTHORIZED (2026-11-04, `H-007`).** The documentation and
 folder baseline is accepted (`G0`/`H-001`), the `G1` human prerequisites are closed,
 and `WP-02` (platform validation) and `WP-03` (source validation) are authorized.
-`WP-02` has run its platform validation successfully (2026-11-06) and is
-`BLOCKED_ON_HUMAN` on only the read-only proof in `H-009`; `WP-03` is `READY` for
-Member B. The Neon project and raw bucket exist; no Phase 2 SQL or ETL code exists yet.
-The next gate is `G2`.
+`WP-02` has run its platform validation successfully (2026-11-07) and is
+`READY_FOR_REVIEW`; `WP-03` is `READY` for Member B. The Neon project and raw bucket
+exist; no Phase 2 SQL or ETL code exists yet. The next gate is `G2`.
 
 ## Quick links
 
@@ -100,7 +99,7 @@ Statuses use the vocabulary in [AGENTS.md](AGENTS.md). Detail is in
 |---|---|---|
 | `WP-00` Documentation and folder baseline | Member A | `DONE` |
 | `WP-01` Human prerequisites and shared platform | Member A + human | `DONE` |
-| `WP-02` Platform validation and access proof | Member A | `BLOCKED_ON_HUMAN` (`H-009` read-only proof) |
+| `WP-02` Platform validation and access proof | Member A | `READY_FOR_REVIEW` |
 | `WP-03` Source validation and georeferencing | Member B | `READY` |
 | `WP-04` Staging DDL and loaders | Member B | `NOT_STARTED` |
 | `WP-05` Dimensions, keys, and dictionary | Member C | `NOT_STARTED` |
@@ -114,15 +113,14 @@ Statuses use the vocabulary in [AGENTS.md](AGENTS.md). Detail is in
 
 ## Current blockers and next action
 
-**`WP-02` awaits only the read-only proof in `H-009`; `WP-03` can start.** The `WP-02`
-CI validation run passed on 2026-11-06 (13 pass, 2 warn, 1 skip); the remaining skip is
-the read-only role, which needs the member-only connection string. `H-002` remains
-deferred by the human; the Member B-E names are recorded in
+**`WP-02` is ready for review; `WP-03` can start.** The final validation run passed on
+2026-11-07 (22 pass, 1 warn, 0 fail), including every read-only role check. `H-002`
+remains deferred by the human; the Member B-E names are recorded in
 [docs/08_team_work_division.md](docs/08_team_work_division.md). `B-004`
 (TartanAviation georeferencing) is the first task in `WP-03`.
 
-**Next actions:** HassanNawaz14 runs the manual read-only proof for `WP-02` (`H-009`);
-Member B starts `WP-03` source validation.
+**Next actions:** Members B and C review `WP-02` (PR #3); Member B starts `WP-03` source
+validation.
 Human-only actions still require the human (for example, grants, secret changes, or
 destructive operations).
 

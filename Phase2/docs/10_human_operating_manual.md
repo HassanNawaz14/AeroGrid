@@ -21,8 +21,7 @@ warehouse without exposing secrets.
 - Phase 2 documentation and planning baseline is accepted (`G0`/`H-001`).
 - Implementation is **authorized** (`H-007`, 2026-11-04).
 - `G1` is closed; the current gate is `G2`.
-- `WP-02` is `BLOCKED_ON_HUMAN` on the remaining read-only proof in `H-009`; `WP-03` is
-  `READY` and authorized.
+- `WP-02` is `READY_FOR_REVIEW`; `WP-03` is `READY` and authorized.
 
 ## The one rule for secrets
 
@@ -44,7 +43,7 @@ The canonical queue is in [`../PROGRESS.md`](../PROGRESS.md). Current status:
 | `H-006` | Confirm licenses and optional OpenSky terms | `DONE` |
 | `H-007` | Authorize implementation after G1 | `DONE` 2026-11-04 |
 | `H-008` | Confirm handling of tracked legacy synthetic samples | `DONE` via `D-017` |
-| `H-009` | Run the `WP-02` platform validation workflow and confirm read-only access | `OPEN`; workflow run done, read-only proof pending - see below |
+| `H-009` | Run the `WP-02` platform validation workflow and confirm read-only access | `DONE` 2026-11-07; run `42276737288` `PASS` after the reader role was replaced |
 
 Project `AeroGrid-DW`, branch `br-royal-cherry-beij6hxw`, database `neondb`, bucket
 `aerogrid-raw`, and the storage endpoint are recorded in
@@ -53,39 +52,33 @@ environment and its six required secrets are in place; `main` is protected. `H-0
 remains deferred; the Member B-E names are recorded in
 [docs/08_team_work_division.md](08_team_work_division.md).
 
-`WP-02` and `WP-03` are authorized. `WP-02` is `BLOCKED_ON_HUMAN` until `H-009` is
-done; `WP-03` proceeds with Member B. Do not start a later work package until its gate
-is recorded in `../PROGRESS.md`.
+`WP-02` and `WP-03` are authorized. `WP-02` is `READY_FOR_REVIEW`; `WP-03` proceeds with
+Member B. Do not start a later work package until its gate is recorded in
+`../PROGRESS.md`.
 
-## Current action: prove read-only access (`H-009`)
+## Current action: review `WP-02`
 
-The workflow part of `H-009` is complete. Run
-[42266493857](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42266493857)
-returned `PARTIAL`: 13 pass, 2 warn, 1 skip, 0 fail. CI proved the writer connection,
-temporary-table write, statement timeout, database size, bucket put/head/read-back/
-delete, warm connection, and free-tier headroom. The skip was the read-only role.
+`WP-02` validation is complete. Run
+[42276737288](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42276737288)
+returned `PASS`: 22 pass, 1 warn, 0 fail, 0 skip. The writer connects over TLS and
+writes, the bucket round-trips a marker, quotas and cold-start timings are recorded, and
+`aerogrid_reader` can select but is rejected with SQLSTATE `42501` on insert, update,
+delete, create table, and create schema. The one warning is the absent `project_dw` and
+`project_reporting` schemas, which `WP-04`/`WP-05` create.
 
-Pick one path to close the last item:
+What remains is human review, not implementation:
 
-**Option A - manual proof (no new secret, recommended).**
+1. Members B and C review pull request #3 (`WP-02: platform validation probe and
+   workflow`) and confirm the evidence in [`../PROGRESS.md`](../PROGRESS.md).
+2. On sign-off, merge PR #3 into `main`. The workflow then becomes dispatchable from
+   **Actions → Platform validation (WP-02) → Run workflow**.
+3. Mark `WP-02` `DONE` in `../PROGRESS.md`. Agents may not do this.
 
-1. In the Neon SQL Editor as the project owner, run the schema/table/grant snippet in
-   [docs/07](07_operations_access_and_security.md#manual-read-only-proof).
-2. Connect with your `aerogrid_reader` connection string.
-3. Run the three checks in the same section: one `SELECT` that must return count `1`,
-   then an `INSERT` and a `CREATE TABLE` that must both fail with SQLSTATE `42501`.
-4. Tell the agent only the pass/fail result. Never paste the connection string.
+To re-run validation later, dispatch the workflow and approve the `warehouse`
+environment when GitHub asks. The run is bounded at 15 minutes.
 
-**Option B - automated proof.**
-
-Add `READONLY_DATABASE_URL` to the `warehouse` environment (Settings → Environments →
-`warehouse` → Environment secrets), then re-run the workflow. This also requires the
-owner snippet from step 1 so the probe table exists.
-
-The workflow is manual-dispatch only. It becomes dispatchable from GitHub once pull
-request #3 is merged into `main`; until then use **Actions → Platform validation
-(WP-02) → Run workflow** after the merge, and approve the `warehouse` environment when
-asked. The run is bounded at 15 minutes.
+If validation ever fails on a reader write check, follow the remediation section in
+[docs/07](07_operations_access_and_security.md#if-the-reader-check-reports-that-insert-succeeded).
 
 Never paste a secret, connection string, or full query output into chat or an issue.
 

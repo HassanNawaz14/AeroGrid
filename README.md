@@ -13,7 +13,7 @@ capacity.
 | Phase 2 | Documentation baseline accepted (`G0`/`H-001`) |
 | Phase 2 implementation | **Authorized** 2026-11-04 (`H-007`) |
 | Current human gate | `G2 - Platform and source readiness` |
-| Current work packages | `WP-02` (Member A), `BLOCKED_ON_HUMAN` on the read-only proof in `H-009`; `WP-03` (Member B), `READY` |
+| Current work packages | `WP-02` (Member A), `READY_FOR_REVIEW`; `WP-03` (Member B), `READY` |
 
 Nothing in `Phase1/` should be edited. Phase 2 work is controlled from
 [`Phase2/`](Phase2/README.md), and the current status, blockers, and human action queue
@@ -60,9 +60,8 @@ The Phase 2 course brief is
 - **Raw data stays out of Git** and in cloud object storage with a provenance manifest.
 - **No secrets in the repository.** Humans add them through GitHub/Neon UI.
 - **Phase 1 is frozen.** Do not edit its `.tex` or PDF files.
-- **Implementation is authorized by work package.** `WP-02` is `BLOCKED_ON_HUMAN` on
-  the read-only proof in `H-009` (CI validation passed 2026-11-06); `WP-03` is `READY`.
-  Later packages wait for their gate.
+- **Implementation is authorized by work package.** `WP-02` is `READY_FOR_REVIEW`
+  (validation passed 2026-11-07); `WP-03` is `READY`. Later packages wait for their gate.
 
 ## Accepted Phase 2 architecture
 
@@ -159,7 +158,7 @@ AeroGrid/
 The baseline and `G1` are complete. The next actions belong to the work package
 owners:
 
-1. Member A: complete the read-only proof for `WP-02` (`H-009`).
+1. Members B and C: review `WP-02` (PR #3) and sign off.
 2. Member B: complete `WP-03` source validation and Tartan georeferencing.
 3. Record results and gate evidence in
    [`Phase2/PROGRESS.md`](Phase2/PROGRESS.md).
