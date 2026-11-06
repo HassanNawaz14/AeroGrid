@@ -5,15 +5,15 @@ read it before acting. Update it at the end of every work session.
 
 | Field | Value |
 |---|---|
-| Last updated | `2026-11-06` |
-| Phase state | `G2_IN_PROGRESS_WP-02_READY_FOR_REVIEW_WP-03_READY` |
+| Last updated | `2026-11-07` |
+| Phase state | `G2_IN_PROGRESS_WP-02_DONE_WP-03_READY` |
 | Implementation authorized | `YES` (`H-007`, 2026-11-04) |
 | Current gate | `G2 - Platform and source readiness` |
-| Current gate status | `IN_PROGRESS (WP-02 READY_FOR_REVIEW; WP-03 READY)` |
-| Active work package | `WP-02` platform validation and access proof |
-| Active work package status | `READY_FOR_REVIEW` |
-| Next work package | `WP-03` source validation (Member B; may run in parallel) |
-| Next action owner | Members B and C for WP-02 review; Hamid4325 (Member B) for WP-03 |
+| Current gate status | `IN_PROGRESS (WP-02 DONE; WP-03 READY)` |
+| Active work package | `WP-03` source validation and georeferencing |
+| Active work package status | `READY` (Member B) |
+| Next work package | `WP-04` staging DDL and loaders (after `G2`) |
+| Next action owner | Hamid4325 (Member B) for WP-03; HassanNawaz14 closes `G2` on WP-03 sign-off |
 
 ## Status vocabulary
 
@@ -41,7 +41,7 @@ Gate definitions are canonical in
 |---|---|---|---|
 | `G0` | Documentation, plan, and folder baseline exist and links are valid | `DONE` | HassanNawaz14 |
 | `G1` | Human approvals, named owners, Neon/GitHub access, and secrets ready | `DONE` (`H-007`; `H-002` deferred) | HassanNawaz14 |
-| `G2` | Platform access and source validation spikes pass | `IN_PROGRESS` (`WP-02` `READY_FOR_REVIEW`; `WP-03` `READY`) | HassanNawaz14 / Member B |
+| `G2` | Platform access and source validation spikes pass | `IN_PROGRESS` (`WP-02` `DONE`; `WP-03` `READY`) | HassanNawaz14 / Member B |
 | `G3` | Staging, physical schema, constraints, indexes, keys, and seeds validated | `NOT_STARTED` | Members B/C |
 | `G4` | Core tracking and journey facts loaded and reconciled | `NOT_STARTED` | Member D |
 | `G5` | Derived facts and approved thresholds validated | `NOT_STARTED` | Member E |
@@ -56,7 +56,7 @@ Gate definitions are canonical in
 |---|---|---|---|---|---|
 | `WP-00` | Documentation and folder baseline | HassanNawaz14 | none | `DONE` | Accepted via `H-001` |
 | `WP-01` | Human prerequisites and shared platform | HassanNawaz14 | `WP-00` | `DONE` | G1 cleared; proceed with WP-02 and WP-03. |
-| `WP-02` | Platform validation and access proof | HassanNawaz14 | `WP-01` | `READY_FOR_REVIEW` | Final run [42276737288](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42276737288) `PASS`; awaiting review by Members B and C and merge of PR #3 |
+| `WP-02` | Platform validation and access proof | HassanNawaz14 | `WP-01` | `DONE` | Accepted 2026-11-07 by HassanNawaz14; run [42276737288](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42276737288) `PASS`; PR #3 merged as `b6b76b9` |
 | `WP-03` | Source validation and georeferencing | Member B | `WP-01` | `READY` | Member B may begin; start with Tartan georeferencing (`B-004`) |
 | `WP-04` | Staging DDL and loaders | Member B | `WP-03` | `NOT_STARTED` | Wait for `G2` |
 | `WP-05` | Dimensions, keys, and dictionary | Member C | `WP-02`, model approval | `NOT_STARTED` | Wait for `G2` |
@@ -252,6 +252,7 @@ Caveats:
 | `2026-11-06` | HassanNawaz14 | Human | `WP-02` | Ran the validation workflow on `phase2/wp-02-platform-validation` under explicit delegation. Final run [42266493857](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42266493857): 13 pass, 2 warn, 1 skip, 0 fail. Writer connect/write, storage put/head/read-back/delete, timeout, size, and quotas proven; TLS accepted via `sslmode=require`; read-only proof still open. Temporary push trigger removed and environment protection restored. | `.github/scripts/platform_probe.py`, `.github/workflows/platform-validation.yml`, `Phase2/PROGRESS.md` | Five workflow runs; log review; environment protection re-checked | Complete the read-only proof in `H-009`, then close `WP-02` and `G2` |
 | `2026-11-06` | HassanNawaz14 | Human | `WP-02` | Reader proof run [42272052476](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42272052476) with the rotated reader secret: 17 pass, 1 warn, 1 fail. Reader can `SELECT` but also `INSERT`, so `B-007` opened; probe negative cases made non-destructive and the leaked test row is cleaned up. | `.github/scripts/platform_probe.py`, `.github/workflows/platform-validation.yml`, `Phase2/PROGRESS.md`, `Phase2/docs/07` | Workflow run log review; YAML and Python checks | Human revokes reader write privilege, then rerun `H-009` |
 | `2026-11-07` | HassanNawaz14 | Reviewers B/C | `WP-02` | Replaced the platform-created reader role with a `SELECT`-only role, then reran validation: [42276737288](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42276737288) `PASS` (22 pass, 1 warn, 0 fail, 0 skip; all negative reader checks `42501`). `B-007` and `H-009` closed; `WP-02` moved to `READY_FOR_REVIEW`. Temporary push trigger removed and environment protection restored. | `.github/workflows/platform-validation.yml`, `Phase2/PROGRESS.md`, `Phase2/docs/07`, `Phase2/docs/10`, `README.md`, `AGENTS.md`, `Phase2/README.md`, `Phase2/AGENTS.md`, `Phase2/dev_plan/01`-`02`, `Phase2/dev_plan/README.md`, `Phase2/docs/01`, `Phase2/docs/09` | Run log review; YAML parse; link and stale-status greps | Members B and C review PR #3 and sign off; then close `WP-02` and `G2` |
+| `2026-11-07` | HassanNawaz14 | Team | `WP-02` closeout | Review and merge completed; PR #3 merged as `b6b76b9`. Marked `WP-02` `DONE` on HassanNawaz14's explicit instruction; `G2` remains `IN_PROGRESS` for `WP-03`. | `Phase2/PROGRESS.md`, `README.md`, `AGENTS.md`, `Phase2/README.md`, `Phase2/AGENTS.md`, `Phase2/dev_plan/01`-`02`, `Phase2/dev_plan/README.md`, `Phase2/docs/01`, `07`, `09`, `10` | Stale-status grep and `git diff --check` | Member B completes `WP-03`; then close `G2` |
 
 ## Change log
 
@@ -271,6 +272,7 @@ Caveats:
 | `2026-11-06` | Executed the `WP-02` validation runs: CI writer and storage proof passed; TLS accepted via `sslmode=require`; read-only proof remains | HassanNawaz14 | `WP-02`, `H-009` |
 | `2026-11-06` | Reader proof failed: `aerogrid_reader` holds write access to the probe table (`B-007`); remediation documented and rerun required | HassanNawaz14 | `WP-02`, `H-009`, `B-007` |
 | `2026-11-07` | Closed `B-007`/`H-009` after replacing the reader role; `WP-02` is `READY_FOR_REVIEW` with a `PASS` validation run | HassanNawaz14 | `WP-02`, `H-009`, `B-007` |
+| `2026-11-07` | Merged PR #3 and marked `WP-02` `DONE` on explicit human instruction; `G2` still waits on `WP-03` | HassanNawaz14 | `WP-02`, `G2` |
 
 ## Update protocol
 
@@ -292,3 +294,9 @@ When updating this file:
 | Authorization date | `2026-11-04` |
 | Authorized scope | Phase 2 implementation under gated work packages, starting with `WP-02` and `WP-03` |
 | Next gate to clear | `G2` |
+
+### Package acceptance
+
+| Package | Accepted by | Date | Evidence |
+|---|---|---|---|
+| `WP-02` | `HassanNawaz14` | `2026-11-07` | Run [42276737288](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42276737288) `PASS`; PR #3 merged as `b6b76b9`. The agent marked it `DONE` on HassanNawaz14's explicit instruction. |

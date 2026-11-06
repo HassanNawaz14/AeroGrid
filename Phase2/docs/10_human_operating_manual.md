@@ -21,7 +21,8 @@ warehouse without exposing secrets.
 - Phase 2 documentation and planning baseline is accepted (`G0`/`H-001`).
 - Implementation is **authorized** (`H-007`, 2026-11-04).
 - `G1` is closed; the current gate is `G2`.
-- `WP-02` is `READY_FOR_REVIEW`; `WP-03` is `READY` and authorized.
+- `WP-02` is `DONE` (accepted 2026-11-07; PR #3 merged); `WP-03` is `READY` and
+  authorized.
 
 ## The one rule for secrets
 
@@ -52,30 +53,30 @@ environment and its six required secrets are in place; `main` is protected. `H-0
 remains deferred; the Member B-E names are recorded in
 [docs/08_team_work_division.md](08_team_work_division.md).
 
-`WP-02` and `WP-03` are authorized. `WP-02` is `READY_FOR_REVIEW`; `WP-03` proceeds with
-Member B. Do not start a later work package until its gate is recorded in
-`../PROGRESS.md`.
+`WP-02` and `WP-03` are authorized. `WP-02` is `DONE`; `WP-03` proceeds with Member B.
+Do not start a later work package until its gate is recorded in `../PROGRESS.md`.
 
-## Current action: review `WP-02`
+## Current action: `WP-03`, then close `G2`
 
-`WP-02` validation is complete. Run
+`WP-02` is closed. Run
 [42276737288](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42276737288)
-returned `PASS`: 22 pass, 1 warn, 0 fail, 0 skip. The writer connects over TLS and
-writes, the bucket round-trips a marker, quotas and cold-start timings are recorded, and
-`aerogrid_reader` can select but is rejected with SQLSTATE `42501` on insert, update,
-delete, create table, and create schema. The one warning is the absent `project_dw` and
-`project_reporting` schemas, which `WP-04`/`WP-05` create.
+returned `PASS`: 22 pass, 1 warn, 0 fail, 0 skip, and PR #3 merged as `b6b76b9` on
+2026-11-06. The writer connects over TLS and writes, the bucket round-trips a marker,
+quotas and cold-start timings are recorded, and `aerogrid_reader` can select but is
+rejected with SQLSTATE `42501` on insert, update, delete, create table, and create
+schema. The one warning is the absent `project_dw` and `project_reporting` schemas,
+which `WP-04`/`WP-05` create.
 
-What remains is human review, not implementation:
+What remains on `G2` is `WP-03` source validation, owned by Member B (`B-004`,
+TartanAviation georeferencing is the first task):
 
-1. Members B and C review pull request #3 (`WP-02: platform validation probe and
-   workflow`) and confirm the evidence in [`../PROGRESS.md`](../PROGRESS.md).
-2. On sign-off, merge PR #3 into `main`. The workflow then becomes dispatchable from
-   **Actions → Platform validation (WP-02) → Run workflow**.
-3. Mark `WP-02` `DONE` in `../PROGRESS.md`. Agents may not do this.
+1. Member B runs `WP-03` and records its evidence in [`../PROGRESS.md`](../PROGRESS.md).
+2. HassanNawaz14 closes `G2` once both `WP-02` and `WP-03` evidence is recorded, then
+   authorizes the `WP-04`/`WP-05` work.
 
-To re-run validation later, dispatch the workflow and approve the `warehouse`
-environment when GitHub asks. The run is bounded at 15 minutes.
+To re-run the platform validation later, dispatch **Actions → Platform validation
+(WP-02) → Run workflow** and approve the `warehouse` environment when GitHub asks. The
+run is bounded at 15 minutes.
 
 If validation ever fails on a reader write check, follow the remediation section in
 [docs/07](07_operations_access_and_security.md#if-the-reader-check-reports-that-insert-succeeded).
