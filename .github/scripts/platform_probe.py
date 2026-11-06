@@ -177,6 +177,7 @@ def check_tls(report: Report, info: dict[str, str], sslmode: str) -> None:
     # the hostname instead.
     verify_info = dict(info)
     verify_info["sslmode"] = "verify-full"
+    verify_info["sslrootcert"] = "system"
     host = info.get("host", "")
     port = info.get("port", "5432") or "5432"
     try:
