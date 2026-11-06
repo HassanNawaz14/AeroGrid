@@ -4,9 +4,9 @@
 
 This document defines the accepted operating model. The Neon project, database,
 bucket, `aerogrid_etl` and `aerogrid_reader` roles, GitHub `warehouse` environment,
-and required secrets exist. The `WP-02` validation workflow and probe script exist;
-schema grants, ETL, and the production workflow remain pending. The human owns all
-account and secret actions.
+and required secrets exist. The `WP-02` validation workflow has run and proved CI
+writer and storage access; the read-only proof, schema grants, ETL, and the production
+workflow remain pending. The human owns all account and secret actions.
 
 ## Operating model
 
@@ -64,7 +64,8 @@ account and secret actions.
 - `main` protection: confirmed.
 - Member invitations: sent.
 - Platform validation workflow `.github/workflows/platform-validation.yml` and probe
-  script `.github/scripts/platform_probe.py`: created 2026-11-06; run pending.
+  script `.github/scripts/platform_probe.py`: created and executed 2026-11-06; result
+  recorded in [`../PROGRESS.md`](../PROGRESS.md).
 - Production workflow YAML: not created.
 
 ## Secret and variable names
@@ -239,6 +240,17 @@ What it proves:
 The read-only role is **not** added to GitHub secrets by default because member
 credentials are shared privately. If the run reports `reader connection: SKIP`, prove
 it manually.
+
+### Recorded result
+
+Run [42266493857](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42266493857)
+on 2026-11-06 returned `PARTIAL`: 13 pass, 2 warn, 1 skip, 0 fail. It proved the writer
+connection, temporary-table write, statement timeout, database size, bucket
+put/head/read-back/delete, warm connection, and free-tier headroom. The two warnings
+were the expected absent schemas and the absent probe table; the skip was the
+unconfigured reader connection. Neon terminates client TLS at its proxy, so
+`pg_stat_ssl` cannot show TLS on the compute; an established `sslmode=require`
+connection is the accepted encryption proof.
 
 ### Manual read-only proof
 

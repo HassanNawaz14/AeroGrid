@@ -130,7 +130,7 @@ implementation.
 
 ## WP-02: Platform validation and access proof
 
-**Status:** BLOCKED_ON_HUMAN (`H-009` run pending)
+**Status:** BLOCKED_ON_HUMAN (`H-009` read-only proof pending; CI run passed 2026-11-06)
 **Owner:** Member A
 **Reviewers:** Members B and C
 **Prerequisites:** WP-01, G1 cleared

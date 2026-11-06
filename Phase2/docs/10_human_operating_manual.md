@@ -21,7 +21,8 @@ warehouse without exposing secrets.
 - Phase 2 documentation and planning baseline is accepted (`G0`/`H-001`).
 - Implementation is **authorized** (`H-007`, 2026-11-04).
 - `G1` is closed; the current gate is `G2`.
-- `WP-02` is `BLOCKED_ON_HUMAN` on `H-009`; `WP-03` is `READY` and authorized.
+- `WP-02` is `BLOCKED_ON_HUMAN` on the remaining read-only proof in `H-009`; `WP-03` is
+  `READY` and authorized.
 
 ## The one rule for secrets
 
@@ -43,7 +44,7 @@ The canonical queue is in [`../PROGRESS.md`](../PROGRESS.md). Current status:
 | `H-006` | Confirm licenses and optional OpenSky terms | `DONE` |
 | `H-007` | Authorize implementation after G1 | `DONE` 2026-11-04 |
 | `H-008` | Confirm handling of tracked legacy synthetic samples | `DONE` via `D-017` |
-| `H-009` | Run the `WP-02` platform validation workflow and confirm read-only access | `OPEN`; see below |
+| `H-009` | Run the `WP-02` platform validation workflow and confirm read-only access | `OPEN`; workflow run done, read-only proof pending - see below |
 
 Project `AeroGrid-DW`, branch `br-royal-cherry-beij6hxw`, database `neondb`, bucket
 `aerogrid-raw`, and the storage endpoint are recorded in
@@ -56,32 +57,35 @@ remains deferred; the Member B-E names are recorded in
 done; `WP-03` proceeds with Member B. Do not start a later work package until its gate
 is recorded in `../PROGRESS.md`.
 
-## Current action: run the WP-02 validation workflow
+## Current action: prove read-only access (`H-009`)
 
-The workflow file must be on GitHub before it can be dispatched. From the repository
-root:
+The workflow part of `H-009` is complete. Run
+[42266493857](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42266493857)
+returned `PARTIAL`: 13 pass, 2 warn, 1 skip, 0 fail. CI proved the writer connection,
+temporary-table write, statement timeout, database size, bucket put/head/read-back/
+delete, warm connection, and free-tier headroom. The skip was the read-only role.
 
-```bash
-git push -u origin phase2/wp-02-platform-validation
-gh auth login
-gh workflow run platform-validation.yml --ref phase2/wp-02-platform-validation
-gh run list --workflow=platform-validation.yml --limit 1
-```
+Pick one path to close the last item:
 
-If `gh` reports that the workflow is not found, open the repository on GitHub, merge
-the pull request into `main`, then use **Actions → Platform validation (WP-02) → Run
-workflow**.
+**Option A - manual proof (no new secret, recommended).**
 
-Then:
+1. In the Neon SQL Editor as the project owner, run the schema/table/grant snippet in
+   [docs/07](07_operations_access_and_security.md#manual-read-only-proof).
+2. Connect with your `aerogrid_reader` connection string.
+3. Run the three checks in the same section: one `SELECT` that must return count `1`,
+   then an `INSERT` and a `CREATE TABLE` that must both fail with SQLSTATE `42501`.
+4. Tell the agent only the pass/fail result. Never paste the connection string.
 
-1. Open the run and approve the `warehouse` environment if GitHub asks for review.
-2. Wait for the run to finish (bounded at 15 minutes).
-3. Read the run summary. `PASS` means the writer, storage, and timeout proofs
-   succeeded; `PARTIAL` means the read-only check was skipped.
-4. If the result is `PARTIAL`, follow the manual read-only proof in
-   [docs/07](07_operations_access_and_security.md#runbook-wp-02-platform-validation).
-5. Record the run URL and the result in `../PROGRESS.md`, or tell the agent the run
-   URL so it can record the evidence.
+**Option B - automated proof.**
+
+Add `READONLY_DATABASE_URL` to the `warehouse` environment (Settings → Environments →
+`warehouse` → Environment secrets), then re-run the workflow. This also requires the
+owner snippet from step 1 so the probe table exists.
+
+The workflow is manual-dispatch only. It becomes dispatchable from GitHub once pull
+request #3 is merged into `main`; until then use **Actions → Platform validation
+(WP-02) → Run workflow** after the merge, and approve the `warehouse` environment when
+asked. The run is bounded at 15 minutes.
 
 Never paste a secret, connection string, or full query output into chat or an issue.
 

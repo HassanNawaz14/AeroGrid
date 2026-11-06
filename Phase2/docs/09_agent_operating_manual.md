@@ -13,7 +13,8 @@ conflicts with them, the higher-level file wins.
 - Phase 2 documentation and planning baseline is accepted (`G0`/`H-001`).
 - Phase 2 implementation is **authorized** (`H-007`, 2026-11-04).
 - `G1` is closed; the current gate is `G2`.
-- `WP-02` is `BLOCKED_ON_HUMAN` on `H-009`; `WP-03` is `READY` and authorized.
+- `WP-02` is `BLOCKED_ON_HUMAN` on the read-only proof in `H-009`; `WP-03` is `READY`
+  and authorized.
 - Later work packages begin only after their gate and authorization are recorded in
   [`../PROGRESS.md`](../PROGRESS.md).
 
@@ -237,7 +238,8 @@ A task is complete only when:
 
 ## Current next action
 
-`WP-02` (platform validation and access proof) is authored and `BLOCKED_ON_HUMAN` on
-`H-009`; do not run it or fabricate its evidence. `WP-03` (source validation and
+`WP-02` (platform validation and access proof) has a recorded CI run and is
+`BLOCKED_ON_HUMAN` on the read-only proof in `H-009`; do not fabricate that result.
+`WP-03` (source validation and
 georeferencing) is the active Member B package. Both are authorized. Do not start a
 later package until its gate is recorded in [`../PROGRESS.md`](../PROGRESS.md).

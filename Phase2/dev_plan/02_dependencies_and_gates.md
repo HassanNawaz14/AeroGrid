@@ -118,7 +118,8 @@ Evidence:
 
 ### G2: Platform and source readiness
 
-**Status:** IN_PROGRESS; `WP-02` is `BLOCKED_ON_HUMAN` on `H-009`, `WP-03` is `READY`.
+**Status:** IN_PROGRESS; `WP-02` is `BLOCKED_ON_HUMAN` on the read-only proof in
+`H-009` (CI validation passed 2026-11-06), `WP-03` is `READY`.
 **Owner:** Member A for platform; Member B for sources
 **Reviewers:** Members C, D, E
 **Required WPs:** `WP-02`, `WP-03`
