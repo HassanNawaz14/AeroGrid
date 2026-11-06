@@ -52,16 +52,16 @@ READER_DENIED_CASES = (
     (
         "reader insert",
         f"INSERT INTO {PROBE_TABLE} (probe_id, note) VALUES (999, 'should fail')",
-        None,
+        f"DELETE FROM {PROBE_TABLE} WHERE probe_id = 999",
     ),
     (
         "reader update",
-        f"UPDATE {PROBE_TABLE} SET note = note",
+        f"UPDATE {PROBE_TABLE} SET note = note WHERE probe_id = -1",
         None,
     ),
     (
         "reader delete",
-        f"DELETE FROM {PROBE_TABLE}",
+        f"DELETE FROM {PROBE_TABLE} WHERE probe_id = -1",
         None,
     ),
     (
