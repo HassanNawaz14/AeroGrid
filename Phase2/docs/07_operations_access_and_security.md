@@ -303,6 +303,40 @@ CREATE TABLE project_staging.wp02_reader_should_fail (probe_id integer);
 Record only the pass/fail result in `PROGRESS.md`. Never paste the connection string,
 host password, or query output containing credentials.
 
+### If the reader check reports that `INSERT` succeeded
+
+`aerogrid_reader` must hold `SELECT` only; a write privilege means the shared warehouse
+is not read-only for the team. Inspect the grants as the owner first:
+
+```sql
+SELECT relacl FROM pg_class WHERE oid = 'project_staging.wp02_read_probe'::regclass;
+SELECT nspacl FROM pg_namespace WHERE nspname = 'project_staging';
+SELECT m.rolname AS member_of
+FROM pg_auth_members am
+JOIN pg_roles m ON m.oid = am.roleid
+WHERE am.member = 'aerogrid_reader'::regrole;
+```
+
+Then reduce access to the intended minimum and remove the test row left by the probe:
+
+```sql
+DELETE FROM project_staging.wp02_read_probe WHERE probe_id = 999;
+REVOKE ALL ON project_staging.wp02_read_probe FROM aerogrid_reader;
+GRANT SELECT ON project_staging.wp02_read_probe TO aerogrid_reader;
+REVOKE ALL ON SCHEMA project_staging FROM aerogrid_reader;
+GRANT USAGE ON SCHEMA project_staging TO aerogrid_reader;
+```
+
+If the membership query lists a write-capable role such as `neondb_owner`, remove that
+membership as well:
+
+```sql
+REVOKE neondb_owner FROM aerogrid_reader;  -- only when the diagnostic shows it
+```
+
+Rerun the validation workflow afterwards; the insert must be rejected with SQLSTATE
+`42501`.
+
 ## Runbook: manual refresh
 
 After authorization, a human or authorized maintainer:

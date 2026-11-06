@@ -9,7 +9,7 @@ read it before acting. Update it at the end of every work session.
 | Phase state | `G2_IN_PROGRESS_WP-02_BLOCKED_ON_HUMAN_WP-03_READY` |
 | Implementation authorized | `YES` (`H-007`, 2026-11-04) |
 | Current gate | `G2 - Platform and source readiness` |
-| Current gate status | `IN_PROGRESS (WP-02 CI proof passed; read-only proof pending H-009; WP-03 READY)` |
+| Current gate status | `IN_PROGRESS (WP-02 writer/storage pass; reader write privilege blocks B-007; WP-03 READY)` |
 | Active work package | `WP-02` platform validation and access proof |
 | Active work package status | `BLOCKED_ON_HUMAN` |
 | Next work package | `WP-03` source validation (Member B; may run in parallel) |
@@ -56,7 +56,7 @@ Gate definitions are canonical in
 |---|---|---|---|---|---|
 | `WP-00` | Documentation and folder baseline | HassanNawaz14 | none | `DONE` | Accepted via `H-001` |
 | `WP-01` | Human prerequisites and shared platform | HassanNawaz14 | `WP-00` | `DONE` | G1 cleared; proceed with WP-02 and WP-03. |
-| `WP-02` | Platform validation and access proof | HassanNawaz14 | `WP-01` | `BLOCKED_ON_HUMAN` | CI proof captured (run [42266493857](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42266493857)); complete the read-only proof in `H-009` |
+| `WP-02` | Platform validation and access proof | HassanNawaz14 | `WP-01` | `BLOCKED_ON_HUMAN` | Writer and storage proofs pass; reader write privilege must be revoked (`B-007`) and rerun (`H-009`) |
 | `WP-03` | Source validation and georeferencing | Member B | `WP-01` | `READY` | Member B may begin; start with Tartan georeferencing (`B-004`) |
 | `WP-04` | Staging DDL and loaders | Member B | `WP-03` | `NOT_STARTED` | Wait for `G2` |
 | `WP-05` | Dimensions, keys, and dictionary | Member C | `WP-02`, model approval | `NOT_STARTED` | Wait for `G2` |
@@ -80,7 +80,7 @@ Gate definitions are canonical in
 | `H-006` | Confirm data licenses, attribution, and optional OpenSky access | Redistribution and source-use terms must be confirmed | Confirmed data licenses, attribution requirements, and optional OpenSky access (`D-011`, `D-012`, `D-013`, `docs/03_data_sources_and_licensing.md`) | `DONE` |
 | `H-007` | Explicitly authorize Phase 2 implementation | Opens the implementation phase | **DONE 2026-11-04** — Authorized implementation; G1 closed; WP-02/WP-03 assigned | `DONE` |
 | `H-008` | Confirm handling of the tracked legacy synthetic samples under `data/sample/` | Prevents synthetic demo files from being mistaken for real Phase 2 data | HassanNawaz14 confirmed the five files are intentionally retained as demo-only artifacts for offline user/evaluator viewing; excluded from all Phase 2 loads and reports; `D-017` | `DONE` |
-| `H-009` | Run the `WP-02` validation workflow and confirm read-only access | The probe needs the `warehouse` secrets, and the read-only connection string is member-only | Workflow part is done: run [42266493857](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42266493857) under explicit human delegation on 2026-11-06. The owner snippet in `docs/07` was executed by HassanNawaz14 on 2026-11-06 (schema, probe table, grants). **Remaining:** the three reader-side checks, either by switching role inside the SQL Editor (`SET ROLE`) or by adding `READONLY_DATABASE_URL` to the `warehouse` environment for an automated check. Never paste secret values. | `OPEN` |
+| `H-009` | Run the `WP-02` validation workflow and confirm read-only access | The probe needs the `warehouse` secrets, and the read-only connection string is member-only | Runs [42266493857](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42266493857) and [42272052476](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42272052476) are done; `READONLY_DATABASE_URL` is now a `warehouse` secret. **Remaining:** as project owner, revoke the reader's write privilege with the snippet in `docs/07`, delete probe row `999`, then let the agent rerun the workflow. Never paste secret values. | `OPEN` |
 
 `H-002` remains `BLOCKED` until Members B-E choose roles and provide real names.
 `H-008` is resolved by `D-017`; the legacy samples are retained as demo-only artifacts
@@ -129,6 +129,7 @@ canonical steps for the Neon setup are also in
 | `B-004` | TartanAviation georeferencing is not yet validated | Spatial facts may need a fallback design | `WP-03` (authorized 2026-11-04) | `OPEN` |
 | `B-005` | Documentation baseline is awaiting human acceptance | `G0`/`G1` cannot close | `H-001` | `RESOLVED` (Accepted by HassanNawaz14) |
 | `B-006` | Legacy synthetic files remain tracked under `data/sample/` | They are intentionally retained for offline demo/evaluator viewing and must not be mistaken for real data | `H-008`, `D-017` | `RESOLVED` (Retained as documented demo-only samples via `D-017`) |
+| `B-007` | `aerogrid_reader` can insert into `project_staging.wp02_read_probe` | The read-only guarantee is not met, and `WP-02`/`G2` cannot close | `H-009` revoke snippet in `docs/07` | `OPEN` |
 
 ## Documentation baseline evidence
 
@@ -184,6 +185,24 @@ HassanNawaz14). Overall `PARTIAL`: 13 pass, 2 warn, 1 skip, 0 fail. The job exit
 | Compute and egress quota | `INFO` | 100 CU-hours and 5 GiB egress are console metrics; confirm after the first real run |
 | Reader connection | `SKIP` | `READONLY_DATABASE_URL` is not set; manual proof pending |
 
+Second run, [42272052476](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42272052476)
+(2026-11-06), included the reader secret and returned `FAIL`: 17 pass, 1 warn, 1 fail,
+0 skip. Reader connection, `SELECT 1`, and the probe-table read passed; the negative
+`INSERT` check failed because the statement succeeded.
+
+| Check | Result | Evidence |
+|---|---|---|
+| Reader connection | `PASS` | connected as `aerogrid_reader` in 120 ms |
+| Reader select | `PASS` | `SELECT 1` succeeded |
+| Reader select probe table | `PASS` | 1 row visible in `project_staging.wp02_read_probe` |
+| Reader insert | `FAIL` | statement succeeded; write privilege is present |
+
+This is a real access-control defect, tracked as `B-007`: `aerogrid_reader` must only
+hold `SELECT`, so `WP-02` cannot close until the write privilege is revoked and a
+rerun shows `INSERT` rejected with SQLSTATE `42501`. The run left probe row `999` in
+the table; the probe now removes that row when the insert unexpectedly succeeds, and
+the remediation snippet in `docs/07` deletes the existing one.
+
 Caveats:
 
 1. Neon terminates client TLS at its proxy, so `pg_stat_ssl` on the compute reports no
@@ -211,6 +230,7 @@ Caveats:
 | `2026-11-06` | HassanNawaz14 | Team | `WP-01` closeout | Reconciled `G1`/authorization status across the board and canonical docs; recorded `aerogrid_reader` confirmation; left `H-002` deferred. No implementation created. | `Phase2/PROGRESS.md`, `Phase2/README.md`, `Phase2/AGENTS.md`, `Phase2/docs/01`-`12`, `Phase2/dev_plan/README.md` and `01`-`05`, root `README.md`, root `AGENTS.md`, `data/all_data_summary.md`, `Phase2/sql|etl|tests|reports/README.md`, `.github/workflows/README.md` | Stale-status grep and `git diff --check`; no secrets or raw data added | Start `WP-02` (Member A) and `WP-03` (Member B) |
 | `2026-11-06` | HassanNawaz14 | Human | `WP-02` | Authored the platform validation probe and manual-dispatch workflow; documented the manual read-only proof; opened `H-009` to run it. No database or storage write was executed by the agent. | `.github/scripts/platform_probe.py`, `.github/workflows/platform-validation.yml`, `.github/workflows/README.md`, `Phase2/docs/07`, `Phase2/docs/10`, `Phase2/PROGRESS.md` | Python compile, YAML parse, link and secret scans | Human completes `H-009`, then record run evidence and close `G2` |
 | `2026-11-06` | HassanNawaz14 | Human | `WP-02` | Ran the validation workflow on `phase2/wp-02-platform-validation` under explicit delegation. Final run [42266493857](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42266493857): 13 pass, 2 warn, 1 skip, 0 fail. Writer connect/write, storage put/head/read-back/delete, timeout, size, and quotas proven; TLS accepted via `sslmode=require`; read-only proof still open. Temporary push trigger removed and environment protection restored. | `.github/scripts/platform_probe.py`, `.github/workflows/platform-validation.yml`, `Phase2/PROGRESS.md` | Five workflow runs; log review; environment protection re-checked | Complete the read-only proof in `H-009`, then close `WP-02` and `G2` |
+| `2026-11-06` | HassanNawaz14 | Human | `WP-02` | Reader proof run [42272052476](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42272052476) with the rotated reader secret: 17 pass, 1 warn, 1 fail. Reader can `SELECT` but also `INSERT`, so `B-007` opened; probe negative cases made non-destructive and the leaked test row is cleaned up. | `.github/scripts/platform_probe.py`, `.github/workflows/platform-validation.yml`, `Phase2/PROGRESS.md`, `Phase2/docs/07` | Workflow run log review; YAML and Python checks | Human revokes reader write privilege, then rerun `H-009` |
 
 ## Change log
 
@@ -228,6 +248,7 @@ Caveats:
 | `2026-11-06` | Synced status docs after `G1`: implementation authorized, `WP-02`/`WP-03` `READY`, `G2` next, `aerogrid_reader` confirmed, `H-002` remains deferred | HassanNawaz14 | `H-007`, `H-005`, `WP-01` closeout |
 | `2026-11-06` | Added the `WP-02` probe and manual-dispatch validation workflow; `WP-02` is `BLOCKED_ON_HUMAN` on `H-009` | HassanNawaz14 | `WP-02`, `H-009` |
 | `2026-11-06` | Executed the `WP-02` validation runs: CI writer and storage proof passed; TLS accepted via `sslmode=require`; read-only proof remains | HassanNawaz14 | `WP-02`, `H-009` |
+| `2026-11-06` | Reader proof failed: `aerogrid_reader` holds write access to the probe table (`B-007`); remediation documented and rerun required | HassanNawaz14 | `WP-02`, `H-009`, `B-007` |
 
 ## Update protocol
 
