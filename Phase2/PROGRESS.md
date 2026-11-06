@@ -6,14 +6,14 @@ read it before acting. Update it at the end of every work session.
 | Field | Value |
 |---|---|
 | Last updated | `2026-11-06` |
-| Phase state | `G1_CLOSED_WP-02_WP-03_READY` |
+| Phase state | `G2_IN_PROGRESS_WP-02_BLOCKED_ON_HUMAN_WP-03_READY` |
 | Implementation authorized | `YES` (`H-007`, 2026-11-04) |
 | Current gate | `G2 - Platform and source readiness` |
-| Current gate status | `NOT_STARTED (WP-02 and WP-03 READY)` |
+| Current gate status | `IN_PROGRESS (WP-02 awaiting H-009; WP-03 READY)` |
 | Active work package | `WP-02` platform validation and access proof |
-| Active work package status | `READY` |
+| Active work package status | `BLOCKED_ON_HUMAN` |
 | Next work package | `WP-03` source validation (Member B; may run in parallel) |
-| Next action owner | HassanNawaz14 (Member A) for WP-02; Hamid4325 (Member B) for WP-03 |
+| Next action owner | HassanNawaz14 (Member A) for `H-009`; Hamid4325 (Member B) for WP-03 |
 
 ## Status vocabulary
 
@@ -41,7 +41,7 @@ Gate definitions are canonical in
 |---|---|---|---|
 | `G0` | Documentation, plan, and folder baseline exist and links are valid | `DONE` | HassanNawaz14 |
 | `G1` | Human approvals, named owners, Neon/GitHub access, and secrets ready | `DONE` (`H-007`; `H-002` deferred) | HassanNawaz14 |
-| `G2` | Platform access and source validation spikes pass | `NOT_STARTED` | HassanNawaz14 / Member B |
+| `G2` | Platform access and source validation spikes pass | `IN_PROGRESS` (`WP-02` blocked on `H-009`) | HassanNawaz14 / Member B |
 | `G3` | Staging, physical schema, constraints, indexes, keys, and seeds validated | `NOT_STARTED` | Members B/C |
 | `G4` | Core tracking and journey facts loaded and reconciled | `NOT_STARTED` | Member D |
 | `G5` | Derived facts and approved thresholds validated | `NOT_STARTED` | Member E |
@@ -56,7 +56,7 @@ Gate definitions are canonical in
 |---|---|---|---|---|---|
 | `WP-00` | Documentation and folder baseline | HassanNawaz14 | none | `DONE` | Accepted via `H-001` |
 | `WP-01` | Human prerequisites and shared platform | HassanNawaz14 | `WP-00` | `DONE` | G1 cleared; proceed with WP-02 and WP-03. |
-| `WP-02` | Platform validation and access proof | HassanNawaz14 | `WP-01` | `READY` | Begin WP-02 (Member A) |
+| `WP-02` | Platform validation and access proof | HassanNawaz14 | `WP-01` | `BLOCKED_ON_HUMAN` | Probe and workflow authored; run via `H-009` |
 | `WP-03` | Source validation and georeferencing | Member B | `WP-01` | `READY` | Member B may begin; start with Tartan georeferencing (`B-004`) |
 | `WP-04` | Staging DDL and loaders | Member B | `WP-03` | `NOT_STARTED` | Wait for `G2` |
 | `WP-05` | Dimensions, keys, and dictionary | Member C | `WP-02`, model approval | `NOT_STARTED` | Wait for `G2` |
@@ -80,6 +80,7 @@ Gate definitions are canonical in
 | `H-006` | Confirm data licenses, attribution, and optional OpenSky access | Redistribution and source-use terms must be confirmed | Confirmed data licenses, attribution requirements, and optional OpenSky access (`D-011`, `D-012`, `D-013`, `docs/03_data_sources_and_licensing.md`) | `DONE` |
 | `H-007` | Explicitly authorize Phase 2 implementation | Opens the implementation phase | **DONE 2026-11-04** — Authorized implementation; G1 closed; WP-02/WP-03 assigned | `DONE` |
 | `H-008` | Confirm handling of the tracked legacy synthetic samples under `data/sample/` | Prevents synthetic demo files from being mistaken for real Phase 2 data | HassanNawaz14 confirmed the five files are intentionally retained as demo-only artifacts for offline user/evaluator viewing; excluded from all Phase 2 loads and reports; `D-017` | `DONE` |
+| `H-009` | Run the `WP-02` validation workflow and confirm read-only access | The probe needs the `warehouse` secrets, and the read-only connection string is member-only | Push `phase2/wp-02-platform-validation`; dispatch `platform-validation.yml` against that branch; approve the `warehouse` environment; report the run URL and result. If the reader check is skipped, run the manual SQL proof in `docs/07`. Never paste secret values. | `OPEN` |
 
 `H-002` remains `BLOCKED` until Members B-E choose roles and provide real names.
 `H-008` is resolved by `D-017`; the legacy samples are retained as demo-only artifacts
@@ -131,6 +132,9 @@ canonical steps for the Neon setup are also in
 
 ## Documentation baseline evidence
 
+Captured for the `WP-00` baseline on 2026-11-03. Later authorized packages add
+implementation files; see the handoff log.
+
 | Evidence | Result |
 |---|---|
 | Canonical docs `00`-`12` | Present |
@@ -161,6 +165,7 @@ canonical steps for the Neon setup are also in
 | `2026-11-04` | HassanNawaz14 | Human/team | `WP-01` | Recorded `H-003` Neon resources; `H-003` done. | `Phase2/PROGRESS.md`, `Phase2/docs/07`, `Phase2/docs/10` | `git diff --check`; no secrets recorded | Complete `H-004` |
 | `2026-11-04` | HassanNawaz14 | Human/team | `WP-01` | `H-004` and `G-01` done: `warehouse` environment, six required secrets, and `main` protection confirmed. `H-005` is next; `H-002` remains blocked. | `Phase2/PROGRESS.md`, `Phase2/docs/10` | `git diff --check`; no secrets recorded | Complete `H-005` |
 | `2026-11-06` | HassanNawaz14 | Team | `WP-01` closeout | Reconciled `G1`/authorization status across the board and canonical docs; recorded `aerogrid_reader` confirmation; left `H-002` deferred. No implementation created. | `Phase2/PROGRESS.md`, `Phase2/README.md`, `Phase2/AGENTS.md`, `Phase2/docs/01`-`12`, `Phase2/dev_plan/README.md` and `01`-`05`, root `README.md`, root `AGENTS.md`, `data/all_data_summary.md`, `Phase2/sql|etl|tests|reports/README.md`, `.github/workflows/README.md` | Stale-status grep and `git diff --check`; no secrets or raw data added | Start `WP-02` (Member A) and `WP-03` (Member B) |
+| `2026-11-06` | HassanNawaz14 | Human | `WP-02` | Authored the platform validation probe and manual-dispatch workflow; documented the manual read-only proof; opened `H-009` to run it. No database or storage write was executed by the agent. | `.github/scripts/platform_probe.py`, `.github/workflows/platform-validation.yml`, `.github/workflows/README.md`, `Phase2/docs/07`, `Phase2/docs/10`, `Phase2/PROGRESS.md` | Python compile, YAML parse, link and secret scans | Human completes `H-009`, then record run evidence and close `G2` |
 
 ## Change log
 
@@ -176,6 +181,7 @@ canonical steps for the Neon setup are also in
 | `2026-11-04` | Recorded `H-003` Neon resources: project `AeroGrid-DW`, branch `br-royal-cherry-beij6hxw`, database `neondb`, bucket `aerogrid-raw`, storage endpoint | HassanNawaz14 | `H-003` |
 | `2026-11-04` | Marked `H-004` and `G-01` done: `warehouse` environment, six required secrets, and `main` protection confirmed; `H-005` is next | HassanNawaz14 | `H-004`, `G-01` |
 | `2026-11-06` | Synced status docs after `G1`: implementation authorized, `WP-02`/`WP-03` `READY`, `G2` next, `aerogrid_reader` confirmed, `H-002` remains deferred | HassanNawaz14 | `H-007`, `H-005`, `WP-01` closeout |
+| `2026-11-06` | Added the `WP-02` probe and manual-dispatch validation workflow; `WP-02` is `BLOCKED_ON_HUMAN` on `H-009` | HassanNawaz14 | `WP-02`, `H-009` |
 
 ## Update protocol
 

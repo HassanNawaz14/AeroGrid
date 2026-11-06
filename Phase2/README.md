@@ -6,9 +6,10 @@ Phase 2 documentation, planning, status, and future implementation.
 
 **Implementation status: AUTHORIZED (2026-11-04, `H-007`).** The documentation and
 folder baseline is accepted (`G0`/`H-001`), the `G1` human prerequisites are closed,
-and `WP-02` (platform validation) and `WP-03` (source validation) are `READY`. The
-Neon project and raw bucket exist; no Phase 2 SQL, ETL, or workflow code exists yet.
-The next gate is `G2`.
+and `WP-02` (platform validation) and `WP-03` (source validation) are authorized.
+`WP-02` has a probe and manual-dispatch workflow and is `BLOCKED_ON_HUMAN` on `H-009`
+(run the validation); `WP-03` is `READY` for Member B. The Neon project and raw bucket
+exist; no Phase 2 SQL or ETL code exists yet. The next gate is `G2`.
 
 ## Quick links
 
@@ -98,7 +99,7 @@ Statuses use the vocabulary in [AGENTS.md](AGENTS.md). Detail is in
 |---|---|---|
 | `WP-00` Documentation and folder baseline | Member A | `DONE` |
 | `WP-01` Human prerequisites and shared platform | Member A + human | `DONE` |
-| `WP-02` Platform validation and access proof | Member A | `READY` |
+| `WP-02` Platform validation and access proof | Member A | `BLOCKED_ON_HUMAN` (`H-009`) |
 | `WP-03` Source validation and georeferencing | Member B | `READY` |
 | `WP-04` Staging DDL and loaders | Member B | `NOT_STARTED` |
 | `WP-05` Dimensions, keys, and dictionary | Member C | `NOT_STARTED` |
@@ -112,14 +113,17 @@ Statuses use the vocabulary in [AGENTS.md](AGENTS.md). Detail is in
 
 ## Current blockers and next action
 
-**No blocker prevents `WP-02` or `WP-03` from starting.** `G1` is closed and both
-packages are `READY`. `H-002` remains deferred by the human; the Member B-E names are
-recorded in [docs/08_team_work_division.md](docs/08_team_work_division.md). `B-004`
+**`WP-02` awaits one human action (`H-009`); `WP-03` can start.** The `WP-02` probe and
+workflow are authored but need the `warehouse` secrets and read-only connection string,
+so they can only run from GitHub Actions. `H-002` remains deferred by the human; the
+Member B-E names are recorded in
+[docs/08_team_work_division.md](docs/08_team_work_division.md). `B-004`
 (TartanAviation georeferencing) is the first task in `WP-03`.
 
-**Next actions:** Member A starts `WP-02` platform validation and access proof;
-Member B starts `WP-03` source validation. Human-only actions still require the human
-(for example, grants, secret changes, or destructive operations).
+**Next actions:** HassanNawaz14 pushes the `WP-02` branch and dispatches
+`platform-validation.yml` (`H-009`); Member B starts `WP-03` source validation.
+Human-only actions still require the human (for example, grants, secret changes, or
+destructive operations).
 
 ## Directory map
 

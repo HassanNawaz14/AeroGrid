@@ -4,8 +4,9 @@
 
 This document defines the accepted operating model. The Neon project, database,
 bucket, `aerogrid_etl` and `aerogrid_reader` roles, GitHub `warehouse` environment,
-and required secrets exist. Schema grants, ETL, and workflow YAML remain pending. The
-human owns all account and secret actions.
+and required secrets exist. The `WP-02` validation workflow and probe script exist;
+schema grants, ETL, and the production workflow remain pending. The human owns all
+account and secret actions.
 
 ## Operating model
 
@@ -62,7 +63,9 @@ human owns all account and secret actions.
 - GitHub `warehouse` environment and six required secrets: created.
 - `main` protection: confirmed.
 - Member invitations: sent.
-- Workflow YAML: not created.
+- Platform validation workflow `.github/workflows/platform-validation.yml` and probe
+  script `.github/scripts/platform_probe.py`: created 2026-11-06; run pending.
+- Production workflow YAML: not created.
 
 ## Secret and variable names
 
@@ -186,6 +189,12 @@ Do not upgrade a plan to solve a quota problem. Stop and escalate.
 
 ## GitHub Actions operating model
 
+Current workflow:
+
+| Workflow | Trigger | Purpose |
+|---|---|---|
+| `platform-validation.yml` | Manual dispatch only | `WP-02` proof of database, raw-bucket, and read-only access |
+
 Planned workflows:
 
 | Workflow | Trigger | Purpose |
@@ -197,7 +206,7 @@ Planned workflows:
 Planned workflow properties:
 
 - `runs-on: ubuntu-latest`
-- Python 3.11
+- Python 3.12
 - No Docker or service containers
 - `timeout-minutes` bounded
 - `concurrency` prevents overlapping warehouse runs
@@ -205,7 +214,71 @@ Planned workflow properties:
 - Upload reports as artifacts
 - Fail on critical DQ
 
-No workflow YAML is implemented in this session.
+Only the `WP-02` validation workflow exists so far; production workflows remain
+planned.
+
+## Runbook: WP-02 platform validation
+
+The workflow `.github/workflows/platform-validation.yml` runs
+`.github/scripts/platform_probe.py` on manual dispatch. It uses the `warehouse`
+environment and prints only pass/fail evidence; connection strings and credentials
+are redacted.
+
+What it proves:
+
+| Check | Proof |
+|---|---|
+| Writer connection | CI connects as `aerogrid_etl` over TLS; server, database, and search path recorded |
+| Cold start | First and warm connection timings recorded |
+| Database write | Temporary table create, insert, select, and drop |
+| Statement timeout | A slow query is cancelled by a 1 s timeout |
+| Schemas | Presence of `project_staging`, `project_dw`, `project_reporting` and writer privileges |
+| Raw bucket | Small marker written, read back by hash, then deleted; bucket object count and size |
+| Read-only role | Optional; runs only when `READONLY_DATABASE_URL` is set |
+
+The read-only role is **not** added to GitHub secrets by default because member
+credentials are shared privately. If the run reports `reader connection: SKIP`, prove
+it manually.
+
+### Manual read-only proof
+
+The writer needs a readable object. If the run reports that
+`project_staging.wp02_read_probe` is absent, a human runs this once in the Neon SQL
+Editor as the project owner:
+
+```sql
+CREATE SCHEMA IF NOT EXISTS project_staging;
+
+CREATE TABLE IF NOT EXISTS project_staging.wp02_read_probe (
+    probe_id integer PRIMARY KEY,
+    note text NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now()
+);
+
+INSERT INTO project_staging.wp02_read_probe (probe_id, note)
+VALUES (1, 'WP-02 read-only access proof')
+ON CONFLICT (probe_id) DO NOTHING;
+
+GRANT USAGE ON SCHEMA project_staging TO aerogrid_reader;
+GRANT SELECT ON project_staging.wp02_read_probe TO aerogrid_reader;
+```
+
+Then connect with the `aerogrid_reader` connection string and run each block:
+
+```sql
+-- Expected: one row with count 1.
+SELECT count(*) FROM project_staging.wp02_read_probe;
+
+-- Expected: ERROR: permission denied for table wp02_read_probe (SQLSTATE 42501).
+INSERT INTO project_staging.wp02_read_probe (probe_id, note)
+VALUES (999, 'should fail');
+
+-- Expected: ERROR: permission denied for schema project_staging (SQLSTATE 42501).
+CREATE TABLE project_staging.wp02_reader_should_fail (probe_id integer);
+```
+
+Record only the pass/fail result in `PROGRESS.md`. Never paste the connection string,
+host password, or query output containing credentials.
 
 ## Runbook: manual refresh
 

@@ -6,7 +6,7 @@
 |---|---|---|---|---|
 | `WP-00` | Documentation and folder baseline | A | B + C | DONE |
 | `WP-01` | Human prerequisites and approvals | A | Human | DONE |
-| `WP-02` | Platform validation and access proof | A | B + C | READY |
+| `WP-02` | Platform validation and access proof | A | B + C | BLOCKED_ON_HUMAN |
 | `WP-03` | Source validation and georeferencing spike | B | D + E | READY |
 | `WP-04` | Staging DDL and loaders | B | C + D | NOT_STARTED |
 | `WP-05` | Dimensions, keys, and data dictionary | C | A + D | NOT_STARTED |
@@ -130,7 +130,7 @@ implementation.
 
 ## WP-02: Platform validation and access proof
 
-**Status:** READY
+**Status:** BLOCKED_ON_HUMAN (`H-009` run pending)
 **Owner:** Member A
 **Reviewers:** Members B and C
 **Prerequisites:** WP-01, G1 cleared

@@ -21,7 +21,7 @@ warehouse without exposing secrets.
 - Phase 2 documentation and planning baseline is accepted (`G0`/`H-001`).
 - Implementation is **authorized** (`H-007`, 2026-11-04).
 - `G1` is closed; the current gate is `G2`.
-- `WP-02` and `WP-03` are `READY` and authorized.
+- `WP-02` is `BLOCKED_ON_HUMAN` on `H-009`; `WP-03` is `READY` and authorized.
 
 ## The one rule for secrets
 
@@ -43,6 +43,7 @@ The canonical queue is in [`../PROGRESS.md`](../PROGRESS.md). Current status:
 | `H-006` | Confirm licenses and optional OpenSky terms | `DONE` |
 | `H-007` | Authorize implementation after G1 | `DONE` 2026-11-04 |
 | `H-008` | Confirm handling of tracked legacy synthetic samples | `DONE` via `D-017` |
+| `H-009` | Run the `WP-02` platform validation workflow and confirm read-only access | `OPEN`; see below |
 
 Project `AeroGrid-DW`, branch `br-royal-cherry-beij6hxw`, database `neondb`, bucket
 `aerogrid-raw`, and the storage endpoint are recorded in
@@ -51,8 +52,38 @@ environment and its six required secrets are in place; `main` is protected. `H-0
 remains deferred; the Member B-E names are recorded in
 [docs/08_team_work_division.md](08_team_work_division.md).
 
-`WP-02` and `WP-03` are authorized and `READY`. Do not start a later work package
-until its gate is recorded in `../PROGRESS.md`.
+`WP-02` and `WP-03` are authorized. `WP-02` is `BLOCKED_ON_HUMAN` until `H-009` is
+done; `WP-03` proceeds with Member B. Do not start a later work package until its gate
+is recorded in `../PROGRESS.md`.
+
+## Current action: run the WP-02 validation workflow
+
+The workflow file must be on GitHub before it can be dispatched. From the repository
+root:
+
+```bash
+git push -u origin phase2/wp-02-platform-validation
+gh auth login
+gh workflow run platform-validation.yml --ref phase2/wp-02-platform-validation
+gh run list --workflow=platform-validation.yml --limit 1
+```
+
+If `gh` reports that the workflow is not found, open the repository on GitHub, merge
+the pull request into `main`, then use **Actions → Platform validation (WP-02) → Run
+workflow**.
+
+Then:
+
+1. Open the run and approve the `warehouse` environment if GitHub asks for review.
+2. Wait for the run to finish (bounded at 15 minutes).
+3. Read the run summary. `PASS` means the writer, storage, and timeout proofs
+   succeeded; `PARTIAL` means the read-only check was skipped.
+4. If the result is `PARTIAL`, follow the manual read-only proof in
+   [docs/07](07_operations_access_and_security.md#runbook-wp-02-platform-validation).
+5. Record the run URL and the result in `../PROGRESS.md`, or tell the agent the run
+   URL so it can record the evidence.
+
+Never paste a secret, connection string, or full query output into chat or an issue.
 
 ## Gate G1 checklist (closed 2026-11-04)
 

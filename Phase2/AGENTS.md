@@ -9,9 +9,10 @@ AeroGrid Phase 2. It is subordinate to the repository-wide
 - Phase 1 is frozen and must not be edited.
 - Phase 2 documentation and planning baseline is accepted (`G0`/`H-001`).
 - **Phase 2 implementation is authorized** (`H-007`, 2026-11-04).
-- `WP-02` (platform validation) and `WP-03` (source validation) are `READY` and
-  authorized. Later work packages remain `NOT_STARTED` until their gate and
-  authorization are recorded in [PROGRESS.md](PROGRESS.md).
+- `WP-02` (platform validation) is `BLOCKED_ON_HUMAN` on `H-009`; its probe and
+  workflow are authored. `WP-03` (source validation) is `READY` and authorized. Later
+  work packages remain `NOT_STARTED` until their gate and authorization are recorded
+  in [PROGRESS.md](PROGRESS.md).
 - The current gate and next action are recorded in [PROGRESS.md](PROGRESS.md).
 - The current authorization status is `implementation_authorized: YES`.
 
@@ -255,5 +256,6 @@ Stop and ask the human if asked to:
 - Mark a gate or work package `DONE` without the required evidence and human
   acceptance.
 
-`WP-02` and `WP-03` are the only currently authorized packages. Later packages begin
-only after their gate is recorded in `PROGRESS.md`.
+`WP-02` and `WP-03` are the only currently authorized packages. `WP-02` is
+`BLOCKED_ON_HUMAN` on `H-009`; `WP-03` is active. Later packages begin only after their
+gate is recorded in `PROGRESS.md`.

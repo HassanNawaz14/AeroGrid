@@ -118,7 +118,7 @@ Evidence:
 
 ### G2: Platform and source readiness
 
-**Status:** NOT_STARTED; `WP-02` and `WP-03` are `READY`.
+**Status:** IN_PROGRESS; `WP-02` is `BLOCKED_ON_HUMAN` on `H-009`, `WP-03` is `READY`.
 **Owner:** Member A for platform; Member B for sources
 **Reviewers:** Members C, D, E
 **Required WPs:** `WP-02`, `WP-03`

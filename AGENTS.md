@@ -10,8 +10,9 @@ contract is [Phase2/AGENTS.md](Phase2/AGENTS.md). Read both before changing file
 - **Phase 2 implementation is authorized** (`H-007`, 2026-11-04).
 - The current gate is `G2 - Platform and source readiness`, tracked in
   [Phase2/PROGRESS.md](Phase2/PROGRESS.md).
-- `WP-02` (Member A) and `WP-03` (Member B) are `READY` and authorized. Later work
-  packages wait until their gate is recorded.
+- `WP-02` (Member A) is `BLOCKED_ON_HUMAN` on `H-009`; its probe and workflow are
+  authored. `WP-03` (Member B) is `READY`. Later work packages wait until their gate
+  is recorded.
 
 ## Authority and precedence
 
@@ -157,6 +158,7 @@ already checked, and the safest next step. Do not silently work around the block
 
 ## Current instruction
 
-`G1` is cleared and implementation is authorized for `WP-02` and `WP-03`. Work on one
-authorized package at a time, record evidence in `Phase2/PROGRESS.md`, and do not start
-a later package until its gate is recorded.
+`G1` is cleared and implementation is authorized for `WP-02` and `WP-03`. `WP-02` is
+`BLOCKED_ON_HUMAN` on `H-009` (run the validation workflow); do not fabricate its
+evidence. Work on one authorized package at a time, record evidence in
+`Phase2/PROGRESS.md`, and do not start a later package until its gate is recorded.
