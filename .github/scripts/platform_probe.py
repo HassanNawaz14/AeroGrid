@@ -14,6 +14,7 @@ import hashlib
 import json
 import os
 import re
+import socket
 import sys
 import time
 from dataclasses import dataclass, field
@@ -176,6 +177,18 @@ def check_tls(report: Report, info: dict[str, str], sslmode: str) -> None:
     # the hostname instead.
     verify_info = dict(info)
     verify_info["sslmode"] = "verify-full"
+    host = info.get("host", "")
+    port = info.get("port", "5432") or "5432"
+    try:
+        # Some CI runners cannot reach IPv6; pin the handshake to IPv4 while
+        # keeping the hostname for certificate verification.
+        addresses = socket.getaddrinfo(
+            host, int(port), socket.AF_INET, socket.SOCK_STREAM
+        )
+        if addresses:
+            verify_info["hostaddr"] = addresses[0][4][0]
+    except (OSError, ValueError):
+        pass
     try:
         with psycopg.connect(
             make_conninfo(**verify_info),
