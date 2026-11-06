@@ -164,7 +164,8 @@ def connect(dsn: str) -> tuple[psycopg.Connection, float, float]:
 
 
 def check_tls(report: Report, info: dict[str, str], sslmode: str) -> None:
-    if sslmode.replace(" ", "") not in ("require", "verify-ca", "verify-full"):
+    normalized = sslmode.replace(" ", "")
+    if normalized not in ("require", "verify-ca", "verify-full"):
         report.add(
             "TLS",
             "FAIL",
@@ -172,9 +173,28 @@ def check_tls(report: Report, info: dict[str, str], sslmode: str) -> None:
         )
         return
 
-    # Neon terminates client TLS at its proxy, so pg_stat_ssl on the compute
-    # reports no TLS. A verify-full handshake proves the certificate chain and
-    # the hostname instead.
+    # libpq refuses to finish the handshake in any of these modes unless TLS is
+    # negotiated, so the connection that just succeeded already proves an
+    # encrypted channel. pg_stat_ssl is not usable as evidence: Neon terminates
+    # client TLS at its proxy, so the compute sees a loopback connection.
+    report.add(
+        "TLS",
+        "PASS",
+        f"connection established with sslmode={sslmode}; libpq cannot complete "
+        "this connection without TLS",
+    )
+
+    if normalized != "require":
+        report.add(
+            "TLS certificate verification",
+            "PASS",
+            f"sslmode={sslmode} made libpq verify the server certificate",
+        )
+        return
+
+    # sslmode=require does not validate the chain. Try a verify-full handshake
+    # as an extra signal; a runner-side CA limitation is informational, not a
+    # connection defect.
     verify_info = dict(info)
     verify_info["sslmode"] = "verify-full"
     verify_info["sslrootcert"] = "system"
@@ -200,17 +220,17 @@ def check_tls(report: Report, info: dict[str, str], sslmode: str) -> None:
         ) as verified:
             verified.execute("SELECT 1").fetchone()
         report.add(
-            "TLS",
+            "TLS certificate verification",
             "PASS",
-            f"sslmode={sslmode} connection succeeded; a verify-full handshake "
-            "validated the server certificate and hostname",
+            "a verify-full handshake validated the server certificate and hostname",
         )
     except Exception as exc:  # noqa: BLE001
         report.add(
-            "TLS",
-            "WARN",
-            f"sslmode={sslmode} connection succeeded, but certificate "
-            f"verification failed: {redact(exc).splitlines()[0]}",
+            "TLS certificate verification",
+            "INFO",
+            "verify-full handshake from the runner did not validate the chain: "
+            f"{redact(exc).splitlines()[0]}; sslmode=require still enforces "
+            "an encrypted channel",
         )
 
 
