@@ -1,9 +1,6 @@
 name: Platform validation (WP-02)
 
 on:
-  push:
-    branches:
-      - phase2/wp-02-platform-validation
   workflow_dispatch:
 
 permissions:
