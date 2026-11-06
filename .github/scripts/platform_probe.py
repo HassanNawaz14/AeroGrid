@@ -162,6 +162,44 @@ def connect(dsn: str) -> tuple[psycopg.Connection, float, float]:
     return conn, connected, first_query
 
 
+def check_tls(report: Report, info: dict[str, str], sslmode: str) -> None:
+    if sslmode.replace(" ", "") not in ("require", "verify-ca", "verify-full"):
+        report.add(
+            "TLS",
+            "FAIL",
+            f"connection string uses sslmode={sslmode}, not an encrypted mode",
+        )
+        return
+
+    # Neon terminates client TLS at its proxy, so pg_stat_ssl on the compute
+    # reports no TLS. A verify-full handshake proves the certificate chain and
+    # the hostname instead.
+    verify_info = dict(info)
+    verify_info["sslmode"] = "verify-full"
+    try:
+        with psycopg.connect(
+            make_conninfo(**verify_info),
+            connect_timeout=10,
+            prepare_threshold=None,
+            autocommit=True,
+            application_name="aerogrid-wp02-tls-probe",
+        ) as verified:
+            verified.execute("SELECT 1").fetchone()
+        report.add(
+            "TLS",
+            "PASS",
+            f"sslmode={sslmode} connection succeeded; a verify-full handshake "
+            "validated the server certificate and hostname",
+        )
+    except Exception as exc:  # noqa: BLE001
+        report.add(
+            "TLS",
+            "WARN",
+            f"sslmode={sslmode} connection succeeded, but certificate "
+            f"verification failed: {redact(exc).splitlines()[0]}",
+        )
+
+
 def run_writer(report: Report) -> dict[str, object]:
     state: dict[str, object] = {"probe_table": False}
     dsn = os.environ.get("DATABASE_URL", "").strip()
@@ -187,59 +225,9 @@ def run_writer(report: Report) -> dict[str, object]:
         f"query; host={host}; endpoint={endpoint_kind}; sslmode={sslmode}",
     )
 
-    try:
-        row = conn.execute(
-            "SELECT ssl, version, cipher, bits FROM pg_stat_ssl "
-            "WHERE pid = pg_backend_pid()"
-        ).fetchone()
-        if row and row[0]:
-            report.add(
-                "TLS",
-                "PASS",
-                f"{row[1]}, {row[2]}, {row[3]} bits",
-            )
-        elif "-pooler" in host:
-            # The pooler terminates client TLS and connects to the compute over
-            # loopback, so pg_stat_ssl on the pooled backend reports no TLS.
-            direct_info = dict(info)
-            direct_info["host"] = host.replace("-pooler", "")
-            try:
-                with psycopg.connect(
-                    make_conninfo(**direct_info),
-                    connect_timeout=10,
-                    prepare_threshold=None,
-                    autocommit=True,
-                    application_name="aerogrid-wp02-tls-probe",
-                ) as direct:
-                    direct_row = direct.execute(
-                        "SELECT ssl, version, cipher, bits FROM pg_stat_ssl "
-                        "WHERE pid = pg_backend_pid()"
-                    ).fetchone()
-                if direct_row and direct_row[0]:
-                    report.add(
-                        "TLS",
-                        "PASS",
-                        f"pooled client connection requires sslmode={sslmode}; "
-                        f"direct endpoint reports {direct_row[1]}, "
-                        f"{direct_row[2]}, {direct_row[3]} bits",
-                    )
-                else:
-                    report.add(
-                        "TLS",
-                        "WARN",
-                        f"pooled client connection requires sslmode={sslmode}, "
-                        "but the direct endpoint does not report TLS",
-                    )
-            except Exception as exc:  # noqa: BLE001
-                report.add(
-                    "TLS",
-                    "WARN",
-                    f"pooled connection enforces sslmode={sslmode}, but the direct "
-                    f"endpoint check failed: {redact(exc)}",
-                )
-        else:
-            report.add("TLS", "FAIL", "pg_stat_ssl reports no TLS on this connection")
+    check_tls(report, info, sslmode)
 
+    try:
         ident = conn.execute(
             "SELECT current_user, current_database(), current_setting('server_version'), "
             "current_setting('search_path'), coalesce(inet_server_addr()::text, 'local')"
