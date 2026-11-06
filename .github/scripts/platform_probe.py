@@ -23,7 +23,7 @@ import boto3
 import psycopg
 from botocore.config import Config
 from botocore.exceptions import BotoCoreError, ClientError
-from psycopg.conninfo import conninfo_to_dict
+from psycopg.conninfo import conninfo_to_dict, make_conninfo
 
 SCHEMAS = ("project_staging", "project_dw", "project_reporting")
 PROBE_TABLE = "project_staging.wp02_read_probe"
@@ -198,6 +198,45 @@ def run_writer(report: Report) -> dict[str, object]:
                 "PASS",
                 f"{row[1]}, {row[2]}, {row[3]} bits",
             )
+        elif "-pooler" in host:
+            # The pooler terminates client TLS and connects to the compute over
+            # loopback, so pg_stat_ssl on the pooled backend reports no TLS.
+            direct_info = dict(info)
+            direct_info["host"] = host.replace("-pooler", "")
+            try:
+                with psycopg.connect(
+                    make_conninfo(**direct_info),
+                    connect_timeout=10,
+                    prepare_threshold=None,
+                    autocommit=True,
+                    application_name="aerogrid-wp02-tls-probe",
+                ) as direct:
+                    direct_row = direct.execute(
+                        "SELECT ssl, version, cipher, bits FROM pg_stat_ssl "
+                        "WHERE pid = pg_backend_pid()"
+                    ).fetchone()
+                if direct_row and direct_row[0]:
+                    report.add(
+                        "TLS",
+                        "PASS",
+                        f"pooled client connection requires sslmode={sslmode}; "
+                        f"direct endpoint reports {direct_row[1]}, "
+                        f"{direct_row[2]}, {direct_row[3]} bits",
+                    )
+                else:
+                    report.add(
+                        "TLS",
+                        "WARN",
+                        f"pooled client connection requires sslmode={sslmode}, "
+                        "but the direct endpoint does not report TLS",
+                    )
+            except Exception as exc:  # noqa: BLE001
+                report.add(
+                    "TLS",
+                    "WARN",
+                    f"pooled connection enforces sslmode={sslmode}, but the direct "
+                    f"endpoint check failed: {redact(exc)}",
+                )
         else:
             report.add("TLS", "FAIL", "pg_stat_ssl reports no TLS on this connection")
 
