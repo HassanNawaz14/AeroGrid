@@ -10,14 +10,12 @@ conflicts with them, the higher-level file wins.
 ## Current authorization
 
 - Phase 1 is frozen.
-- Phase 2 documentation and planning baseline is ready for human review.
-- Phase 2 implementation is **not authorized**.
-- The current human gate is `G1`.
-- Do not create SQL, ETL code, workflows, database objects, or infrastructure until
-  the human clears `G1` and a work package is assigned.
-
-If asked to implement before then, stop and point to the open human actions in
-[`../PROGRESS.md`](../PROGRESS.md).
+- Phase 2 documentation and planning baseline is accepted (`G0`/`H-001`).
+- Phase 2 implementation is **authorized** (`H-007`, 2026-11-04).
+- `G1` is closed; the current gate is `G2`.
+- `WP-02` is `READY_FOR_REVIEW`; `WP-03` is `READY` and authorized.
+- Later work packages begin only after their gate and authorization are recorded in
+  [`../PROGRESS.md`](../PROGRESS.md).
 
 ## Session start checklist
 
@@ -107,7 +105,7 @@ Stop immediately and record the blocker in `PROGRESS.md` when:
 - Two reasonable fixes have failed.
 - You are about to touch production data, secrets, repository settings, or Phase 1
   artifacts.
-- The human requests implementation before `G1`.
+- The human requests work outside an authorized `READY` work package.
 - You cannot verify a claim with real evidence.
 
 When stopping, state:
@@ -216,7 +214,7 @@ Use `Phase2/templates/AGENT_HANDOFF.md`.
 
 | Failure | Correct response |
 |---|---|
-| Implementing before `G1` | Stop; cite the gate; do not create files |
+| Implementing outside an authorized `READY` package | Stop; cite the gate; do not create files |
 | Inventing data to fill a table | Stop; real data only |
 | Lowering a threshold to pass DQ | Stop; ask the human |
 | Requesting a secret in chat | Stop; direct to the UI |
@@ -239,6 +237,8 @@ A task is complete only when:
 
 ## Current next action
 
-The immediate next action is documentation completion, not implementation. The human
-must review the baseline and clear `G1` before any pipeline, database, or workflow is
-created.
+`WP-02` (platform validation and access proof) is `READY_FOR_REVIEW` with a recorded
+`PASS` validation run; do not fabricate evidence or mark it `DONE` yourself.
+`WP-03` (source validation and
+georeferencing) is the active Member B package. Both are authorized. Do not start a
+later package until its gate is recorded in [`../PROGRESS.md`](../PROGRESS.md).

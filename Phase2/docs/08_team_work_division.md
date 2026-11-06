@@ -3,8 +3,8 @@
 ## Purpose
 
 Phase 2 is split by warehouse layer so all five members have independent, reviewable
-work. Member A is HassanNawaz14. The human replaces Members B-E with real names in
-`Phase2/PROGRESS.md`; agents must not guess identities.
+work. Member A is HassanNawaz14. Members B-E are recorded below; `H-002` remains
+deferred by the human, so agents must not invent or reassign identities.
 
 ## Ownership model
 
@@ -169,7 +169,7 @@ owners. Record the change in `PROGRESS.md`.
 
 The human is needed for:
 
-- Replacing A-E placeholders.
+- Confirming the recorded Member B-E names (`H-002` remains deferred).
 - Creating Neon/GitHub resources and secrets.
 - Approving sources, licenses, scope, and thresholds.
 - Authorizing implementation after `G1`.

@@ -231,4 +231,5 @@ The DQ framework will be implemented in `WP-08`, with PDF generation in `WP-09`:
 - PDF builder in `Phase2/etl/reports.py`.
 - CI gate that fails on critical failures.
 
-No quality code exists yet. Do not create it before authorization.
+No quality code exists yet. `G1` is cleared; DQ implementation begins in `WP-08` after
+`G5`.

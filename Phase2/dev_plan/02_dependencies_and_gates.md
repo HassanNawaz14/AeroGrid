@@ -69,6 +69,7 @@ block `WP-11` even if source work progresses.
 
 ### G0: Documentation baseline
 
+**Status:** DONE (`H-001`, 2026-11-04).
 **Owner:** Member A
 **Approvers:** Members B and C; human review
 **Required WPs:** `WP-00`
@@ -92,6 +93,7 @@ Evidence:
 
 ### G1: Human prerequisites
 
+**Status:** DONE (`H-007`, 2026-11-04; `H-002` deferred).
 **Owner:** Human
 **Coordinator:** Member A
 **Required WPs:** `WP-01`
@@ -116,6 +118,8 @@ Evidence:
 
 ### G2: Platform and source readiness
 
+**Status:** IN_PROGRESS; `WP-02` is `READY_FOR_REVIEW` (validation passed 2026-11-07),
+`WP-03` is `READY`.
 **Owner:** Member A for platform; Member B for sources
 **Reviewers:** Members C, D, E
 **Required WPs:** `WP-02`, `WP-03`

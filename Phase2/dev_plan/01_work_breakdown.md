@@ -4,10 +4,10 @@
 
 | WP | Name | Owner | Reviewer | Status |
 |---|---|---|---|---|
-| `WP-00` | Documentation and folder baseline | A | B + C | READY_FOR_REVIEW |
-| `WP-01` | Human prerequisites and approvals | A | Human | BLOCKED_ON_HUMAN |
-| `WP-02` | Platform validation and access proof | A | B + C | NOT_STARTED |
-| `WP-03` | Source validation and georeferencing spike | B | D + E | NOT_STARTED |
+| `WP-00` | Documentation and folder baseline | A | B + C | DONE |
+| `WP-01` | Human prerequisites and approvals | A | Human | DONE |
+| `WP-02` | Platform validation and access proof | A | B + C | READY_FOR_REVIEW |
+| `WP-03` | Source validation and georeferencing spike | B | D + E | READY |
 | `WP-04` | Staging DDL and loaders | B | C + D | NOT_STARTED |
 | `WP-05` | Dimensions, keys, and data dictionary | C | A + D | NOT_STARTED |
 | `WP-06` | Tracking and journey facts | D | C + E | NOT_STARTED |
@@ -18,14 +18,15 @@
 | `WP-11` | CI, access, and deployment | A | B + C | NOT_STARTED |
 | `WP-12` | Integration, acceptance, and release | A | B-E | NOT_STARTED |
 
-Member A is HassanNawaz14; Members B-E are placeholders. The human assigns real names
-before implementation.
+Member A is HassanNawaz14; Members B-E are recorded in
+[`../docs/08_team_work_division.md`](../docs/08_team_work_division.md). `H-002` remains
+deferred by the human.
 
 ---
 
 ## WP-00: Documentation and folder baseline
 
-**Status:** READY_FOR_REVIEW
+**Status:** DONE (accepted via `H-001`)
 **Owner:** Member A
 **Reviewers:** Members B and C
 **Prerequisites:** None
@@ -85,7 +86,7 @@ that the human can review and that agents can follow without inventing scope.
 
 ## WP-01: Human prerequisites and approvals
 
-**Status:** BLOCKED_ON_HUMAN
+**Status:** DONE (`G1` closed via `H-007`)
 **Owner:** Member A (coordinator)
 **Reviewer:** Human
 **Prerequisites:** WP-00 accepted
@@ -113,7 +114,7 @@ implementation.
 
 ### Deliverables
 
-- Human action queue `H-001` through `H-008` resolved.
+- Human action queue `H-001` through `H-008` resolved or explicitly deferred (`H-002`).
 - `implementation_authorized: YES`.
 - G1 approval recorded with approver and date.
 
@@ -129,7 +130,7 @@ implementation.
 
 ## WP-02: Platform validation and access proof
 
-**Status:** NOT_STARTED
+**Status:** READY_FOR_REVIEW (validation run `42276737288` `PASS`, 2026-11-07; reviewers: Members B and C)
 **Owner:** Member A
 **Reviewers:** Members B and C
 **Prerequisites:** WP-01, G1 cleared
@@ -176,7 +177,7 @@ data.
 
 ## WP-03: Source validation and georeferencing spike
 
-**Status:** NOT_STARTED
+**Status:** READY
 **Owner:** Member B
 **Reviewers:** Members D and E
 **Prerequisites:** WP-01, G1 cleared

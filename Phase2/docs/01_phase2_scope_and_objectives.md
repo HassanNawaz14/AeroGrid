@@ -52,7 +52,7 @@ Required techniques:
 
 ## In scope
 
-- Phase 2 documentation and planning in this session.
+- Phase 2 documentation and planning baseline (complete).
 - Future SQL DDL for the three schemas.
 - Future Python ETL package and tests.
 - Real source acquisition from the approved public sources.
@@ -116,17 +116,17 @@ Phase 2 is successful when:
 - Raw data outside Git.
 - Phase 1 artifacts frozen.
 
-### Proposed assumptions requiring confirmation
+### Confirmed assumptions
 
-- Neon Free is the shared PostgreSQL platform.
-- Neon Object Storage is the raw archive.
-- The study scope is multi-site with `dim_site`.
-- TartanAviation KBTP is the primary historical manned source.
-- Nightjar and nominal-io DJI are the UAS sources.
-- OpenSky is optional.
+These were confirmed by the human at `G1` and are recorded in
+[DECISIONS.md](../DECISIONS.md):
 
-The assumptions are tracked in [DECISIONS.md](../DECISIONS.md) and must be confirmed
-at gate `G1`.
+- Neon Free is the shared PostgreSQL platform (`D-001`).
+- Neon Object Storage is the raw archive (`D-003`).
+- The study scope is multi-site with `dim_site` (`D-010`).
+- TartanAviation KBTP is the primary historical manned source (`D-012`).
+- Nightjar and nominal-io DJI are the UAS sources (`D-011`).
+- OpenSky is optional (`D-013`).
 
 ## Stakeholders
 
@@ -148,10 +148,11 @@ agent may propose a change but must not implement it silently.
 
 Implementation may begin only when:
 
-- `G1` is cleared.
-- Member names are assigned.
-- The platform and source decisions are accepted.
+- `G1` is cleared (done 2026-11-04).
+- Member names are recorded (done in `docs/08`; `H-002` deferred).
+- The platform and source decisions are accepted (done, `D-001`-`D-019`).
 - The assigned work package is `READY`.
 - The human explicitly authorizes the work package.
 
-Until then, this phase remains a documentation and planning baseline.
+`WP-02` and `WP-03` are currently authorized. `WP-02` is `READY_FOR_REVIEW`; `WP-03` is
+`READY`. Later packages start only after their gate is recorded in `PROGRESS.md`.

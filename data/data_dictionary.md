@@ -5,7 +5,8 @@
 This is the column-level logical dictionary for the Phase 2 model. It is synchronized
 with [`../Phase2/docs/04_data_model.md`](../Phase2/docs/04_data_model.md) and
 [`diagrams/aerogrid_schema.dbml`](diagrams/aerogrid_schema.dbml). No tables exist yet;
-implementation is blocked until `G1`.
+physical DDL is authorized only inside the owning work package (`WP-04` staging, `WP-05`
+dimensions, `WP-06`/`WP-07` facts).
 
 Physical DDL may use equivalent PostgreSQL types, but names, grains, keys, and
 meanings must match this dictionary.

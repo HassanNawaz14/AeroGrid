@@ -1,7 +1,7 @@
 # Phase 2 Tests
 
 This directory is intentionally empty. It will hold parser, transformation, key, DQ,
-and reporting tests after `G1` is cleared and the relevant work package is authorized.
+and reporting tests once the relevant work package is authorized.
 
 ## Rules
 

@@ -1,7 +1,7 @@
 # Phase 2 SQL
 
 This directory is intentionally empty. It will hold versioned DDL, seeds, checks, and
-reporting views after `G1` is cleared and the relevant work package is authorized.
+reporting views once the relevant work package is authorized.
 
 ## Ownership
 
@@ -25,7 +25,7 @@ sql/
 
 ## Rules
 
-- No SQL is authorized yet.
+- No SQL is authorized until `WP-04`/`WP-05` begin.
 - No local PostgreSQL or Docker.
 - Use explicit schema qualification.
 - Use idempotent DDL where practical.

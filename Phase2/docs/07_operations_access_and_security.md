@@ -2,8 +2,11 @@
 
 ## Status
 
-This document defines the proposed operating model. No cloud resource, role, secret,
-or workflow exists yet. The human owns all account and secret actions.
+This document defines the accepted operating model. The Neon project, database,
+bucket, `aerogrid_etl` and `aerogrid_reader` roles, GitHub `warehouse` environment,
+and required secrets exist. The `WP-02` validation workflow passed on 2026-11-07,
+proving CI writer, storage, and read-only access; schema grants, ETL, and the production
+workflow remain pending. The human owns all account and secret actions.
 
 ## Operating model
 
@@ -51,6 +54,20 @@ or workflow exists yet. The human owns all account and secret actions.
 - Required reviewers for the `warehouse` environment if available.
 - Short-lived feature branches and PRs.
 
+### Provisioning status (2026-11-06)
+
+- Neon project `AeroGrid-DW`, branch `production`, database `neondb`, bucket
+  `aerogrid-raw`: created.
+- `aerogrid_etl` and `aerogrid_reader` roles: created; the reader was recreated from SQL
+  on 2026-11-07 without `neon_superuser`; schema/table grants follow `WP-04`/`WP-05`/`WP-10`.
+- GitHub `warehouse` environment and six required secrets: created.
+- `main` protection: confirmed.
+- Member invitations: sent.
+- Platform validation workflow `.github/workflows/platform-validation.yml` and probe
+  script `.github/scripts/platform_probe.py`: executed 2026-11-07 with `PASS`; result
+  recorded in [`../PROGRESS.md`](../PROGRESS.md).
+- Production workflow YAML: not created.
+
 ## Secret and variable names
 
 The human creates these in the GitHub `warehouse` environment. Agents must never ask
@@ -89,7 +106,8 @@ chat with an agent.
 ## Human setup sequence
 
 The human performs these steps. Member A may provide checklists but must not execute
-account actions.
+account actions. Steps 1-10 were completed by 2026-11-04; step 11 was completed via
+`H-007`.
 
 1. Create or join the Neon organization.
 2. Create a project named `AeroGrid-DW` in `aws-us-east-2` with Object storage enabled.
@@ -172,6 +190,12 @@ Do not upgrade a plan to solve a quota problem. Stop and escalate.
 
 ## GitHub Actions operating model
 
+Current workflow:
+
+| Workflow | Trigger | Purpose |
+|---|---|---|
+| `platform-validation.yml` | Manual dispatch only | `WP-02` proof of database, raw-bucket, and read-only access |
+
 Planned workflows:
 
 | Workflow | Trigger | Purpose |
@@ -183,7 +207,7 @@ Planned workflows:
 Planned workflow properties:
 
 - `runs-on: ubuntu-latest`
-- Python 3.11
+- Python 3.12
 - No Docker or service containers
 - `timeout-minutes` bounded
 - `concurrency` prevents overlapping warehouse runs
@@ -191,7 +215,150 @@ Planned workflow properties:
 - Upload reports as artifacts
 - Fail on critical DQ
 
-No workflow YAML is implemented in this session.
+Only the `WP-02` validation workflow exists so far; production workflows remain
+planned.
+
+## Runbook: WP-02 platform validation
+
+The workflow `.github/workflows/platform-validation.yml` runs
+`.github/scripts/platform_probe.py` on manual dispatch. It uses the `warehouse`
+environment and prints only pass/fail evidence; connection strings and credentials
+are redacted.
+
+What it proves:
+
+| Check | Proof |
+|---|---|
+| Writer connection | CI connects as `aerogrid_etl` over TLS; server, database, and search path recorded |
+| Cold start | First and warm connection timings recorded |
+| Database write | Temporary table create, insert, select, and drop |
+| Statement timeout | A slow query is cancelled by a 1 s timeout |
+| Schemas | Presence of `project_staging`, `project_dw`, `project_reporting` and writer privileges |
+| Raw bucket | Small marker written, read back by hash, then deleted; bucket object count and size |
+| Read-only role | Optional; runs only when `READONLY_DATABASE_URL` is set |
+
+The read-only role is **not** added to GitHub secrets by default because member
+credentials are shared privately. If the run reports `reader connection: SKIP`, prove
+it manually.
+
+### Recorded result
+
+Run [42276737288](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42276737288)
+on 2026-11-07 returned `PASS`: 22 pass, 1 warn, 0 fail, 0 skip. It proved the writer
+connection over TLS, temporary-table write, statement timeout, database size, bucket
+put/head/read-back/delete, warm connection, free-tier headroom, and that
+`aerogrid_reader` is rejected with SQLSTATE `42501` on insert, update, delete, create
+table, and create schema while still selecting. The one warning is the absent
+`project_dw` and `project_reporting` schemas, which `WP-04`/`WP-05` create. Neon
+terminates client TLS at its proxy, so `pg_stat_ssl` cannot show TLS on the compute; an
+established `sslmode=require` connection is the accepted encryption proof.
+
+Earlier runs on 2026-11-06 were `PARTIAL` and then `FAIL`; the failure exposed
+`aerogrid_reader` inheriting `neon_superuser` (see `B-007` in
+[`../PROGRESS.md`](../PROGRESS.md)). The role was replaced and the rerun passed.
+
+### Manual read-only proof
+
+The writer needs a readable object. If the run reports that
+`project_staging.wp02_read_probe` is absent, a human runs this once in the Neon SQL
+Editor as the project owner:
+
+```sql
+CREATE SCHEMA IF NOT EXISTS project_staging;
+
+CREATE TABLE IF NOT EXISTS project_staging.wp02_read_probe (
+    probe_id integer PRIMARY KEY,
+    note text NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now()
+);
+
+INSERT INTO project_staging.wp02_read_probe (probe_id, note)
+VALUES (1, 'WP-02 read-only access proof')
+ON CONFLICT (probe_id) DO NOTHING;
+
+GRANT USAGE ON SCHEMA project_staging TO aerogrid_reader;
+GRANT SELECT ON project_staging.wp02_read_probe TO aerogrid_reader;
+```
+
+If you are already connected as the project owner, you do not need a second
+connection: assume the role for the checks instead. Role membership is required the
+first time; `REVOKE` it afterwards if you want the owner to stop being a member.
+
+```sql
+GRANT aerogrid_reader TO neondb_owner;  -- owner only; one-time, reversible
+SET ROLE aerogrid_reader;
+SELECT current_user;                    -- must print aerogrid_reader
+```
+
+Then run each block, and finish with `RESET ROLE;`. Otherwise connect with the
+`aerogrid_reader` connection string and run the same blocks:
+
+```sql
+-- Expected: one row with count 1.
+SELECT count(*) FROM project_staging.wp02_read_probe;
+
+-- Expected: ERROR: permission denied for table wp02_read_probe (SQLSTATE 42501).
+INSERT INTO project_staging.wp02_read_probe (probe_id, note)
+VALUES (999, 'should fail');
+
+-- Expected: ERROR: permission denied for schema project_staging (SQLSTATE 42501).
+CREATE TABLE project_staging.wp02_reader_should_fail (probe_id integer);
+```
+
+Record only the pass/fail result in `PROGRESS.md`. Never paste the connection string,
+host password, or query output containing credentials.
+
+### If the reader check reports that `INSERT` succeeded
+
+`aerogrid_reader` must hold `SELECT` only; a write privilege means the shared warehouse
+is not read-only for the team. Inspect the grants and memberships first:
+
+```sql
+SELECT pg_get_userbyid(relowner) AS table_owner, relacl
+FROM pg_class WHERE oid = 'project_staging.wp02_read_probe'::regclass;
+
+SELECT pg_get_userbyid(nspowner) AS schema_owner, nspacl
+FROM pg_namespace WHERE nspname = 'project_staging';
+
+SELECT m.rolname AS member_of
+FROM pg_auth_members am
+JOIN pg_roles m ON m.oid = am.roleid
+WHERE am.member = 'aerogrid_reader'::regrole;
+```
+
+A correct table ACL shows only `aerogrid_reader=r/...`. If the membership query lists
+`neon_superuser`, the role inherits `pg_write_all_data` across the whole project, and no
+object-level grant can override it. That membership cannot be removed by
+`neondb_owner`: it lacks ADMIN on `neon_superuser`, and PostgreSQL also refuses
+`DROP ROLE` and `ALTER ROLE` on a role the platform created. In that case the role must
+be replaced:
+
+1. Neon Console → **Roles** → `aerogrid_reader` → **Delete**.
+2. Recreate it from SQL. Roles created by SQL in this project carry no memberships,
+   unlike platform-created roles:
+
+```sql
+DELETE FROM project_staging.wp02_read_probe WHERE probe_id = 999;
+CREATE ROLE aerogrid_reader WITH LOGIN;
+GRANT USAGE ON SCHEMA project_staging TO aerogrid_reader;
+GRANT SELECT ON project_staging.wp02_read_probe TO aerogrid_reader;
+```
+
+3. Reset the role password in the console and update the `READONLY_DATABASE_URL`
+   environment secret.
+
+If the membership query is empty and the reader is neither the table nor schema owner,
+the write instead comes from a grant; reduce it to the intended minimum:
+
+```sql
+REVOKE ALL ON project_staging.wp02_read_probe FROM aerogrid_reader;
+GRANT SELECT ON project_staging.wp02_read_probe TO aerogrid_reader;
+REVOKE ALL ON SCHEMA project_staging FROM aerogrid_reader;
+GRANT USAGE ON SCHEMA project_staging TO aerogrid_reader;
+```
+
+Rerun the validation workflow afterwards; the insert must be rejected with SQLSTATE
+`42501`.
 
 ## Runbook: manual refresh
 
