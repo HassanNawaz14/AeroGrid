@@ -80,7 +80,7 @@ Gate definitions are canonical in
 | `H-006` | Confirm data licenses, attribution, and optional OpenSky access | Redistribution and source-use terms must be confirmed | Confirmed data licenses, attribution requirements, and optional OpenSky access (`D-011`, `D-012`, `D-013`, `docs/03_data_sources_and_licensing.md`) | `DONE` |
 | `H-007` | Explicitly authorize Phase 2 implementation | Opens the implementation phase | **DONE 2026-11-04** — Authorized implementation; G1 closed; WP-02/WP-03 assigned | `DONE` |
 | `H-008` | Confirm handling of the tracked legacy synthetic samples under `data/sample/` | Prevents synthetic demo files from being mistaken for real Phase 2 data | HassanNawaz14 confirmed the five files are intentionally retained as demo-only artifacts for offline user/evaluator viewing; excluded from all Phase 2 loads and reports; `D-017` | `DONE` |
-| `H-009` | Run the `WP-02` validation workflow and confirm read-only access | The probe needs the `warehouse` secrets, and the read-only connection string is member-only | Runs [42266493857](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42266493857) and [42272052476](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42272052476) are done; `READONLY_DATABASE_URL` is now a `warehouse` secret. **Remaining:** as project owner, revoke the reader's write privilege with the snippet in `docs/07`, delete probe row `999`, then let the agent rerun the workflow. Never paste secret values. | `OPEN` |
+| `H-009` | Run the `WP-02` validation workflow and confirm read-only access | The probe needs the `warehouse` secrets, and the read-only connection string is member-only | Runs [42266493857](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42266493857) and [42272052476](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42272052476) are done; `READONLY_DATABASE_URL` is now a `warehouse` secret. **Remaining:** delete `aerogrid_reader` in the Neon Console, recreate it from SQL with `SELECT`-only grants, reset its password, update the secret, then let the agent rerun the workflow. Never paste secret values. | `OPEN` |
 
 `H-002` remains `BLOCKED` until Members B-E choose roles and provide real names.
 `H-008` is resolved by `D-017`; the legacy samples are retained as demo-only artifacts
@@ -129,7 +129,7 @@ canonical steps for the Neon setup are also in
 | `B-004` | TartanAviation georeferencing is not yet validated | Spatial facts may need a fallback design | `WP-03` (authorized 2026-11-04) | `OPEN` |
 | `B-005` | Documentation baseline is awaiting human acceptance | `G0`/`G1` cannot close | `H-001` | `RESOLVED` (Accepted by HassanNawaz14) |
 | `B-006` | Legacy synthetic files remain tracked under `data/sample/` | They are intentionally retained for offline demo/evaluator viewing and must not be mistaken for real data | `H-008`, `D-017` | `RESOLVED` (Retained as documented demo-only samples via `D-017`) |
-| `B-007` | `aerogrid_reader` can insert into `project_staging.wp02_read_probe` | The read-only guarantee is not met, and `WP-02`/`G2` cannot close | `H-009` revoke snippet in `docs/07` | `OPEN` |
+| `B-007` | `aerogrid_reader` can insert into `project_staging.wp02_read_probe` | The read-only guarantee is not met, and `WP-02`/`G2` cannot close | Root cause: the role is a member of `neon_superuser`, and `neondb_owner` has no ADMIN on it, so it cannot be revoked, altered, or dropped from SQL. Fix: delete the role in the Neon Console, recreate it from SQL, reset its password, update `READONLY_DATABASE_URL` (`docs/07`). | `OPEN` |
 
 ## Documentation baseline evidence
 
@@ -198,10 +198,14 @@ Second run, [42272052476](https://github.com/HassanNawaz14/AeroGrid/actions/runs
 | Reader insert | `FAIL` | statement succeeded; write privilege is present |
 
 This is a real access-control defect, tracked as `B-007`: `aerogrid_reader` must only
-hold `SELECT`, so `WP-02` cannot close until the write privilege is revoked and a
-rerun shows `INSERT` rejected with SQLSTATE `42501`. The run left probe row `999` in
-the table; the probe now removes that row when the insert unexpectedly succeeds, and
-the remediation snippet in `docs/07` deletes the existing one.
+hold `SELECT`, so `WP-02` cannot close until the write privilege is removed and a
+rerun shows `INSERT` rejected with SQLSTATE `42501`. Diagnosis on 2026-11-07: the table
+ACL grants the reader only `r`, but the role is a member of `neon_superuser`, which
+carries `pg_write_all_data` project-wide. `neondb_owner` cannot revoke that membership
+(no ADMIN option) and cannot drop or alter the platform-created role, so the role is
+replaced through the Neon Console and recreated from SQL. The run left probe row `999`
+in the table; the probe now removes that row when the insert unexpectedly succeeds,
+and the remediation steps in `docs/07` delete the existing one.
 
 Caveats:
 

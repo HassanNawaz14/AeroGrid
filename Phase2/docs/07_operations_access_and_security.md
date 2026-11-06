@@ -306,32 +306,50 @@ host password, or query output containing credentials.
 ### If the reader check reports that `INSERT` succeeded
 
 `aerogrid_reader` must hold `SELECT` only; a write privilege means the shared warehouse
-is not read-only for the team. Inspect the grants as the owner first:
+is not read-only for the team. Inspect the grants and memberships first:
 
 ```sql
-SELECT relacl FROM pg_class WHERE oid = 'project_staging.wp02_read_probe'::regclass;
-SELECT nspacl FROM pg_namespace WHERE nspname = 'project_staging';
+SELECT pg_get_userbyid(relowner) AS table_owner, relacl
+FROM pg_class WHERE oid = 'project_staging.wp02_read_probe'::regclass;
+
+SELECT pg_get_userbyid(nspowner) AS schema_owner, nspacl
+FROM pg_namespace WHERE nspname = 'project_staging';
+
 SELECT m.rolname AS member_of
 FROM pg_auth_members am
 JOIN pg_roles m ON m.oid = am.roleid
 WHERE am.member = 'aerogrid_reader'::regrole;
 ```
 
-Then reduce access to the intended minimum and remove the test row left by the probe:
+A correct table ACL shows only `aerogrid_reader=r/...`. If the membership query lists
+`neon_superuser`, the role inherits `pg_write_all_data` across the whole project, and no
+object-level grant can override it. That membership cannot be removed by
+`neondb_owner`: it lacks ADMIN on `neon_superuser`, and PostgreSQL also refuses
+`DROP ROLE` and `ALTER ROLE` on a role the platform created. In that case the role must
+be replaced:
+
+1. Neon Console → **Roles** → `aerogrid_reader` → **Delete**.
+2. Recreate it from SQL. Roles created by SQL in this project carry no memberships,
+   unlike platform-created roles:
 
 ```sql
 DELETE FROM project_staging.wp02_read_probe WHERE probe_id = 999;
+CREATE ROLE aerogrid_reader WITH LOGIN;
+GRANT USAGE ON SCHEMA project_staging TO aerogrid_reader;
+GRANT SELECT ON project_staging.wp02_read_probe TO aerogrid_reader;
+```
+
+3. Reset the role password in the console and update the `READONLY_DATABASE_URL`
+   environment secret.
+
+If the membership query is empty and the reader is neither the table nor schema owner,
+the write instead comes from a grant; reduce it to the intended minimum:
+
+```sql
 REVOKE ALL ON project_staging.wp02_read_probe FROM aerogrid_reader;
 GRANT SELECT ON project_staging.wp02_read_probe TO aerogrid_reader;
 REVOKE ALL ON SCHEMA project_staging FROM aerogrid_reader;
 GRANT USAGE ON SCHEMA project_staging TO aerogrid_reader;
-```
-
-If the membership query lists a write-capable role such as `neondb_owner`, remove that
-membership as well:
-
-```sql
-REVOKE neondb_owner FROM aerogrid_reader;  -- only when the diagnostic shows it
 ```
 
 Rerun the validation workflow afterwards; the insert must be rejected with SQLSTATE
