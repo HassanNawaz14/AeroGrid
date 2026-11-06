@@ -154,5 +154,6 @@ Implementation may begin only when:
 - The assigned work package is `READY`.
 - The human explicitly authorizes the work package.
 
-`WP-02` and `WP-03` are currently authorized. `WP-02` is `READY_FOR_REVIEW`; `WP-03` is
-`READY`. Later packages start only after their gate is recorded in `PROGRESS.md`.
+`WP-02` and `WP-03` are currently authorized. `WP-02` is `DONE` (accepted 2026-11-07;
+PR #3 merged); `WP-03` is `READY`. Later packages start only after their gate is
+recorded in `PROGRESS.md`.

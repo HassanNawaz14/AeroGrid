@@ -5,8 +5,9 @@
 This document defines the accepted operating model. The Neon project, database,
 bucket, `aerogrid_etl` and `aerogrid_reader` roles, GitHub `warehouse` environment,
 and required secrets exist. The `WP-02` validation workflow passed on 2026-11-07,
-proving CI writer, storage, and read-only access; schema grants, ETL, and the production
-workflow remain pending. The human owns all account and secret actions.
+proving CI writer, storage, and read-only access; `WP-02` is `DONE` and merged as
+`b6b76b9`. Schema grants, ETL, and the production workflow remain pending. The human
+owns all account and secret actions.
 
 ## Operating model
 
