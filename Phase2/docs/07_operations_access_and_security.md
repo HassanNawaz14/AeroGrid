@@ -2,8 +2,10 @@
 
 ## Status
 
-This document defines the proposed operating model. No cloud resource, role, secret,
-or workflow exists yet. The human owns all account and secret actions.
+This document defines the accepted operating model. The Neon project, database,
+bucket, `aerogrid_etl` and `aerogrid_reader` roles, GitHub `warehouse` environment,
+and required secrets exist. Schema grants, ETL, and workflow YAML remain pending. The
+human owns all account and secret actions.
 
 ## Operating model
 
@@ -51,6 +53,17 @@ or workflow exists yet. The human owns all account and secret actions.
 - Required reviewers for the `warehouse` environment if available.
 - Short-lived feature branches and PRs.
 
+### Provisioning status (2026-11-06)
+
+- Neon project `AeroGrid-DW`, branch `production`, database `neondb`, bucket
+  `aerogrid-raw`: created.
+- `aerogrid_etl` and `aerogrid_reader` roles: created; schema/table grants follow
+  `WP-04`/`WP-05`/`WP-10`.
+- GitHub `warehouse` environment and six required secrets: created.
+- `main` protection: confirmed.
+- Member invitations: sent.
+- Workflow YAML: not created.
+
 ## Secret and variable names
 
 The human creates these in the GitHub `warehouse` environment. Agents must never ask
@@ -89,7 +102,8 @@ chat with an agent.
 ## Human setup sequence
 
 The human performs these steps. Member A may provide checklists but must not execute
-account actions.
+account actions. Steps 1-10 were completed by 2026-11-04; step 11 was completed via
+`H-007`.
 
 1. Create or join the Neon organization.
 2. Create a project named `AeroGrid-DW` in `aws-us-east-2` with Object storage enabled.

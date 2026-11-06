@@ -1,7 +1,7 @@
 # Phase 2 ETL
 
-This directory is intentionally empty. It will hold the Python ETL package after `G1`
-is cleared and the relevant work package is authorized.
+This directory is intentionally empty. It will hold the Python ETL package once the
+relevant work package is authorized.
 
 ## Owners
 

@@ -7,14 +7,13 @@ AeroGrid Phase 2. It is subordinate to the repository-wide
 ## Current state
 
 - Phase 1 is frozen and must not be edited.
-- Phase 2 documentation and planning baseline is ready for human review.
-- **No Phase 2 implementation is authorized.**
-- Do not create or modify SQL, ETL code, workflows, database objects, cloud
-  resources, or test fixtures that imply implementation until the human clears
-  gate `G1`.
-- The current gate and next human action are recorded in
-  [PROGRESS.md](PROGRESS.md).
-- The current authorization status is `implementation_authorized: NO`.
+- Phase 2 documentation and planning baseline is accepted (`G0`/`H-001`).
+- **Phase 2 implementation is authorized** (`H-007`, 2026-11-04).
+- `WP-02` (platform validation) and `WP-03` (source validation) are `READY` and
+  authorized. Later work packages remain `NOT_STARTED` until their gate and
+  authorization are recorded in [PROGRESS.md](PROGRESS.md).
+- The current gate and next action are recorded in [PROGRESS.md](PROGRESS.md).
+- The current authorization status is `implementation_authorized: YES`.
 
 ## Mission
 
@@ -187,8 +186,8 @@ If human action is required:
 | Derived facts, DQ, reports, reporting views | Member E | Member D for fact inputs and Member A for CI |
 | Phase 2 docs and decisions | Member A | All affected owners |
 
-Names are placeholders until the human assigns real names in
-[docs/08_team_work_division.md](docs/08_team_work_division.md).
+Members B-E are recorded in [docs/08_team_work_division.md](docs/08_team_work_division.md);
+`H-002` remains deferred by the human.
 
 Cross-cutting files such as `PROGRESS.md`, `DECISIONS.md`, and the root `README.md`
 require the accountable owner to coordinate with affected members.
@@ -226,7 +225,7 @@ Canonical sources:
 - Never commit secrets, connection strings, `.env` files, raw data, database dumps,
   or large binaries.
 - Do not add raw data under `Phase2/` or `data/`; use the approved object-storage
-  bucket after `G1`.
+  bucket `aerogrid-raw`.
 - Do not edit `Phase1/` or the historical course PDFs.
 - Do not change the default branch, repository visibility, or branch protection.
 - Use scoped commits only when the human explicitly requests a commit.
@@ -245,16 +244,16 @@ A work package is not complete until:
 
 ## Immediate stop conditions for this session
 
-This session is documentation-only. If asked to do any of the following now, refuse
-and point to the current gate:
+Implementation is authorized, but only inside an authorized `READY` work package.
+Stop and ask the human if asked to:
 
-- Create SQL tables or schemas.
-- Write ETL code.
-- Add GitHub Actions YAML workflows.
-- Create a Neon project or bucket.
-- Add secrets or invite members.
-- Load data into the shared database.
-- Mark `G1` as complete.
+- Work outside the assigned work package or start a `NOT_STARTED`/`BLOCKED` package.
+- Create or delete a Neon project, branch, bucket, credential, or database role.
+- Add, read, rotate, or reveal a secret.
+- Invite members, change repository visibility, or change branch protection.
+- Run destructive SQL, drop/truncate tables, or load production data outside CI.
+- Mark a gate or work package `DONE` without the required evidence and human
+  acceptance.
 
-The next required action is human review of the baseline and completion of the
-human prerequisites in `PROGRESS.md`.
+`WP-02` and `WP-03` are the only currently authorized packages. Later packages begin
+only after their gate is recorded in `PROGRESS.md`.

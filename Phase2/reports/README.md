@@ -1,7 +1,7 @@
 # Phase 2 Reports
 
-This directory is intentionally empty. It will hold the final PDF deliverables after
-`G1` is cleared and the reporting work package is authorized.
+This directory is intentionally empty. It will hold the final PDF deliverables once
+the reporting work package is authorized.
 
 ## Planned files
 

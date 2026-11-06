@@ -18,10 +18,10 @@ warehouse without exposing secrets.
 ## Current state
 
 - Phase 1 is complete and frozen.
-- Phase 2 documentation and planning baseline is ready for human review.
-- Implementation is **not authorized**.
-- Gate `G1` is open.
-- The platform, sources, and model are proposed and need human approval.
+- Phase 2 documentation and planning baseline is accepted (`G0`/`H-001`).
+- Implementation is **authorized** (`H-007`, 2026-11-04).
+- `G1` is closed; the current gate is `G2`.
+- `WP-02` and `WP-03` are `READY` and authorized.
 
 ## The one rule for secrets
 
@@ -31,40 +31,37 @@ agent asks for a secret, refuse and correct the instruction.
 
 ## Human action queue
 
-The canonical queue is in [`../PROGRESS.md`](../PROGRESS.md). Current actions:
+The canonical queue is in [`../PROGRESS.md`](../PROGRESS.md). Current status:
 
-| ID | Action | Why |
+| ID | Action | Status |
 |---|---|---|
-| `H-001` | Review and approve the Phase 2 baseline documents | Confirms scope, model, sources, and plan |
-| `H-002` | Replace Members B-E with real names | Assigns accountability without inventing identities; Member A is HassanNawaz14 |
-| `H-003` | Create Neon project `AeroGrid-DW` and raw bucket `aerogrid-raw` | Provides the shared cloud warehouse |
-| `H-004` | Add GitHub environment secrets | Allows CI to write without local credentials |
-| `H-005` | Invite members and create read-only access | Ensures all five can read shared data |
-| `H-006` | Confirm licenses and optional OpenSky terms | Manages legal and source risk |
-| `H-007` | Authorize implementation after G1 | Opens the implementation phase |
-| `H-008` | Confirm handling of tracked legacy synthetic samples | Prevents synthetic demo files from being mistaken for real Phase 2 data; resolved by retaining them as documented demo-only artifacts |
+| `H-001` | Review and approve the Phase 2 baseline documents | `DONE` |
+| `H-002` | Record Members B-E names | Names recorded in [docs/08](08_team_work_division.md); formal closure deferred |
+| `H-003` | Create Neon project `AeroGrid-DW` and raw bucket `aerogrid-raw` | `DONE` |
+| `H-004` | Add GitHub environment secrets | `DONE` |
+| `H-005` | Invite members and create read-only access | `DONE`; `aerogrid_reader` confirmed 2026-11-06 |
+| `H-006` | Confirm licenses and optional OpenSky terms | `DONE` |
+| `H-007` | Authorize implementation after G1 | `DONE` 2026-11-04 |
+| `H-008` | Confirm handling of tracked legacy synthetic samples | `DONE` via `D-017` |
 
-`H-003` and `H-004` are complete: project `AeroGrid-DW`, branch
-`br-royal-cherry-beij6hxw`, database `neondb`, bucket `aerogrid-raw`, and the storage
-endpoint are recorded in [`../PROGRESS.md`](../PROGRESS.md) → Neon resource record.
-The GitHub `warehouse` environment and its six required secrets are in place; `main`
-is protected. `H-008` is resolved by `D-017`: the five sample files are intentionally
-retained for offline user/evaluator viewing and are never loaded into Phase 2. `H-002`
-remains blocked until Members B-E choose roles and provide real names.
+Project `AeroGrid-DW`, branch `br-royal-cherry-beij6hxw`, database `neondb`, bucket
+`aerogrid-raw`, and the storage endpoint are recorded in
+[`../PROGRESS.md`](../PROGRESS.md) → Neon resource record. The GitHub `warehouse`
+environment and its six required secrets are in place; `main` is protected. `H-002`
+remains deferred; the Member B-E names are recorded in
+[docs/08_team_work_division.md](08_team_work_division.md).
 
-Detailed steps for `H-005` to `H-007` are in
-[`../PROGRESS.md`](../PROGRESS.md) under `G1 execution checklist`.
+`WP-02` and `WP-03` are authorized and `READY`. Do not start a later work package
+until its gate is recorded in `../PROGRESS.md`.
 
-Do not start `WP-02` or later until `H-001` through `H-008` are resolved in the order
-that the work package requires.
+## Gate G1 checklist (closed 2026-11-04)
 
-## Gate G1 checklist
-
-Before marking `G1` done:
+`G1` was closed and implementation authorized via `H-007`. The checklist is retained
+as the acceptance record:
 
 - [x] The human has read the scope, architecture, sources, model, and plan.
 - [x] The human accepts the free-tier platform and its limits.
-- [ ] The human accepts the source list and license posture.
+- [x] The human accepts the source list and license posture (`H-006`).
 - [x] The human accepts the multi-site model and `dim_site`.
 - [x] Member A is HassanNawaz14; Members B-E have real names, or the B-E placeholders
       are explicitly accepted for planning only (H-002 deferred per human instruction).
@@ -72,12 +69,10 @@ Before marking `G1` done:
 - [x] The GitHub `warehouse` environment exists.
 - [x] Required secrets are stored in GitHub, not in the repository.
 - [x] `main` is protected with pull requests, review, and force-push/deletion blocks.
-- [x] Members can be invited and read-only access is planned.
+- [x] Members can be invited and read-only access is planned (`aerogrid_reader` exists).
 - [x] Legacy synthetic samples are explicitly documented as demo-only and excluded
       from Phase 2 (`D-017`).
 - [x] `implementation_authorized` is set to `YES` only after all of the above.
-
-If an item cannot be completed, record it as a blocker. Do not mark the gate done.
 
 ## Step 1: Review the baseline
 
@@ -98,8 +93,8 @@ Read, in order:
 13. `08_team_work_division.md`
 14. The dev plan and acceptance files.
 
-Approve or request changes. Do not authorize implementation until the baseline is
-accepted.
+Approve or request changes. The baseline was accepted via `H-001`; no further
+authorization is needed for `WP-02`/`WP-03`.
 
 ## Step 2: Replace placeholders
 
@@ -184,7 +179,11 @@ Confirm:
 
 If a license is unclear, stop and record `H-006`. Do not add the source.
 
-## Step 7: Authorize implementation
+## Step 7: Authorize implementation (completed 2026-11-04)
+
+This step was completed via `H-007`: `implementation_authorized: YES`, `G1` marked
+done with approver and date, and `WP-02`/`WP-03` assigned. The procedure below is
+retained for a future gate:
 
 Only after `H-001` through `H-006` and `H-008` are resolved:
 

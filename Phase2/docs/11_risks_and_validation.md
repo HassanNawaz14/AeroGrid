@@ -4,7 +4,8 @@
 
 This register tracks the risks that could invalidate the Phase 2 warehouse, break the
 free-tier boundary, or breach the project constraints. Risks are reviewed before each
-gate. Owners are placeholders until the human assigns names.
+gate. Owners A-E map to the members recorded in
+[08_team_work_division.md](08_team_work_division.md).
 
 ## Risk rating
 
@@ -41,7 +42,7 @@ human decision before the dependent work package proceeds.
 | `R-18` | Derived metrics are mistaken for observed facts | Medium | High | E | Label derived facts and `algorithm_version`; explain in reports | Report treats estimated occupancy as measured |
 | `R-19` | Team member unavailable | Medium | Medium | Human + A | Reviewer coverage, handoff template, no single point of failure | No reviewer or owner available |
 | `R-20` | Scope creep | Medium | Medium | Human | One WP at a time; change requires decision record | New source/metric without approval |
-| `R-21` | Implementation starts before G1 | Medium | High | A | Gate check at session start; refusal rule | Agent creates SQL/workflow early |
+| `R-21` | Implementation starts outside an authorized `READY` work package | Medium | High | A | Gate check at session start; refusal rule; `PROGRESS.md` authorization | Agent creates SQL/workflow for an unassigned package |
 | `R-22` | Public repo exposes data that should not be public | Low | High | Human | Do not commit raw data; review reports for sensitive content | Raw archive or personal data in Git |
 | `R-23` | Windows path/encoding issues break scripts | Medium | Low | A | Use pathlib, UTF-8, CI Linux as canonical | Local-only path failure |
 | `R-24` | Free-tier compute/egress exceeded | Low | Medium | A | Weekly/manual runs, query reporting views, no polling | Usage warning |

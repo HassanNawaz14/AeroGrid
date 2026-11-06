@@ -9,19 +9,19 @@
 - Never commit raw source archives to Git.
 - Record attribution in the source manifest and the generated reports.
 - If a license or redistribution term is unclear, stop and ask the human.
-- A source decision is not final until the human confirms it at `G1` and the source
-  validation spike passes at `G2`.
+- Source decisions were confirmed at `G1` (`H-006`, `D-011`-`D-013`); a source is not
+  final until the `WP-03` validation spike passes at `G2`.
 
 ## Source inventory
 
 | ID | Source | Role | Access | Cadence | License/terms | Status |
 |---|---|---|---|---|---|---|
-| `SRC-TARTAN` | TartanAviation ADS-B | Primary historical manned tracking, journeys, encounters, occupancy | Public HTTPS/Swift download | Initial bulk; static | CC BY 4.0 | Proposed; georeference validation required |
-| `SRC-NIGHTJAR` | Nightjar DJI flight telemetry | Real UAS tracking and journeys, 10 Hz | Public Hugging Face files | Initial bulk | CC BY 4.0 | Proposed; parser validation required |
-| `SRC-DJI-NOMINAL` | Nominal-io DJI telemetry | Additional real UAS tracking and journeys | Public Hugging Face files | Initial bulk | MIT | Proposed; parser validation required |
-| `SRC-METAR-AWC` | NOAA Aviation Weather Center METAR | Current weather observations | Public HTTP JSON | Weekly | U.S. government open data | Proposed |
-| `SRC-METAR-IEM` | Iowa Environmental Mesonet ASOS | Historical METAR for source dates | Public HTTP CSV | Initial + weekly backfill | Public academic archive; verify terms | Proposed |
-| `SRC-FAA-UDDS` | FAA UDDS ArcGIS layers | UAS facility map, TFRs, airspace zones | Public ArcGIS REST GeoJSON | Initial + weekly | U.S. government open data | Proposed; query limits |
+| `SRC-TARTAN` | TartanAviation ADS-B | Primary historical manned tracking, journeys, encounters, occupancy | Public HTTPS/Swift download | Initial bulk; static | CC BY 4.0 | Accepted; georeference validation required |
+| `SRC-NIGHTJAR` | Nightjar DJI flight telemetry | Real UAS tracking and journeys, 10 Hz | Public Hugging Face files | Initial bulk | CC BY 4.0 | Accepted; parser validation required |
+| `SRC-DJI-NOMINAL` | Nominal-io DJI telemetry | Additional real UAS tracking and journeys | Public Hugging Face files | Initial bulk | MIT | Accepted; parser validation required |
+| `SRC-METAR-AWC` | NOAA Aviation Weather Center METAR | Current weather observations | Public HTTP JSON | Weekly | U.S. government open data | Accepted; validation required |
+| `SRC-METAR-IEM` | Iowa Environmental Mesonet ASOS | Historical METAR for source dates | Public HTTP CSV | Initial + weekly backfill | Public academic archive; verify terms | Accepted; validation required |
+| `SRC-FAA-UDDS` | FAA UDDS ArcGIS layers | UAS facility map, TFRs, airspace zones | Public ArcGIS REST GeoJSON | Initial + weekly | U.S. government open data | Accepted; validation required; query limits |
 | `SRC-OPENSKY` | OpenSky Network REST | Optional recent manned snapshots | Public API; optional account | Weekly/manual | OpenSky terms; no raw redistribution | Optional |
 | `SRC-OPENSKY-TRINO` | OpenSky historical database | Optional historical enrichment | Application required | Optional | Separate data-use terms | Not assumed |
 

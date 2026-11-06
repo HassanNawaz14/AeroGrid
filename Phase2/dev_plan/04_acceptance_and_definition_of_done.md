@@ -54,23 +54,25 @@ Phase 2 is complete only when all are true:
 - No synthetic data exists.
 - The human accepts `G7`.
 
-## Current session acceptance: documentation baseline
+## Documentation baseline acceptance (completed 2026-11-04)
 
-The current documentation-only session is complete only when:
+**Status:** DONE via `H-001`. This checklist records the `G0` baseline at acceptance;
+cloud resources were provisioned later under `G1` and are not part of the `G0`
+checklist.
 
-- [ ] `AGENTS.md` and `Phase2/AGENTS.md` exist and agree.
-- [ ] `Phase2/README.md` and `Phase2/PROGRESS.md` are consistent.
-- [ ] Docs `00`-`12` exist and links resolve.
-- [ ] Dev plan files exist and agree on WP IDs.
-- [ ] Templates exist.
-- [ ] Folder README placeholders exist.
-- [ ] `.gitignore` blocks secrets, dumps, and raw data.
-- [ ] Root README and data docs reflect Phase 2.
-- [ ] DBML is updated or clearly marked historical.
-- [ ] Phase 1 guide has a supersession note.
-- [ ] No SQL, ETL code, workflow YAML, database object, or cloud resource exists.
-- [ ] No secret or raw data is present.
-- [ ] The human can see the exact next action.
+- [x] `AGENTS.md` and `Phase2/AGENTS.md` exist and agree.
+- [x] `Phase2/README.md` and `Phase2/PROGRESS.md` are consistent.
+- [x] Docs `00`-`12` exist and links resolve.
+- [x] Dev plan files exist and agree on WP IDs.
+- [x] Templates exist.
+- [x] Folder README placeholders exist.
+- [x] `.gitignore` blocks secrets, dumps, and raw data.
+- [x] Root README and data docs reflect Phase 2.
+- [x] DBML is updated or clearly marked historical.
+- [x] Phase 1 guide has a supersession note.
+- [x] No SQL, ETL code, workflow YAML, database object, or cloud resource existed at `G0`.
+- [x] No secret or raw data is present.
+- [x] The human can see the exact next action.
 
 ## Work-package acceptance summary
 

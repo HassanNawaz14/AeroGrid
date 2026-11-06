@@ -17,5 +17,6 @@ after the Phase 2 schema is approved and implemented.
 
 ## Status
 
-The DBML is a proposed logical schema. No database object exists until `G1` is cleared
-and the schema work package is authorized.
+The DBML is the accepted logical schema. No database table exists yet; physical DDL is
+authorized only inside the owning work package: `WP-04` for staging, `WP-05` for
+dimensions, and `WP-06`/`WP-07` for facts.

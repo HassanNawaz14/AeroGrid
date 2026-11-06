@@ -43,8 +43,8 @@ evidence exists and is reviewable.
 | `O-08` | Capacity guardrails | DB/object-storage usage and estimates | `WP-02`, `WP-12` | A | PLANNED |
 | `O-09` | Reproducibility | Run ID, code version, source manifest, counts | `WP-11`, `WP-12` | A | PLANNED |
 | `O-10` | Human gate discipline | `PROGRESS.md` gate/action evidence | `WP-01`, `WP-12` | A/Human | IN_PROGRESS |
-| `O-11` | Documentation/agent contract | `AGENTS.md`, `Phase2/AGENTS.md`, manuals | `WP-00` | A | READY_FOR_REVIEW |
-| `O-12` | Phase 1 preservation | Phase 1 files unmodified; supersession note | `WP-00` | A | READY_FOR_REVIEW |
+| `O-11` | Documentation/agent contract | `AGENTS.md`, `Phase2/AGENTS.md`, manuals | `WP-00` | A | DONE (`H-001`) |
+| `O-12` | Phase 1 preservation | Phase 1 files unmodified; supersession note | `WP-00` | A | DONE (`H-001`) |
 
 ## Evidence quality rules
 

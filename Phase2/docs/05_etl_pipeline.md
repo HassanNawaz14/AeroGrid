@@ -2,8 +2,8 @@
 
 ## Status
 
-This is a design and implementation plan. No ETL code exists yet. Implementation is
-blocked until `G1` is cleared and the relevant work package is authorized.
+This is a design and implementation plan. No ETL code exists yet. `G1` is cleared and
+`WP-02`/`WP-03` are authorized; ETL implementation begins with `WP-04` after `G2`.
 
 ## Pipeline principles
 
@@ -337,7 +337,8 @@ Write a GitHub Actions job summary with the same key counts.
 
 ## Commands (future, not implemented)
 
-These are planned interfaces only. Do not create or run them before authorization.
+These are planned interfaces only. Do not create or run them before the owning work
+package is authorized.
 
 ```text
 python -m etl.run --mode initial

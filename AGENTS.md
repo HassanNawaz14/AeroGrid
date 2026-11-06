@@ -6,12 +6,12 @@ contract is [Phase2/AGENTS.md](Phase2/AGENTS.md). Read both before changing file
 ## Current state
 
 - Phase 1 is complete and frozen as the historical design baseline.
-- Phase 2 documentation and planning baseline is ready for human review.
-- **Phase 2 implementation is not authorized yet.**
-- The current human gate is `G1 - Human prerequisites`, tracked in
+- Phase 2 documentation and planning baseline is accepted (`G0`/`H-001`).
+- **Phase 2 implementation is authorized** (`H-007`, 2026-11-04).
+- The current gate is `G2 - Platform and source readiness`, tracked in
   [Phase2/PROGRESS.md](Phase2/PROGRESS.md).
-- Do not create SQL, ETL code, workflows, database resources, or infrastructure
-  until a human explicitly authorizes implementation after `G1`.
+- `WP-02` (Member A) and `WP-03` (Member B) are `READY` and authorized. Later work
+  packages wait until their gate is recorded.
 
 ## Authority and precedence
 
@@ -31,7 +31,7 @@ If two authoritative sources still conflict, stop and ask the human. Do not gues
 - At the start of every session, always ask the human: "What is your team member name, and have you selected your team role (A through E)?"
 - If the human has not selected a role yet, ask them to choose one first.
 - Once selected, present a concise progress report from [Phase2/PROGRESS.md](Phase2/PROGRESS.md) and list the exact tasks awaiting them.
-- HassanNawaz14 is Member A (platform, integration, and release lead). Other team members (B through E) must choose their roles and replace placeholder names in [Phase2/docs/08_team_work_division.md](Phase2/docs/08_team_work_division.md).
+- HassanNawaz14 is Member A (platform, integration, and release lead). Members B-E are recorded in [Phase2/docs/08_team_work_division.md](Phase2/docs/08_team_work_division.md); `H-002` remains deferred by the human.
 
 ## Git and repository safety
 
@@ -106,7 +106,7 @@ Stop immediately, record the blocker in `Phase2/PROGRESS.md`, and ask the human 
 - You have tried two reasonable fixes and are still blocked.
 - You are about to touch production data, secrets, repository settings, or Phase 1
   artifacts.
-- The human asks for implementation before gate `G1` is cleared.
+- The human asks for work outside an authorized `READY` work package.
 
 When stopping, say exactly what is blocked, which human action is needed, what you
 already checked, and the safest next step. Do not silently work around the block.
@@ -157,6 +157,6 @@ already checked, and the safest next step. Do not silently work around the block
 
 ## Current instruction
 
-For this session, only documentation and folder initialization are in scope. Do not
-implement the pipeline, create database objects, or add CI workflows. The next
-required action belongs to the human: review the baseline and clear `G1`.
+`G1` is cleared and implementation is authorized for `WP-02` and `WP-03`. Work on one
+authorized package at a time, record evidence in `Phase2/PROGRESS.md`, and do not start
+a later package until its gate is recorded.

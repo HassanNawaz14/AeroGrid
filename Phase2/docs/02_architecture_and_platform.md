@@ -2,8 +2,9 @@
 
 ## Status
 
-This architecture is the proposed Phase 2 baseline. It is not provisioned or
-implemented. Platform decisions require human confirmation at gate `G1`; see
+This architecture is the accepted Phase 2 baseline. The Neon project, database,
+bucket, roles, and GitHub environment exist; the application schemas, ETL code, and
+workflows are not implemented yet. Platform decisions were confirmed at `G1`; see
 [DECISIONS.md](../DECISIONS.md).
 
 ## Design goals
@@ -17,7 +18,7 @@ implemented. Platform decisions require human confirmation at gate `G1`; see
 - Clear lineage from source row to fact row.
 - Operational simplicity for a five-person student team.
 
-## Proposed platform
+## Accepted platform
 
 | Component | Choice | Role |
 |---|---|---|
@@ -42,8 +43,8 @@ implemented. Platform decisions require human confirmation at gate `G1`; see
   restore.
 - Object storage in the same project and supported region.
 
-These are planning assumptions. Confirm current limits before provisioning. If a
-limit changes or is insufficient, stop and ask the human for a capacity decision.
+These limits were confirmed at `G1`. If a limit changes or is insufficient, stop and
+ask the human for a capacity decision.
 
 ### Rejected alternatives
 
@@ -182,10 +183,10 @@ If a budget is at risk, stop and ask the human. Do not upgrade a plan.
 - Local database development.
 - Phase 3 dashboard implementation.
 
-## Open decisions
+## Resolved decisions
 
-- Confirm Neon Free and `aws-us-east-2`.
-- Confirm object storage bucket and retention.
-- Confirm multi-site scope and `dim_site`.
-- Confirm weekly schedule time and manual dispatch inputs.
-- Confirm whether reports are committed by CI or published as artifacts.
+- Neon Free and `aws-us-east-2` are accepted (`D-001`).
+- Object-storage bucket `aerogrid-raw` and retention are accepted (`D-003`, `H-003`).
+- Multi-site scope and `dim_site` are accepted (`D-010`).
+- Weekly Monday 06:00 UTC schedule and manual dispatch inputs are accepted (`D-019`).
+- Reports are published as Action artifacts (`D-019`).

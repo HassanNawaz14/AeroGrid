@@ -2,9 +2,10 @@
 
 ## Status
 
-This document describes the Phase 2 real-data plan. Implementation is not authorized
-until gate `G1` is cleared. The canonical source list, licenses, and validation status
-remain [`../Phase2/docs/03_data_sources_and_licensing.md`](../Phase2/docs/03_data_sources_and_licensing.md).
+This document describes the Phase 2 real-data plan. Implementation is authorized
+(`H-007`); source validation occurs in `WP-03`. The canonical source list, licenses,
+and validation status remain
+[`../Phase2/docs/03_data_sources_and_licensing.md`](../Phase2/docs/03_data_sources_and_licensing.md).
 
 ## Principles
 
@@ -21,7 +22,7 @@ remain [`../Phase2/docs/03_data_sources_and_licensing.md`](../Phase2/docs/03_dat
 
 ## Source inventory
 
-| Source | Real data provided | License | Proposed role |
+| Source | Real data provided | License | Accepted role |
 |---|---|---|---|
 | TartanAviation KBTP ADS-B | Manned aircraft positions and trajectories | CC BY 4.0 | Primary historical manned source |
 | Nightjar PA flights | 10 Hz UAS telemetry | CC BY 4.0 | Real low-altitude UAS source |

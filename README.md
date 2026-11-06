@@ -10,9 +10,10 @@ capacity.
 | Phase | State |
 |---|---|
 | Phase 1 | Complete and frozen as the historical design baseline |
-| Phase 2 | Documentation baseline ready for human review |
-| Phase 2 implementation | **Not authorized** |
-| Current human gate | `G1 - Human prerequisites` |
+| Phase 2 | Documentation baseline accepted (`G0`/`H-001`) |
+| Phase 2 implementation | **Authorized** 2026-11-04 (`H-007`) |
+| Current human gate | `G2 - Platform and source readiness` |
+| Current work packages | `WP-02` (Member A) and `WP-03` (Member B), both `READY` |
 
 Nothing in `Phase1/` should be edited. Phase 2 work is controlled from
 [`Phase2/`](Phase2/README.md), and the current status, blockers, and human action queue
@@ -59,11 +60,12 @@ The Phase 2 course brief is
 - **Raw data stays out of Git** and in cloud object storage with a provenance manifest.
 - **No secrets in the repository.** Humans add them through GitHub/Neon UI.
 - **Phase 1 is frozen.** Do not edit its `.tex` or PDF files.
-- **Implementation waits for `G1`.** No SQL, ETL, workflows, or database resources yet.
+- **Implementation is authorized by work package.** `WP-02` and `WP-03` are `READY`;
+  later packages wait for their gate.
 
-## Proposed Phase 2 architecture
+## Accepted Phase 2 architecture
 
-| Layer | Proposed choice | Purpose |
+| Layer | Accepted choice | Purpose |
 |---|---|---|
 | Warehouse | Neon Free PostgreSQL, `aws-us-east-2` | Shared staging, warehouse, reporting schemas |
 | Raw archive | Neon Object Storage | Source archives with URL/license/hash manifest |
@@ -72,10 +74,11 @@ The Phase 2 course brief is
 | Reports | ReportLab | Data Cleaning and Data Quality PDFs |
 | Access | Neon organization + read-only SQL role | Five-member shared read access |
 
-These are proposed decisions pending human approval in
-[`Phase2/DECISIONS.md`](Phase2/DECISIONS.md). No cloud resource exists yet.
+These are accepted decisions in [`Phase2/DECISIONS.md`](Phase2/DECISIONS.md)
+(`D-001`-`D-019`). The Neon project and raw bucket exist; application schemas, ETL, and
+workflows do not yet.
 
-## Proposed real-data scope
+## Accepted real-data scope
 
 - **TartanAviation KBTP ADS-B:** primary historical manned traffic, CC BY 4.0.
 - **Nightjar PA UAS flights:** real 10 Hz DJI telemetry, CC BY 4.0.
@@ -114,8 +117,9 @@ restriction windows, and reporting views. See
 | Member D | Tracking and journey facts |
 | Member E | Derived facts, data quality, reporting views, PDFs |
 
-Member A is HassanNawaz14; Members B-E are placeholders until the human assigns real
-names in [`Phase2/PROGRESS.md`](Phase2/PROGRESS.md).
+Member A is HassanNawaz14; Members B-E are recorded in
+[`Phase2/docs/08_team_work_division.md`](Phase2/docs/08_team_work_division.md).
+`H-002` remains deferred by the human.
 
 ## Repository map
 
@@ -151,14 +155,13 @@ AeroGrid/
 
 ## What happens next
 
-The next action belongs to the human:
+The baseline and `G1` are complete. The next actions belong to the work package
+owners:
 
-1. Review the Phase 2 baseline.
-2. Confirm or amend the proposed decisions.
-3. Assign real names to Members B-E.
-4. Create the Neon and GitHub resources.
-5. Complete the human action queue in
+1. Member A: complete `WP-02` platform validation and access proof.
+2. Member B: complete `WP-03` source validation and Tartan georeferencing.
+3. Record results and gate evidence in
    [`Phase2/PROGRESS.md`](Phase2/PROGRESS.md).
-6. Explicitly authorize implementation.
 
-Do not create Phase 2 code, database objects, or workflows before that authorization.
+Human-only actions still apply: grants, secret changes, destructive operations, and
+gate acceptance. Later work packages wait until their gate is recorded.

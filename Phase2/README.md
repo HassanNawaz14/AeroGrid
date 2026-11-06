@@ -4,9 +4,11 @@ Phase 2 turns the Phase 1 dimensional design into a shared, reproducible Postgre
 data warehouse loaded from real public data. This directory is the control point for
 Phase 2 documentation, planning, status, and future implementation.
 
-**Implementation status: NOT AUTHORIZED.** The documentation and folder baseline is
-ready for human review. No Phase 2 code, database object, or cloud resource exists.
-The next human gate is `G1`.
+**Implementation status: AUTHORIZED (2026-11-04, `H-007`).** The documentation and
+folder baseline is accepted (`G0`/`H-001`), the `G1` human prerequisites are closed,
+and `WP-02` (platform validation) and `WP-03` (source validation) are `READY`. The
+Neon project and raw bucket exist; no Phase 2 SQL, ETL, or workflow code exists yet.
+The next gate is `G2`.
 
 ## Quick links
 
@@ -49,7 +51,7 @@ Implement the Phase 2 deliverables required by
 - **Raw data in object storage.** Raw archives are not committed to Git.
 - **No secrets in the repository.** Humans add them through the GitHub/Neon UI.
 
-## Proposed architecture at a glance
+## Accepted architecture at a glance
 
 | Layer | Proposed choice | Purpose |
 |---|---|---|
@@ -60,12 +62,12 @@ Implement the Phase 2 deliverables required by
 | Reports | ReportLab | Data Cleaning and Data Quality PDFs |
 | Team access | Neon organization + read-only SQL role | All five members query the same warehouse |
 
-These are planning decisions proposed in [DECISIONS.md](DECISIONS.md). Confirm them
-before provisioning any cloud resource.
+These are accepted decisions in [DECISIONS.md](DECISIONS.md) (`D-001`-`D-019`).
+Reconfirm free-tier limits before any capacity change.
 
-## Planned data scope
+## Accepted data scope
 
-The recommended scope is multi-site so that every fact has real supporting data:
+The accepted scope is multi-site so that every fact has real supporting data:
 
 - **KBTP / Pittsburgh-Butler:** TartanAviation ADS-B, METAR, FAA airspace.
 - **KAGC / Pittsburgh-Allegheny:** METAR and airspace context; Tartan KAGC only if
@@ -83,8 +85,8 @@ Statuses use the vocabulary in [AGENTS.md](AGENTS.md). Detail is in
 
 | Gate | Meaning | Status |
 |---|---|---|
-| `G0` | Documentation baseline complete and links valid | `READY_FOR_REVIEW` |
-| `G1` | Human prerequisites and approvals | **IN PROGRESS / BLOCKED_ON_HUMAN** |
+| `G0` | Documentation baseline complete and links valid | `DONE` (`H-001`) |
+| `G1` | Human prerequisites and approvals | `DONE` (`H-007`; `H-002` deferred) |
 | `G2` | Platform and source readiness validated | `NOT_STARTED` |
 | `G3` | Staging, dimensional schema, and keys validated | `NOT_STARTED` |
 | `G4` | Core tracking and journey facts loaded | `NOT_STARTED` |
@@ -94,10 +96,10 @@ Statuses use the vocabulary in [AGENTS.md](AGENTS.md). Detail is in
 
 | Work package | Owner | Status |
 |---|---|---|
-| `WP-00` Documentation and folder baseline | Member A | `READY_FOR_REVIEW` |
-| `WP-01` Human prerequisites and shared platform | Member A + human | `BLOCKED_ON_HUMAN` |
-| `WP-02` Platform validation and access proof | Member A | `NOT_STARTED` |
-| `WP-03` Source validation and georeferencing | Member B | `NOT_STARTED` |
+| `WP-00` Documentation and folder baseline | Member A | `DONE` |
+| `WP-01` Human prerequisites and shared platform | Member A + human | `DONE` |
+| `WP-02` Platform validation and access proof | Member A | `READY` |
+| `WP-03` Source validation and georeferencing | Member B | `READY` |
 | `WP-04` Staging DDL and loaders | Member B | `NOT_STARTED` |
 | `WP-05` Dimensions, keys, and dictionary | Member C | `NOT_STARTED` |
 | `WP-06` Tracking and journey facts | Member D | `NOT_STARTED` |
@@ -110,15 +112,14 @@ Statuses use the vocabulary in [AGENTS.md](AGENTS.md). Detail is in
 
 ## Current blockers and next action
 
-**Blocker:** implementation is intentionally blocked until the human completes `G1`.
+**No blocker prevents `WP-02` or `WP-03` from starting.** `G1` is closed and both
+packages are `READY`. `H-002` remains deferred by the human; the Member B-E names are
+recorded in [docs/08_team_work_division.md](docs/08_team_work_division.md). `B-004`
+(TartanAviation georeferencing) is the first task in `WP-03`.
 
-**Next human action:** review this documentation baseline, confirm or change the
-proposed decisions, assign real names to Members B-E, and complete the human action
-queue in [PROGRESS.md](PROGRESS.md). `H-002` remains blocked until Members B-E choose
-roles and provide real names.
-
-Do not create Neon, GitHub, or database resources from an agent session. The human
-operating manual lists the exact prerequisites and safe order.
+**Next actions:** Member A starts `WP-02` platform validation and access proof;
+Member B starts `WP-03` source validation. Human-only actions still require the human
+(for example, grants, secret changes, or destructive operations).
 
 ## Directory map
 
@@ -140,7 +141,7 @@ Phase2/
 
 The `sql/`, `etl/`, `tests/`, and `reports/` folders contain README placeholders.
 They exist to establish ownership and boundaries. They must remain free of
-implementation until `G1` is cleared and the relevant work package is authorized.
+implementation until the relevant work package is authorized.
 
 ## Documentation rules
 

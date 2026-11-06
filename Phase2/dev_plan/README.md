@@ -8,10 +8,12 @@ is the canonical plan for Members A-E and their agents. The status dashboard rem
 
 ## Authorization status
 
-- Phase 2 implementation is **not authorized**.
-- Gate `G1` is open and owned by the human.
-- Documentation and planning are the only work allowed until `G1` clears.
-- Do not create SQL, ETL code, workflows, database resources, or infrastructure yet.
+- Phase 2 implementation is **authorized** (`H-007`, 2026-11-04).
+- `G1` is closed; the current gate is `G2`.
+- `WP-02` and `WP-03` are `READY` and authorized.
+- Later work packages begin only after their gate and authorization are recorded in
+  [`../PROGRESS.md`](../PROGRESS.md).
+- Do not create resources or data outside the assigned work package.
 
 ## How to use this plan
 
@@ -55,11 +57,12 @@ WP-00 docs baseline
 `WP-04` and `WP-03` may overlap only where the staging contract is independent of
 unresolved source questions. `WP-05` may start once the model is approved, but must
 not load facts before `WP-04` is accepted. `WP-11` can prepare documentation early but
-must not create workflows before `G1`.
+must not create workflows until it is authorized.
 
 ## Team ownership
 
-Members are placeholders until the human assigns names.
+Members B-E are recorded in [`../docs/08_team_work_division.md`](../docs/08_team_work_division.md);
+`H-002` remains deferred by the human.
 
 | Member | Scope |
 |---|---|

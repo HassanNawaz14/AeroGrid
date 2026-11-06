@@ -15,7 +15,7 @@
 | Grain | What one fact row represents |
 | Work package (WP) | Small, independently reviewable unit of work |
 | Gate | Human-approved checkpoint before dependent work |
-| `G1` | Human prerequisites gate; currently open |
+| `G1` | Human prerequisites gate; closed 2026-11-04 (`H-007`) |
 | `H-###` | Stable human action queue identifier |
 | Definition of Done | Evidence required to mark a work package complete |
 | Handoff | Written state transfer between agents/members |
@@ -81,7 +81,7 @@
 
 | Term | Meaning |
 |---|---|
-| Neon | Proposed free-tier cloud PostgreSQL and object storage |
+| Neon | Accepted free-tier cloud PostgreSQL and object storage |
 | Object storage | S3-compatible store for raw archives |
 | GitHub Actions | CI/CD service used for scheduled/manual ETL |
 | Workflow | Automated Actions definition |

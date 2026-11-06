@@ -1,7 +1,8 @@
 # GitHub Actions Workflows
 
-This directory is intentionally empty of workflow YAML. Automation will be added only
-after `G1` is cleared and the CI work package is authorized.
+This directory is intentionally empty of workflow YAML. Automation will be added by an
+authorized work package (`WP-02` for access proof, `WP-11` for the production
+workflow).
 
 ## Planned workflows
 
@@ -21,4 +22,4 @@ after `G1` is cleared and the CI work package is authorized.
 - Upload PDFs as artifacts.
 - Keep `concurrency` and `timeout-minutes` bounded.
 - Free-tier usage only.
-- Do not create workflow YAML before authorization.
+- Do not create workflow YAML outside an authorized work package.
