@@ -1,8 +1,16 @@
 # GitHub Actions Workflows
 
-This directory is intentionally empty of workflow YAML. Automation will be added by an
-authorized work package (`WP-02` for access proof, `WP-11` for the production
-workflow).
+Automation is added only by an authorized work package. `WP-02` owns the platform
+validation workflow; `WP-11` owns the production workflow and CI checks.
+
+## Current workflows
+
+| File | Trigger | Purpose |
+|---|---|---|
+| `platform-validation.yml` | Manual dispatch | `WP-02` proof of database, raw-bucket, and read-only role access |
+
+The probe script lives in [`../scripts/platform_probe.py`](../scripts/platform_probe.py).
+It prints only non-secret evidence and redacts connection strings.
 
 ## Planned workflows
 
