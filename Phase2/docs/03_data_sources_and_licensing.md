@@ -16,12 +16,12 @@
 
 | ID | Source | Role | Access | Cadence | License/terms | Status |
 |---|---|---|---|---|---|---|
-| `SRC-TARTAN` | TartanAviation ADS-B | Primary historical manned tracking, journeys, encounters, occupancy | Public HTTPS/Swift download | Initial bulk; static | CC BY 4.0 | Accepted; georeference validation required |
-| `SRC-NIGHTJAR` | Nightjar DJI flight telemetry | Real UAS tracking and journeys, 10 Hz | Public Hugging Face files | Initial bulk | CC BY 4.0 | Accepted; parser validation required |
-| `SRC-DJI-NOMINAL` | Nominal-io DJI telemetry | Additional real UAS tracking and journeys | Public Hugging Face files | Initial bulk | MIT | Accepted; parser validation required |
-| `SRC-METAR-AWC` | NOAA Aviation Weather Center METAR | Current weather observations | Public HTTP JSON | Weekly | U.S. government open data | Accepted; validation required |
-| `SRC-METAR-IEM` | Iowa Environmental Mesonet ASOS | Historical METAR for source dates | Public HTTP CSV | Initial + weekly backfill | Public academic archive; verify terms | Accepted; validation required |
-| `SRC-FAA-UDDS` | FAA UDDS ArcGIS layers | UAS facility map, TFRs, airspace zones | Public ArcGIS REST GeoJSON | Initial + weekly | U.S. government open data | Accepted; validation required; query limits |
+| `SRC-TARTAN` | TartanAviation ADS-B | Primary historical manned tracking, journeys, encounters, occupancy | Public HTTPS/Swift download | Initial bulk; static | CC BY 4.0 | Validated 2026-11-07; see `source_validation/SRC-TARTAN.md` |
+| `SRC-NIGHTJAR` | Nightjar DJI flight telemetry | Real UAS tracking and journeys, 10 Hz | Public Hugging Face files | Initial bulk | CC BY 4.0 | Validated 2026-11-07; see `source_validation/SRC-NIGHTJAR.md` |
+| `SRC-DJI-NOMINAL` | Nominal-io DJI telemetry | Additional real UAS tracking and journeys | Public Hugging Face files | Initial bulk | MIT | Validated 2026-11-07; see `source_validation/SRC-DJI-NOMINAL.md` |
+| `SRC-METAR-AWC` | NOAA Aviation Weather Center METAR | Current and recent weather observations | Public HTTP JSON | Weekly | U.S. government open data; NOAA/NWS attribution | Validated 2026-11-07; recent/weekly only; see `source_validation/SRC-METAR-AWC.md` |
+| `SRC-METAR-IEM` | Iowa Environmental Mesonet ASOS | Historical METAR for source dates | Public HTTP CSV | Initial + weekly backfill | Public domain; IEM attribution appreciated | Validated 2026-11-07; see `source_validation/SRC-METAR-IEM.md` |
+| `SRC-FAA-UDDS` | FAA UDDS ArcGIS layers | UAS facility map, TFRs, airspace zones | Public ArcGIS REST GeoJSON | Initial + weekly | U.S. government open data | Validated 2026-11-07; granular airspace services approved (`D-020`); see `source_validation/SRC-FAA-UDDS.md` |
 | `SRC-OPENSKY` | OpenSky Network REST | Optional recent manned snapshots | Public API; optional account | Weekly/manual | OpenSky terms; no raw redistribution | Optional |
 | `SRC-OPENSKY-TRINO` | OpenSky historical database | Optional historical enrichment | Application required | Optional | Separate data-use terms | Not assumed |
 
@@ -52,16 +52,37 @@ occupancy.
 
 ### Fields and caveats
 
-- Raw records include `ID`, `Range`, `Bearing`, `Altitude`, `Date`, and `Time`.
+- Raw records have 13 fields: `ID` (ICAO 24-bit address as an integer), `Time` and
+  `Date` (Python 2 list representations), `Altitude` (ft), `Speed` (kt), `Heading`
+  (deg), `Lat`/`Lon` (WGS 84), `Age` (s), `Range` (km from the receiver), `Bearing`
+  (deg, signed), `Tail` (broadcast callsign), and `AltisGNSS` (altitude-source flag).
+- Units and meanings are confirmed by the publisher `croissant.json` metadata and
+  the official `adsb/utils.py` implementation. `Range` is computed as
+  `g['s12'] / 1000.0` and `Bearing` as `g['azi1']` from the receiver reference.
 - Processed records use a local runway frame: `Frame`, `ID`, `x`, `y`, `z`,
   `Headwind`, and `Crosswind`.
-- Raw positions must be georeferenced from KBTP camera reference
-  `40.777888, -79.949864` using range and bearing. Validate against known airport
-  geometry before use.
+- Raw positions are already WGS 84 latitude/longitude; `Range` and `Bearing` are
+  derived from the KBTP receiver reference `40.777888, -79.949864`. Validation in
+  `WP-03` reconstructed the destination from range/bearing and matched the recorded
+  latitude/longitude within about 50 m median.
+- `ID` is the stable vehicle key. `Tail` is a mutable broadcast callsign and must
+  not be used as a unique vehicle key.
+- Raw `Date`/`Time` are interpreted as UTC by the official processing code; the raw
+  header does not state a timezone. Preserve the raw timestamp and validate the UTC
+  assumption during staging.
+- `Time` repeats across messages and exact duplicate rows occur. Deduplicate and
+  resample before deriving speed or trajectories.
+- `Altitude` is feet and is not AGL. `AltisGNSS` selects the altitude source; the
+  publisher metadata does not define the flag's semantics, so preserve it and
+  record the source. Range-check altitude and reject impossible outliers.
 - Processed local coordinates must not be presented as latitude/longitude.
 - KAGC georeferencing is not yet validated; use KAGC for weather/airspace context
   unless `WP-03` proves the coordinate transform.
 - Archive the raw source and preserve the download timestamp and SHA-256.
+- `WP-03` recommends a documented initial load window of 2022-01-01 through
+  2022-01-07 UTC (about 609,000 rows, 95 MB uncompressed). The full 2022 archive is
+  about 22 million rows and must not be loaded wholesale. See
+  [source_validation/SRC-TARTAN.md](source_validation/SRC-TARTAN.md).
 
 ### License and attribution
 
@@ -77,11 +98,16 @@ Real DJI FlightRecord data from instrumented field flights at a Pennsylvania sit
 
 - Primary candidate: `joshruby/nightjar-flight-20260804`
 - Additional candidate: `joshruby/nightjar-flight-20260813`
-- `20260804`: 12,447 valid GPS fixes out of 12,448 rows, 10 Hz, 20.9 minutes.
-- Site coordinates: approximately `41.5347, -75.5953`.
-- Useful fields: `CUSTOM.dateTime`, `OSD.latitude`, `OSD.longitude`,
-  `OSD.height` (feet AGL), `OSD.altitude` (feet MSL), speed components, battery,
-  flight state, and vehicle serial.
+- `20260804`: 12,448 CSV rows, 12,447 valid timestamps, 12,448 valid coordinate
+  rows, about 9.94 Hz, 20.87 minutes.
+- Site coordinates: approximately `41.5347, -75.5953`; home altitude 429.43 ft MSL.
+- Useful fields: `CUSTOM.dateTime` (UTC), `OSD.latitude`, `OSD.longitude`,
+  `OSD.height` (feet AGL), `OSD.altitude` (feet MSL after home initialization),
+  `OSD.xSpeed`/`OSD.ySpeed`/`OSD.zSpeed` (m/s), battery, flight state, and
+  `RECOVER.aircraftSerial`.
+- `WP-03` validated the 20260804 CSV: coordinates stay within 0.231 nm of the site,
+  altitude datums are confirmed, speeds are m/s, and the serial is consistent. See
+  [source_validation/SRC-NIGHTJAR.md](source_validation/SRC-NIGHTJAR.md).
 
 ### Access
 
@@ -94,8 +120,16 @@ Real DJI FlightRecord data from instrumented field flights at a Pennsylvania sit
 
 ### Fields and caveats
 
-- CSV column names vary across DJI firmware and exports.
-- The first row may have a zero `CUSTOM.dateTime`; filter invalid timestamps.
+- CSV column names vary across DJI firmware and exports. The 20260804 file has 119
+  columns.
+- The first row has `CUSTOM.dateTime = 1970-01-01T00:00:00Z`; reject it.
+- `OSD.altitude` is 0 until `HOME.altitude` is initialized. After initialization it
+  is MSL and equals `OSD.height + HOME.altitude`. Do not interpret the initial zero
+  as MSL.
+- Duplicate timestamps occur (758 in the 20260804 sample) even though no exact
+  duplicate rows were found. Sort deterministically and deduplicate.
+- The repository contains `dji/*.csv` and `dji/*.txt` but no `dji/*.geojson`; the
+  CSV is the authoritative telemetry.
 - The site is not KBTP. It is a separate `dim_site`.
 - Do not pair this UAS with unrelated OpenSky/Tartan traffic for close encounters.
 
@@ -124,12 +158,36 @@ Use CSV files only. Do not download the large MP4 files.
 
 ### Fields and caveats
 
-- Headers differ by export: `timestamps` vs `timestamps_ns`.
-- Timestamp values may be seconds or nanoseconds; normalize safely.
-- Latitude/longitude can be zero before takeoff or when GPS is unavailable.
-- `OSD.height` is generally AGL; `OSD.altitude` is generally MSL. Record the datum.
-- Speed fields differ across flights; derive speed from position when needed.
-- The sites are separate `dim_site` records.
+- All three files have 189 columns in the same order except the timestamp header:
+  Colorado uses `timestamps`; Palos Verdes and Offshore use `timestamps_ns`.
+- The `timestamps_ns` header is misleading. All three files store Unix epoch
+  **seconds** (values around 1.7e9), not nanoseconds. Colorado and Offshore have
+  integer-second resolution; Palos Verdes has 0.1 s resolution.
+- Use `OSD.flyTime [s]` for sub-second ordering, especially on Colorado and Offshore
+  where about ten rows share each integer timestamp.
+- File names use the local flight date, not the UTC date. Use the epoch timestamp
+  for `dim_time`.
+- `OSD.latitude`/`OSD.longitude` can be zero before GPS lock. Colorado has 159 such
+  rows; filter them from spatial and altitude facts.
+- `OSD.height` is feet AGL; `OSD.altitude` is feet MSL; `HOME.height` is the home
+  site elevation. Do not derive AGL by subtracting `HOME.height`; the offset is not
+  exact.
+- Speed fields are explicit: `OSD.hSpeed` and `OSD.xSpeed`/`ySpeed`/`zSpeed` are
+  mph. `OSD.hSpeed` matches the horizontal components, so position-derived speed is
+  not required.
+- `DETAILS.totalDistance [ft]` is scaled by 1,000 (thousands of feet); the raw 4.4,
+  13.0, and 4.9 values mean 4,400, 13,000, and 4,900 ft.
+- All three flights use serial `1581F6Z9C241P003` and name `DJI Mini 4 Pro`; this is
+  one vehicle and three flights.
+- The three home points are distinct: Colorado, Palos Verdes, and Offshore San
+  Francisco. The current `dim_site` seed lists only `DJI_CO` and `DJI_CA`; confirm
+  the mapping before `WP-05`.
+
+### Validation
+
+Source validation is recorded in
+[`source_validation/SRC-DJI-NOMINAL.md`](source_validation/SRC-DJI-NOMINAL.md).
+The three CSVs pass with documented cleaning rules; no video is used.
 
 ### License and attribution
 
@@ -144,21 +202,59 @@ manifest.
 Current and recent METAR observations for site-adjacent stations.
 
 - Endpoint: <https://aviationweather.gov/api/data/metar>
-- Example: `?ids=KBTP,KAGC&format=json&hours=3`
+- Example: `?ids=KBTP,KAGC&format=json&hours=24`
+- API documentation: <https://aviationweather.gov/data/api/>
 - No API key is required.
-- Use for weekly incremental weather.
+- Use for weekly incremental weather and recent cross-checks. AWC retains only the
+  previous 30 days, so it is not the historical source.
 
 ### Fields
 
-`icaoId`, `obsTime`, `reportTime`, `temp`, `dewp`, `wdir`, `wspd`, `wgst`, `visib`,
-`altim`, `slp`, `cover`, `clouds`, `fltCat`, `rawOb`, `lat`, `lon`, `elev`.
+`icaoId`, `name`, `metarType`, `obsTime`, `reportTime`, `receiptTime`, `temp`,
+`dewp`, `wdir`, `wspd`, `wgst`, `visib`, `altim`, `slp`, `presTend`, `cover`,
+`clouds`, `fltCat`, `rawOb`, `qcField`, `lat`, `lon`, `elev`.
+
+Units: `temp`/`dewp` deg C; `wdir` deg true north or `VRB`; `wspd`/`wgst` kt;
+`visib` statute miles (string `10+` occurs); `altim`/`slp`/`presTend` hPa;
+`elev` m MSL; `clouds[].base` ft AGL.
+
+### Access and limits
+
+- `obsTime` is the actual observation time in Unix epoch seconds; `reportTime` is a
+  rounded/scheduled ISO time and must not be used as the observation timestamp.
+- Most endpoints return at most 400 entries. Query per station with `hours=168` for
+  weekly increments; six requests/week stay small.
+- Rate limit is 100 requests/minute. Set a custom `User-Agent` and back off on HTTP
+  `429`.
+- AWC also publishes minute-updated cache files for all current METARs; they are not
+  required for the weekly incremental load.
 
 ### Caveats
 
-- Use UTC observation time, not receipt time.
-- `wdir` may be `VRB`; store null or a documented sentinel.
-- Cloud ceiling must be derived from the lowest broken/overcast layer, not simply
-  copied from an arbitrary cloud entry.
+- `wdir` may be `VRB`; store null or a documented sentinel, not zero.
+- `visib='10+'` is a floor; preserve the raw text and cap the numeric value at 10.
+- `clouds` can be an empty list; derive `cloud_ceiling_ft` from the lowest `BKN`,
+  `OVC`, or `VV` layer, not from `cover` alone.
+- `wgst`, `slp`, and `presTend` are often missing; store null, not zero.
+- `SPECI` records are included; preserve `metarType` and deduplicate on
+  `(icaoId, obsTime)`.
+- AWC `altim` is hPa, while `dim_weather.altimeter_inhg` is inHg; convert explicitly.
+- Use IEM for historical dates; AWC is a rolling 30-day source.
+
+### Validation
+
+Source validation is recorded in
+[`source_validation/SRC-METAR-AWC.md`](source_validation/SRC-METAR-AWC.md). The
+24-hour KBTP/KAGC sample returned 85 records (43,913 bytes; SHA-256
+`8c6b99426281eb6c5de7f9ee32cabbf839cd81f183ded494d7c77a201c62c73e`). A live
+AWC/IEM cross-check matched 48 common routine observations with zero numeric
+differences after unit conversion. The decision is `PASS`; AWC is used for weekly
+increments and recent cross-checks, with IEM as the historical source.
+
+### License
+
+U.S. government open data. Attribute NOAA/NWS Aviation Weather Center in the source
+manifest and generated reports.
 
 ## SRC-METAR-IEM: Iowa Environmental Mesonet ASOS
 
@@ -166,16 +262,65 @@ Current and recent METAR observations for site-adjacent stations.
 
 Historical METAR/ASOS data for the source dates and nearest stations.
 
-- Service: <https://mesonet.agron.iastate.edu/request/download.phtml>
+- Service: <https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py>
+- Download interface: <https://mesonet.agron.iastate.edu/request/download.phtml>
 - Use station-specific requests for KBTP, KAGC, and the nearest stations for the
   Nightjar and DJI sites.
 - No API key is required.
 
+### Fields
+
+`station`, `valid`, `lon`, `lat`, `tmpf`, `dwpf`, `relh`, `drct`, `sknt`, `gust`,
+`p01i`, `alti`, `mslp`, `vsby`, `skyc1`-`skyc4`, `skyl1`-`skyl4`, `wxcodes`,
+`ice_accretion_1hr`/`3hr`/`6hr`, `peak_wind_gust`, `peak_wind_drct`,
+`peak_wind_time`, `feel`, `metar`, `snowdepth`.
+
+Units: `valid` UTC; `tmpf`/`dwpf`/`feel` deg F; `drct` deg true north; `sknt`/`gust`
+kt; `p01i` inches; `alti` inHg; `mslp` hPa; `vsby` statute miles; `skyl1`-`skyl4` ft
+(AGL cloud-layer heights); `ice_accretion_*` inches; `snowdepth` inches.
+
+### Access and limits
+
+- Request `tz=UTC`, `format=onlycomma`, `latlon=no`, `missing=M`, `trace=T`,
+  `direct=no`.
+- Request both `report_type=3` (routine hourly) and `report_type=4` (specials) for
+  parity with AWC. Requesting only `3` omits `SPECI`.
+- The CSV `station` column is three characters (`BTP`, `AGC`) even when the request
+  uses `KBTP`/`KAGC`; recover the ICAO from the request or the raw `metar`.
+- `valid` has no `Z` suffix; always request UTC.
+
 ### Caveats
 
-- Verify station coverage and time zone; request UTC.
-- Record missing values as null, not zero.
-- Do not fabricate a nearest-station observation if the station has no data.
+- Record `M` as null and `T` as trace, not zero.
+- `drct=0` with `sknt=0` is calm, not a north wind.
+- `mslp` can be missing for every row at a station; `alti` is still available.
+- `mslp` is hPa and `alti` is inHg; do not mix them.
+- `skyc1='VV '` has a trailing space; trim it and treat `VV` as vertical visibility.
+- IEM does not provide flight category; derive it from visibility and ceiling using
+  documented thresholds, or store null and preserve the raw METAR.
+- Derive `cloud_ceiling_ft` from the lowest `BKN`, `OVC`, or `VV` layer.
+- Verify station coverage. KTOA is sparse; Nightjar's nearest station KAVP is
+  13.4 nm away. Record the station-to-site distance and preserve missing hours.
+- Do not fabricate a nearest-station observation if the station has no data. The
+  documented fallback set is KMPO for Nightjar, KBKF/KDEN for Colorado, KLGB/KLAX
+  for Palos Verdes, and KSQL for Offshore San Francisco.
+
+### Validation
+
+Source validation is recorded in
+[`source_validation/SRC-METAR-IEM.md`](source_validation/SRC-METAR-IEM.md). Six real
+station-day samples were validated (31,949 bytes total; 133 routine rows). The AWC
+cross-check matched 48 common routine observations with zero numeric differences
+after unit conversion. The decision is `PASS WITH LIMITATION` because KTOA coverage
+is sparse, Nightjar's nearest station is 13.4 nm away, and `report_type` must include
+both routine and special reports.
+
+### License
+
+IEM states that the materials on its website are in the public domain and may be used
+freely for any lawful purpose; attribution to the Iowa Environmental Mesonet of Iowa
+State University is appreciated. The underlying observations originate from NWS
+ASOS/AWOS.
 
 ## SRC-FAA-UDDS: FAA UAS Data Delivery System
 
@@ -187,34 +332,79 @@ Real airspace and restriction polygons:
   `https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/ArcGIS/rest/services/FAA_UAS_FacilityMap_Data_V5/FeatureServer`
 - Part-Time National Security UAS Flight Restrictions:
   `https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/ArcGIS/rest/services/Part_Time_National_Security_UAS_Flight_Restrictions/FeatureServer`
-- Airspace:
-  `https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/ArcGIS/rest/services/Airspace/FeatureServer`
+- Airspace (granular services; `D-020`):
+  - Class: `https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/ArcGIS/rest/services/Class_Airspace/FeatureServer`
+  - Special use: `https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/ArcGIS/rest/services/Special_Use_Airspace/FeatureServer`
+  - Route: `https://services6.arcgis.com/ssFJjBXIUyZDrSYZ/ArcGIS/rest/services/Route_Airspace/FeatureServer`
 
 ### Fields
 
-- Facility map: `CEILING`, `UNIT`, `MAP_EFF`, `LAST_EDIT`, `LATITUDE`, `LONGITUDE`,
-  `GLOBALID`, airport identifiers, region, and polygon geometry.
-- TFR/airspace layers: inspect field metadata in `WP-03`; do not assume names.
+- Facility map: `CEILING` (integer feet), `UNIT` (`Feet`), `MAP_EFF` and
+  `LAST_EDIT` (M/D/YYYY strings), `LATITUDE`/`LONGITUDE` (grid cell center),
+  `GLOBALID`, `APT1_*`-`APT5_*`, `AIRSPACE_1`-`5`, `REGION`, and polygon geometry.
+- TFR: `FAA_ID`, `Proponent`, `Branch`, `Base`, `Facility`, `State`, `Floor`,
+  `Ceiling`, `ALERTYPE`, `ALERTTIME`/`ACTIVETIME`/`ENDTIME` (epoch ms), and polygon
+  geometry. `Floor`/`Ceiling` are strings, not numeric fields.
+- Airspace: use `GLOBAL_ID` as the natural key and `OBJECTID` only as the
+  service-local id.
+  - Class: `IDENT`, `ICAO_ID`, `NAME`, `TYPE_CODE`, `LOCAL_TYPE`, `CLASS`,
+    `UPPER_*`/`LOWER_*`, `MIL_CODE`, `COMM_NAME`, `WKHR_CODE`, `ADHP_ID`.
+  - Special use: `NAME`, `TYPE_CODE`, `CLASS`, `UPPER_*`/`LOWER_*`, `LEVEL_CODE`,
+    `TIMESOFUSE`, `REMARKS`.
+  - Route: `TYPE_CODE`, `LOCAL_TYPE`, `CLASS`, `REF_CLASS`, `REF_ID`.
+  - Native coordinates are EPSG:4269; request `outSR=4326`.
 
 ### Access and limits
 
 - Query with `f=json` or `f=geojson`, `outFields=*`, `returnGeometry=true`.
-- Paginate using `resultOffset` and `resultRecordCount`.
+- Paginate using `resultOffset` and `resultRecordCount`. `maxRecordCount` is 1,000
+  for the facility map and 2,000 for TFR and each granular airspace service;
+  `exceededTransferLimit=true` means more rows remain.
 - The service reported a limit of approximately 6,000 request units per minute.
-  Use conservative pagination, sleep/backoff, and a weekly cadence.
-- Filter to study-site bounding boxes or relevant Pennsylvania areas.
+  Large airspace counts can consume the quota quickly; use conservative
+  pagination, sleep/backoff, and a weekly cadence.
+- Filter to study-site bounding boxes or relevant Pennsylvania areas. Do not load
+  the full national facility map.
 
 ### Caveats
 
-- Historical TFR availability is not guaranteed. The warehouse will capture real TFR
-  snapshots going forward and use static facility/airspace polygons as reference.
+- Historical TFR availability is not guaranteed. The live layer had only 5 features
+  at validation time and none in the study-site boxes. The warehouse will capture
+  real TFR snapshots going forward and use static facility/airspace polygons as
+  reference.
 - Do not claim historical TFR coverage that the source does not provide.
 - Geometry may be multipart; normalize to valid WKT/GeoJSON and store a bounding box.
+- Facility map coverage is uneven: KBTP and Nightjar have **0** cells; KAGC has 317,
+  Colorado 66, Palos Verdes 58, and Offshore San Francisco 50. Do not fabricate
+  missing cells.
+- Airspace is published on an eight-week effective cycle. The granular items
+  validated here describe the cycle `0901Z 29 Oct 2026` to `0901Z 24 Dec 2026`.
+  Keep the fetch date and effective cycle in the source manifest.
+- Do not use the `Airspace (DEMO)` layer. Use the three approved granular services
+  and deduplicate across them by `GLOBAL_ID`.
+- `Boundary_Airspace`, `Airspace_Schedule`, and the DEMO layer remain unapproved
+  unless a later decision adds them.
+
+### Validation
+
+Source validation is recorded in
+[`source_validation/SRC-FAA-UDDS.md`](source_validation/SRC-FAA-UDDS.md). The
+facility map and TFR layers are usable with the coverage caveats above. On
+2026-11-07 the human approved the granular Class, Special Use, and Route services
+(`D-020`); the DEMO layer is not used. National counts are Class 6,041, Special Use
+1,545, and Route 5,263. In 0.25-degree study boxes, combined counts are KBTP 19,
+KAGC 26, Nightjar 52, Colorado 42, Palos Verdes 90, and Offshore San Francisco 54.
+The current decision is `PASS WITH LIMITATION` because of the facility-map coverage
+gap and current-only TFR layer, not because of the airspace license.
 
 ### License
 
-U.S. government open data. Verify the current FAA/ArcGIS terms before redistribution
-and include attribution.
+U.S. government open data. Facility and TFR items carry FAA attribution and
+disclaimers. The approved granular airspace items identify
+`AeronauticalInformationServices_FAA` as owner, state that the data is “for public
+use,” and require FAA/Aeronautical Information Services attribution. Record the
+service item IDs in the source manifest. The `Airspace (DEMO)` item is not
+approved for load.
 
 ## SRC-OPENSKY: OpenSky Network
 
@@ -263,6 +453,8 @@ The final repository and reports must include:
 - Nightjar dataset card references and CC BY 4.0 notice.
 - Nominal-io dataset card and MIT notice.
 - FAA and NOAA source URLs and attribution.
+- Iowa Environmental Mesonet/Iowa State University attribution for the ASOS
+  historical archive.
 - OpenSky terms and access note if OpenSky data is used.
 - A statement that all derived metrics come from the cited real source records.
 

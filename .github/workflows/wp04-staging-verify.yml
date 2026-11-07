@@ -1,0 +1,36 @@
+name: WP-04 staging DDL verify
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wp04-staging-verify
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Apply WP-04 staging DDL (idempotent)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: warehouse
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: >
+          python -m pip install --disable-pip-version-check
+          "psycopg[binary]>=3.2,<4"
+
+      - name: Verify WP-04 staging DDL
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python Phase2/etl/verify_wp04_staging.py

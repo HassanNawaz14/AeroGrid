@@ -36,6 +36,8 @@ decision. Use the template in [templates/DECISION_RECORD.md](templates/DECISION_
 | `D-017` | Retain legacy synthetic samples in `data/sample/` as documented demo-only artifacts | `ACCEPTED` | Accepted by HassanNawaz14 |
 | `D-018` | Keep GitHub Actions scheduled workflow as the Phase 2 scheduler; no external Python/OS cron host | `ACCEPTED` | Accepted by HassanNawaz14 |
 | `D-019` | Weekly Monday 06:00 UTC schedule; artifact report mode | `ACCEPTED` | Accepted by HassanNawaz14 |
+| `D-020` | Use FAA granular airspace services instead of `Airspace (DEMO)` | `ACCEPTED` | Accepted in session by the human, 2026-11-07 |
+| `D-021` | Start `WP-04` before `G2` is recorded and review `WP-03`/`WP-04` together | `ACCEPTED` | Approved in session by the human, 2026-11-07 |
 
 ## D-001: Neon Free PostgreSQL
 
@@ -349,6 +351,57 @@ A future requirement for an external cron host needs a new human decision.
 **Rationale:** Captures the full weekend, ensures availability for the team, and avoids expensive serverless hosting. `artifact` mode keeps reports in Git-accessible Action run artifacts rather than polluting the commit history.
 
 **Consequences:** `warehouse.yml` must be configured with this cron schedule. Reports are accessible via Action artifacts.
+
+## D-020: Use FAA granular airspace services instead of `Airspace (DEMO)`
+
+**Status:** `ACCEPTED`
+
+**Context:** The FAA `Airspace` ArcGIS item `a044dd8afb3a46a0a49d0b9ec66cad55`
+is titled `Airspace (DEMO)` and has no `licenseInfo` or `accessInformation`. The
+same FAA org publishes granular `Class_Airspace`, `Special_Use_Airspace`, and
+`Route_Airspace` services with explicit public-use license text and FAA
+attribution.
+
+**Decision:** Use the granular FAA airspace services for `dim_airspace_zone` and
+airspace-occupancy work. Do not load the `Airspace (DEMO)` layer. Preserve the FAA
+attribution, service item IDs, and `GLOBAL_ID` natural keys.
+
+**Rationale:** The granular items have clear provenance, publisher ownership
+(`AeronauticalInformationServices_FAA`), eight-week effective dates, and explicit
+public-use terms. They avoid relying on a layer whose title and missing terms make
+its status ambiguous.
+
+**Consequences:** Validate and load `Class_Airspace`, `Special_Use_Airspace`, and
+`Route_Airspace` separately, deduplicate by `GLOBAL_ID`, and request `outSR=4326`
+from their native EPSG:4269 geometry. `Boundary_Airspace`, `Airspace_Schedule`, and
+the DEMO layer remain unapproved unless a later decision adds them. The combined
+granular national count is 12,849 features, not the DEMO layer's 16,789.
+
+## D-021: Start WP-04 before G2 and review WP-03/WP-04 together
+
+**Status:** `ACCEPTED`
+
+**Context:** `WP-03` is `READY_FOR_REVIEW`; reviewers D/E have not signed off and
+`G2` is therefore still `IN_PROGRESS`. The human directed that `WP-04` begin and that
+the two packages be reviewed together.
+
+**Decision:** Start `WP-04` staging DDL and loaders before `G2` is recorded. Keep
+`WP-03` evidence available for reviewers D/E and prepare `WP-04` for reviewers C/D.
+Do not mark either package `DONE` or close `G2` without the required review and human
+acceptance.
+
+**Rationale:** The two packages are closely coupled: staging must reflect the source
+contracts validated in `WP-03`. A combined review reduces waiting time while keeping
+the evidence separate.
+
+**Consequences:**
+
+- `G2` remains open until reviewers sign off on `WP-03` and Member A records the gate.
+- If `WP-03` review changes a source contract, affected `WP-04` staging columns or
+  transformations must be revised before `WP-04` acceptance.
+- `WP-04` implementation and tests may proceed, but database acceptance evidence still
+  requires the approved CI path or human-run verification.
+- `WP-04` and `WP-03` changes must remain separable for review and any eventual commit.
 
 ## Change process
 

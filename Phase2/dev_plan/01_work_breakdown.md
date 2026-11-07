@@ -7,8 +7,8 @@
 | `WP-00` | Documentation and folder baseline | A | B + C | DONE |
 | `WP-01` | Human prerequisites and approvals | A | Human | DONE |
 | `WP-02` | Platform validation and access proof | A | B + C | DONE |
-| `WP-03` | Source validation and georeferencing spike | B | D + E | READY |
-| `WP-04` | Staging DDL and loaders | B | C + D | NOT_STARTED |
+| `WP-03` | Source validation and georeferencing spike | B | D + E | READY_FOR_REVIEW |
+| `WP-04` | Staging DDL and loaders | B | C + D | IN_PROGRESS |
 | `WP-05` | Dimensions, keys, and data dictionary | C | A + D | NOT_STARTED |
 | `WP-06` | Tracking and journey facts | D | C + E | NOT_STARTED |
 | `WP-07` | Derived facts | E | C + D | NOT_STARTED |
@@ -177,7 +177,7 @@ data.
 
 ## WP-03: Source validation and georeferencing spike
 
-**Status:** READY
+**Status:** READY_FOR_REVIEW (Member B, Hamid4325; 2026-11-07)
 **Owner:** Member B
 **Reviewers:** Members D and E
 **Prerequisites:** WP-01, G1 cleared
@@ -227,7 +227,7 @@ volume using real samples before building the pipeline.
 
 ## WP-04: Staging DDL and loaders
 
-**Status:** NOT_STARTED
+**Status:** IN_PROGRESS (Member B, Hamid4325; 2026-11-07; `D-021` gate exception)
 **Owner:** Member B
 **Reviewers:** Members C and D
 **Prerequisites:** WP-03, G2 cleared

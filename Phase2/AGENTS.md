@@ -10,9 +10,11 @@ AeroGrid Phase 2. It is subordinate to the repository-wide
 - Phase 2 documentation and planning baseline is accepted (`G0`/`H-001`).
 - **Phase 2 implementation is authorized** (`H-007`, 2026-11-04).
 - `WP-02` (platform validation) is `DONE`; its validation run passed on 2026-11-07.
-  `WP-03` (source validation) is `READY` and authorized. Later
-  work packages remain `NOT_STARTED` until their gate and authorization are recorded
-  in [PROGRESS.md](PROGRESS.md).
+  `WP-03` (source validation) is `READY_FOR_REVIEW`. Tartan, Nightjar, nominal-io DJI,
+  the granular FAA airspace services (`D-020`), and METAR/AWC/IEM are validated, the
+  capacity estimate is recorded, and temporary raw samples are removed. Reviewers D
+  and E sign-off is pending. Later work packages remain `NOT_STARTED` until their
+  gate and authorization are recorded in [PROGRESS.md](PROGRESS.md).
 - The current gate and next action are recorded in [PROGRESS.md](PROGRESS.md).
 - The current authorization status is `implementation_authorized: YES`.
 
@@ -257,4 +259,6 @@ Stop and ask the human if asked to:
   acceptance.
 
 `WP-02` and `WP-03` are the only authorized packages. `WP-02` is `DONE`; `WP-03` is
-active. Later packages begin only after their gate is recorded in `PROGRESS.md`.
+`READY_FOR_REVIEW`. Do not load the FAA `Airspace (DEMO)` layer; use the approved
+granular services (`D-020`). Do not start `WP-04`. Later packages begin only after
+their gate is recorded in `PROGRESS.md`.

@@ -11,8 +11,11 @@ contract is [Phase2/AGENTS.md](Phase2/AGENTS.md). Read both before changing file
 - The current gate is `G2 - Platform and source readiness`, tracked in
   [Phase2/PROGRESS.md](Phase2/PROGRESS.md).
 - `WP-02` (Member A) is `DONE`; validation run `42276737288` passed on 2026-11-07 and
-  PR #3 merged as `b6b76b9`. `WP-03` (Member B) is `READY`. Later work packages wait
-  until their gate is recorded.
+  PR #3 merged as `b6b76b9`. `WP-03` (Member B) is `READY_FOR_REVIEW`; Tartan,
+  Nightjar, nominal-io DJI, the granular FAA airspace services (`D-020`), and
+  METAR/AWC/IEM are validated, the capacity estimate is recorded, and temporary raw
+  samples are removed. Reviewers D and E sign-off is pending. Later work packages
+  wait until their gate is recorded.
 
 ## Authority and precedence
 
@@ -159,6 +162,8 @@ already checked, and the safest next step. Do not silently work around the block
 ## Current instruction
 
 `G1` is cleared and implementation is authorized for `WP-02` and `WP-03`. `WP-02` is
-`DONE` with a recorded `PASS` validation run and a merged PR. Work on one authorized
-package at a time, record evidence in
-`Phase2/PROGRESS.md`, and do not start a later package until its gate is recorded.
+`DONE` with a recorded `PASS` validation run and a merged PR. `WP-03` is
+`READY_FOR_REVIEW`; do not load the FAA `Airspace (DEMO)` layer; use the approved
+granular services (`D-020`). Do not start `WP-04`. Work on one authorized package
+at a time, record evidence in `Phase2/PROGRESS.md`, and do not start a later package
+until its gate is recorded.
