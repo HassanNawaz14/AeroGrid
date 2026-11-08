@@ -13,9 +13,11 @@ contract is [Phase2/AGENTS.md](Phase2/AGENTS.md). Read both before changing file
 - `WP-02` (Member A) and `WP-03` (Member B) are `DONE`; run `42276737288` passed and
   PR #3 merged as `b6b76b9`; source validation merged via PR #5 as `f9087f4`, which
   closed `G2` on 2026-11-08.
-- `WP-04` (Member B) code is merged but `BLOCKED_ON_HUMAN` on `H-011` for Neon
-  DDL/load evidence; `WP-05` (Member C) is `READY` under `D-022`. Later work packages
-  wait until their gate is recorded.
+- `WP-04` (Member B) code is merged and its staging DDL is applied on Neon; the only
+  open item is real-sample loader evidence, which Member B closes under the delegated
+  window `D-023`. `WP-05` (Member C) is `READY` and is also owner-closable under
+  `D-023`. The human is hands-off until `G3` is recorded. Later work packages wait
+  until their gate is recorded.
 
 ## Authority and precedence
 
@@ -43,6 +45,8 @@ If two authoritative sources still conflict, stop and ask the human. Do not gues
 - **Pre-commit verification:** Before any requested commit, inspect `git status`, `git diff`, and recent history. Verify that no secrets, API keys, `.env` files, raw data, database dumps, or large binaries are staged.
 - **Commit scope:** Keep commits strictly scoped to one work package with a concise message. Do not mix documentation and implementation in the same commit unless required.
 - Do not push, open pull requests, or create tags unless explicitly asked by the human.
+  Exception: inside the delegated window `D-023`, the `WP-04`/`WP-05` owners may push
+  their own package branch, open its PR, and merge it after one peer approval.
 
 Before any Phase 2 task, read:
 
@@ -163,7 +167,9 @@ already checked, and the safest next step. Do not silently work around the block
 
 `G2` is closed and implementation is authorized for `WP-02`, `WP-03`, `WP-04` (under
 the recorded `D-021` exception), and `WP-05` (under `D-022`). `WP-02` and `WP-03` are
-`DONE`. `WP-04` code is merged but `BLOCKED_ON_HUMAN` on `H-011` for Neon DDL/load
-evidence. Do not load the FAA `Airspace (DEMO)` layer; use the approved granular
-services (`D-020`). Work on one authorized package at a time, record evidence in
-`Phase2/PROGRESS.md`, and do not start a later package until its gate is recorded.
+`DONE`. `WP-04` needs only real-sample evidence; `WP-05` is `READY`. Both run inside the
+delegated window `D-023`: their owners may close them without human confirmation, and
+the human is hands-off until `G3` is recorded. Do not load the FAA `Airspace (DEMO)`
+layer; use the approved granular services (`D-020`). Work on one authorized package at
+a time, record evidence in `Phase2/PROGRESS.md`, and do not start a later package until
+its gate is recorded.

@@ -156,6 +156,7 @@ Implementation may begin only when:
 
 `WP-02`, `WP-03`, `WP-04`, and `WP-05` are currently authorized. `WP-02` and `WP-03`
 are `DONE` (PR #3 `b6b76b9`, PR #5 `f9087f4`), which closed `G2` on 2026-11-08.
-`WP-04` code is merged but its Neon evidence is `BLOCKED_ON_HUMAN` on `H-011`; `WP-05`
-is `READY` under `D-022`. Later packages start only after their gate is recorded in
+`WP-04` staging DDL is applied and readable, with only its real-sample evidence open;
+`WP-05` is `READY`. Both are owner-closable under `D-023`, and `G3` stays with
+HassanNawaz14. Later packages start only after their gate is recorded in
 `PROGRESS.md`.

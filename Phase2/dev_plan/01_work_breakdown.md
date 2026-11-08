@@ -8,8 +8,8 @@
 | `WP-01` | Human prerequisites and approvals | A | Human | DONE |
 | `WP-02` | Platform validation and access proof | A | B + C | DONE |
 | `WP-03` | Source validation and georeferencing spike | B | D + E | DONE |
-| `WP-04` | Staging DDL and loaders | B | C + D | BLOCKED_ON_HUMAN |
-| `WP-05` | Dimensions, keys, and data dictionary | C | A + D | READY |
+| `WP-04` | Staging DDL and loaders | B | C + D | IN_PROGRESS (real-sample evidence; owner-closable) |
+| `WP-05` | Dimensions, keys, and data dictionary | C | A + D | READY (owner-closable) |
 | `WP-06` | Tracking and journey facts | D | C + E | NOT_STARTED |
 | `WP-07` | Derived facts | E | C + D | NOT_STARTED |
 | `WP-08` | Data-quality framework | E | B + D | NOT_STARTED |
@@ -228,8 +228,8 @@ volume using real samples before building the pipeline.
 
 ## WP-04: Staging DDL and loaders
 
-**Status:** BLOCKED_ON_HUMAN (Member B, Hamid4325; review fixes complete; DB
-acceptance pending `H-011`; `D-021` gate exception)
+**Status:** IN_PROGRESS (Member B, Hamid4325; delegated closeout under `D-023`; only
+real-sample evidence remains)
 **Owner:** Member B
 **Reviewers:** Members C and D
 **Prerequisites:** WP-03, G2 cleared
@@ -273,13 +273,57 @@ Create the staging schema and reproducible source-to-staging loaders.
 - No raw payload is committed to Git.
 - Critical staging checks pass.
 
+### Agent brief (Member B, delegated `D-023`)
+
+Goal: close `WP-04` without human involvement. Stop when `WP-04` is `DONE`; do not
+touch `G3` or `WP-05`.
+
+1. Work on a short-lived branch from `main`, for example
+   `phase2/wp04-real-sample-evidence`. Never commit raw data or credentials.
+2. Produce loader evidence in CI, not on a laptop (all database writes are CI-only):
+   - Extract `kbtp/01-01-22/1.csv` from the public Tartan 2022 archive locally and
+     confirm its SHA-256 is
+     `86342d09e5004102d765b82d04d16b43b6f15f2e7d829bfbde7909187d08a762`.
+   - Upload that one file with the Neon console **Object Storage** browser to
+     `aerogrid-raw` at `samples/kbtp/01-01-22/1.csv`. Do not use laptop credentials,
+     do not commit the file, and do not paste keys anywhere.
+   - Extend `wp04-staging-verify.yml` with a download step that copies
+     `samples/kbtp/01-01-22/1.csv` to `$RUNNER_TEMP` using the six existing
+     `warehouse` secrets (`NEON_S3_*`), runs `sha256sum -c` against the hash above,
+     and passes the path to `verify_wp04_staging.py --tartan-sample <path>`.
+   - If the storage path is unavailable, use the optional `tartan_sample_path`
+     dispatch input instead of committing anything. Keep the 15-minute timeout and
+     the rollback-only sample transaction unchanged.
+3. Dispatch **Actions → WP-04 staging DDL verify** from the branch. As a `warehouse`
+   reviewer under `D-023`, approve your own run.
+4. Required log evidence:
+   - `preflight: project_staging privileges OK`
+   - `pass1: applied 3 SQL files` and `pass2 (idempotency): applied 3 SQL files`
+   - a `sample pass1 counts:` line where read = accepted + rejected + duplicate
+   - `sample pass2 accepted=0` with duplicates equal to pass1 accepted + duplicate
+   - `sample rows rolled back; no test data persisted`
+   - `WP-04 verification PASS`
+5. Record in `Phase2/PROGRESS.md`: run link and counts in the `WP-04` row, one handoff
+   row, and one change-log row. Touching `Phase2/docs/05_etl_pipeline.md` is only
+   needed if the verification path changes.
+6. Run `python -m pytest -q Phase2/tests` (expect 38), `python -m compileall -q
+   Phase2/etl`, and `git diff --check`. Open the PR, get one approval from Member C or
+   D, then merge.
+7. Mark `WP-04` `DONE` in `PROGRESS.md` (allowed by `D-023`) and leave `G3`
+   `IN_PROGRESS`. The human records `G3` after `WP-05` is also `DONE`.
+
+If a step needs a human-only action, set `BLOCKED_ON_HUMAN`, add an `H-###` row, and
+stop. Do not change repository or environment settings and do not run loaders from a
+laptop.
+
 ---
 
 ## WP-05: Dimensions, keys, and data dictionary
 
-**Status:** READY (`D-022` start condition met: `WP-03`/`WP-04` merged as `f9087f4`)
+**Status:** READY (Member C; start condition met: `WP-03`/`WP-04` merged as `f9087f4`;
+delegated closeout under `D-023`)
 **Owner:** Member C
-**Reviewers:** Members A and D
+**Reviewers:** Members A and D (Member D acts during the delegated window)
 **Prerequisites:** WP-02, model approved
 **Gate:** `D-022` start; `G3` acceptance
 
@@ -323,6 +367,46 @@ authoritative data dictionary.
 - Data dictionary matches DDL.
 - DBML matches DDL.
 - No orphan or duplicate natural keys.
+
+### Agent brief (Member C, delegated `D-023`)
+
+Goal: implement and close `WP-05` without human involvement. Do not modify staging,
+facts, or reporting objects.
+
+1. Branch from `main`, for example `phase2/wp05-dimensions`.
+2. Add `Phase2/sql/02_dimensions/*.sql`: the six dimensions, identity surrogate keys,
+   `-1` unknown members, natural-key uniqueness, FK/index design for facts, and seeds.
+   Keep every file idempotent (`IF NOT EXISTS`, `ON CONFLICT DO NOTHING`).
+3. Grant path: tables created by `aerogrid_etl` belong to `aerogrid_etl`, and
+   `neondb_owner` cannot grant on another role's tables. Run
+   `Phase2/sql/00_schemas.sql` in the same ETL connection as your DDL (it grants the
+   reader `SELECT` on existing ETL-owned tables and sets defaults for later ones), or
+   issue the equivalent `GRANT SELECT ... TO aerogrid_reader` in your own bootstrap.
+   Never run `00_grants.sql`; it is owner-only.
+4. Add a verifier and workflow modelled on WP-04: `environment: warehouse`,
+   `DATABASE_URL` from secrets, 15-minute timeout, DDL applied twice for idempotency.
+   Assert the six tables exist, each has a `-1` row, no duplicate natural keys, FK
+   targets exist, and reader access holds in CI:
+   `SELECT NOT EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid =
+   c.relnamespace WHERE n.nspname = 'project_dw' AND c.relkind IN ('r','p') AND NOT
+   has_table_privilege('aerogrid_reader', c.oid, 'SELECT'))` must return `true`.
+5. Seed from approved real sources only (WP-03 findings). No invented sites, vehicles,
+   zones, or weather rows. Unresolved DJI site mapping stays null and maps to `-1`.
+   The 100-row floor can come from a deterministic hourly `dim_time` spine over the
+   accepted 2022-01-01 to 2022-01-07 load window, the FAA airspace features, and the
+   spatial grid; those are derived, not synthetic source records.
+6. Update `data/data_dictionary.md` and the DBML so they match the DDL exactly, and add
+   pytest coverage for key normalisation and seed logic.
+7. Dispatch the workflow from your branch and approve your own `warehouse` run as a
+   reviewer under `D-023`.
+8. Record in `Phase2/PROGRESS.md`: run link, table and seed counts, idempotency and
+   reader-check results, one handoff row, and one change-log row. Run
+   `python -m pytest -q Phase2/tests`, `git diff --check`, open the PR, get one approval
+   from Member D, then merge.
+9. Mark `WP-05` `DONE` (allowed by `D-023`) and leave `G3` `IN_PROGRESS` for the human.
+
+If a step needs a human-only action, set `BLOCKED_ON_HUMAN`, add an `H-###` row, and
+stop. Do not change repository or environment settings.
 
 ---
 

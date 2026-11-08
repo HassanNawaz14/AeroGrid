@@ -147,8 +147,9 @@ Evidence:
 
 ### G3: Staging and dimensional schema
 
-**Status:** IN_PROGRESS; `WP-05` is `READY`, `WP-04` code is merged but its Neon DDL/
-load evidence is `BLOCKED_ON_HUMAN` on `H-011`.
+**Status:** IN_PROGRESS; staging DDL is applied and readable. `WP-04` needs only its
+real-sample evidence and `WP-05` is `READY`; both owners close under `D-023`, and
+HassanNawaz14 records `G3`.
 **Owner:** Member C for schema; Member B for staging
 **Reviewers:** Members A, D
 **Required WPs:** `WP-04`, `WP-05`

@@ -39,6 +39,7 @@ decision. Use the template in [templates/DECISION_RECORD.md](templates/DECISION_
 | `D-020` | Use FAA granular airspace services instead of `Airspace (DEMO)` | `ACCEPTED` | Accepted in session by the human, 2026-11-07 |
 | `D-021` | Start `WP-04` before `G2` is recorded and review `WP-03`/`WP-04` together | `ACCEPTED` | Approved in session by the human, 2026-11-07 |
 | `D-022` | Keep `WP-05` not started until `WP-03` and `WP-04` are merged; record `G3` after `WP-04` and `WP-05` acceptance | `ACCEPTED` | Approved in session by the human, 2026-11-08 |
+| `D-023` | Delegate `WP-04`/`WP-05` closeout to Members B and C through `G3`: self-approved CI runs, peer review, owner-marked `DONE`; gates stay human | `ACCEPTED` | Approved in session by the human, 2026-11-08 |
 
 ## D-001: Neon Free PostgreSQL
 
@@ -406,7 +407,8 @@ the evidence separate.
 
 ## D-022: Keep WP-05 blocked until WP-03 and WP-04 are merged
 
-**Status:** `ACCEPTED`
+**Status:** `ACCEPTED` (the `WP-05` start condition was later met; `D-023` governs
+the closeout)
 
 **Context:** `PROGRESS.md` and the work breakdown described `WP-05` as waiting for
 `G3`, while the dependency table listed `G2`; `G3` itself requires both `WP-04` and
@@ -425,8 +427,51 @@ merges keeps Member C's work aligned with the accepted source and staging model.
 
 - The dependency table's `G2` entry no longer authorizes `WP-05` early; `D-022` is the
   operative start rule.
-- `WP-05` remains `NOT_STARTED` while `WP-04` is `BLOCKED_ON_HUMAN` on `H-011`.
+- `WP-05` remained `NOT_STARTED` while `WP-04` was `BLOCKED_ON_HUMAN` on `H-011`; the
+  start condition is now met and `D-023` governs the closeout.
 - `G3` is recorded only after `WP-04` and `WP-05` acceptance evidence exists.
+
+## D-023: Delegated closeout window for `WP-04` and `WP-05`
+
+**Date:** 2026-11-08
+**Decider:** HassanNawaz14 (Member A, human owner)
+**Status:** `ACCEPTED`
+
+**Context:** The human wants no involvement until the remaining staging and dimension
+work is complete. The standing rules require human confirmation before a work package
+is marked `DONE`, and the `warehouse` environment listed the human as its only
+reviewer, so every database run needed a human approval.
+
+**Decision:** Open a delegated window that ends when `G3` is recorded.
+
+1. Member B (Hamid4325) may mark `WP-04` `DONE`, and Member C (HarveyWebbs) may mark
+   `WP-05` `DONE`, once the evidence in their agent briefs
+   ([dev_plan/01_work_breakdown.md](dev_plan/01_work_breakdown.md)) is recorded in
+   `PROGRESS.md`. No further human confirmation is needed for those two packages.
+2. Hamid4325 and HarveyWebbs join the `warehouse` environment's required reviewers and
+   may approve their own runs; `Prevent self-review` stays unchecked. All database
+   writes remain CI-only; do not run loaders from a laptop.
+3. Owners may commit, push their own package branch, open a PR, and merge it after one
+   peer approval (Member C or D for `WP-04`; Member D for `WP-05`). No agent merges
+   another package's PR.
+4. These stay human-only: secrets, Neon roles/branches/databases, repository and
+   environment settings, destructive SQL, `G3` acceptance, and any change to scope,
+   sources, licenses, or capacity.
+5. The human returns at `G3`: review both packages, rerun
+   `Phase2/sql/00_grants.sql` as `neondb_owner` (all 15 rows `true`), record `G3`, then
+   restore the `warehouse` reviewers to HassanNawaz14 only and re-enable
+   `Prevent self-review`.
+
+**Rationale:** The remaining work is well-defined and evidence-checked. Delegating the
+closeout removes an approval bottleneck without lowering the evidence bar, and the
+CI-only write rule keeps one audited path into the shared warehouse.
+
+**Consequences:**
+
+- `PROGRESS.md` treats `WP-04` and `WP-05` as owner-closable until `G3`.
+- Every other work package still needs human confirmation to close.
+- If a blocker needs a human-only action, the owner records `BLOCKED_ON_HUMAN`, adds a
+  new `H-###` item, and stops. This window does not authorize that action.
 
 ## Change process
 
