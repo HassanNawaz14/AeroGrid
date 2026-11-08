@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 
 import pytest
 
+from etl.errors import RowRejected
 from etl.sources.metar import normalize_awc_observation, normalize_iem_row
 
 
@@ -135,3 +136,52 @@ def test_normalize_iem_row_converts_units_and_calm_wind():
     assert normalized["cloud_ceiling_ft"] == 2000
     assert normalized["altimeter_inhg"] == pytest.approx(30.12)
     assert normalized["flight_category"] == "MVFR"
+
+
+def test_awc_invalid_numeric_is_rejected_not_silently_nulled():
+    obs = {
+        "icaoId": "KBTP",
+        "obsTime": 1730000000,
+        "metarType": "METAR",
+        "temp": "not-a-number",
+        "dewp": 4,
+        "wspd": 8,
+        "visib": "10",
+        "altim": 1013.2,
+        "clouds": [],
+        "rawOb": "KBTP 270000Z",
+    }
+
+    with pytest.raises(RowRejected) as excinfo:
+        normalize_awc_observation(
+            obs,
+            source_record_id="awc:KBTP:1730000000",
+            etl_run_id="run-1",
+            source_manifest_id=7,
+        )
+
+    assert excinfo.value.reason_code == "INVALID_NUMERIC"
+
+
+def test_iem_invalid_timestamp_is_rejected_with_source_id():
+    row = {
+        "valid": "not-a-time",
+        "tmpf": "32",
+        "dwpf": "30",
+        "sknt": "0",
+        "drct": "0",
+        "vsby": "10",
+        "alti": "30.12",
+    }
+
+    with pytest.raises(RowRejected) as excinfo:
+        normalize_iem_row(
+            row,
+            station_icao="KBTP",
+            source_record_id="iem:KBTP:not-a-time",
+            etl_run_id="run-1",
+            source_manifest_id=8,
+        )
+
+    assert excinfo.value.reason_code == "INVALID_TIMESTAMP"
+    assert excinfo.value.source_record_id == "iem:KBTP:not-a-time"

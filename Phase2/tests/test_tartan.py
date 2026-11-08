@@ -114,3 +114,34 @@ def test_normalize_tartan_row_rejects_impossible_altitude():
         )
 
     assert excinfo.value.reason_code == "ALTITUDE_OUT_OF_RANGE"
+
+
+def test_tartan_numeric_reject_carries_source_record_id():
+    row = {
+        "ID": "123",
+        "Time": "[8, 9, 40.645667]",
+        "Date": "[2022, 1, 1]",
+        "Altitude": "not-a-number",
+        "Speed": "95",
+        "Heading": "270",
+        "Lat": "40.777",
+        "Lon": "-79.949",
+        "Age": "1.2",
+        "Range": "5.5",
+        "Bearing": "-45.0",
+        "Tail": "N12345",
+        "AltisGNSS": "False",
+    }
+
+    with pytest.raises(RowRejected) as excinfo:
+        normalize_tartan_row(
+            row,
+            source_file="01-01-22/1.csv",
+            row_number=2,
+            etl_run_id="run-1",
+            source_manifest_id=9,
+        )
+
+    assert excinfo.value.reason_code == "INVALID_NUMERIC"
+    assert excinfo.value.source_record_id is not None
+    assert excinfo.value.source_record_id.startswith("tartan:")

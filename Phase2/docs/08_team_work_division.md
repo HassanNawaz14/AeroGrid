@@ -33,7 +33,7 @@ deferred by the human, so agents must not invent or reassign identities.
 | `WP-01` | Human prerequisites and approvals | A | Human | `PROGRESS.md`, action queue |
 | `WP-02` | Platform validation and access proof | A | B + C | `Phase2/sql/`, CI config |
 | `WP-03` | Source validation and georeferencing spike | B | D + E | `Phase2/etl/sources/`, validation notes |
-| `WP-04` | Staging DDL and loaders | B | C + D | `Phase2/sql/`, `Phase2/etl/staging.py` |
+| `WP-04` | Staging DDL and loaders | B | C + D | `Phase2/sql/01_staging/`, `Phase2/etl/loaders.py`, `Phase2/etl/staging_writer.py` |
 | `WP-05` | Dimensions, keys, and data dictionary | C | A + D | `Phase2/sql/`, `data/data_dictionary.md` |
 | `WP-06` | Tracking and journey facts | D | C + E | `Phase2/etl/facts.py` |
 | `WP-07` | Derived facts | E | C + D | `Phase2/etl/facts.py`, tests |

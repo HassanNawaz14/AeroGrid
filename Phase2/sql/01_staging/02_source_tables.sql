@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS project_staging.stg_adsb_position (
     source_manifest_id  BIGINT,
     source_system       VARCHAR(32)  NOT NULL DEFAULT 'TARTAN',
     source_record_id    VARCHAR(160) NOT NULL,
+    source_row_number   INTEGER,
     event_ts            TIMESTAMPTZ  NOT NULL,
     icao24              VARCHAR(16),
     callsign            VARCHAR(32),
@@ -35,11 +36,25 @@ CREATE TABLE IF NOT EXISTS project_staging.stg_uas_position (
     source_manifest_id  BIGINT,
     source_system       VARCHAR(32)  NOT NULL,
     source_record_id    VARCHAR(160) NOT NULL,
+    source_row_number   INTEGER,
     event_ts            TIMESTAMPTZ  NOT NULL,
     vehicle_serial      VARCHAR(128),
     flight_id           TEXT,
     latitude            DOUBLE PRECISION,
     longitude           DOUBLE PRECISION,
+    altitude_msl_ft     DOUBLE PRECISION,
+    altitude_agl_ft     DOUBLE PRECISION,
+    ground_speed_kts    DOUBLE PRECISION,
+    vertical_speed_fps  DOUBLE PRECISION,
+    flight_state        VARCHAR(32),
+    is_on_ground        BOOLEAN,
+    is_motor_on         BOOLEAN,
+    is_gps_used         BOOLEAN,
+    home_latitude       DOUBLE PRECISION,
+    home_longitude      DOUBLE PRECISION,
+    home_altitude_ft    DOUBLE PRECISION,
+    source_speed_value  DOUBLE PRECISION,
+    source_speed_unit   VARCHAR(16),
     altitude_value      DOUBLE PRECISION,
     altitude_unit       VARCHAR(16),
     altitude_datum      VARCHAR(16),
@@ -61,8 +76,10 @@ CREATE TABLE IF NOT EXISTS project_staging.stg_weather_metar (
     source_manifest_id  BIGINT,
     source_system       VARCHAR(16)  NOT NULL,
     source_record_id    VARCHAR(160) NOT NULL,
+    source_row_number   INTEGER,
     station_icao        VARCHAR(8)   NOT NULL,
     observation_ts      TIMESTAMPTZ  NOT NULL,
+    report_type         VARCHAR(16),
     raw_text            TEXT,
     flight_category     VARCHAR(8),
     temperature_c       DOUBLE PRECISION,
@@ -73,6 +90,9 @@ CREATE TABLE IF NOT EXISTS project_staging.stg_weather_metar (
     visibility_sm       DOUBLE PRECISION,
     cloud_ceiling_ft    INTEGER,
     altimeter_inhg      DOUBLE PRECISION,
+    station_lat         DOUBLE PRECISION,
+    station_lon         DOUBLE PRECISION,
+    station_elevation_m DOUBLE PRECISION,
     reject_reason       VARCHAR(64),
     created_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     CONSTRAINT uq_stg_weather_station_obs UNIQUE (station_icao, observation_ts, source_system)
@@ -87,8 +107,11 @@ CREATE TABLE IF NOT EXISTS project_staging.stg_airspace_zone (
     source_system       VARCHAR(32)  NOT NULL,
     source_record_id    VARCHAR(160) NOT NULL,
     source_object_id    VARCHAR(160),
+    source_row_number   INTEGER,
+    service_name        VARCHAR(64),
     restriction_id      VARCHAR(64),
     zone_name           TEXT,
+    airport_icao        VARCHAR(8),
     restriction_type    VARCHAR(48),
     lower_limit_ft      DOUBLE PRECISION,
     upper_limit_ft      DOUBLE PRECISION,
@@ -96,6 +119,10 @@ CREATE TABLE IF NOT EXISTS project_staging.stg_airspace_zone (
     effective_end_ts    TIMESTAMPTZ,
     is_static           BOOLEAN,
     geometry_wkt        TEXT,
+    bbox_min_lat        DOUBLE PRECISION,
+    bbox_min_lon        DOUBLE PRECISION,
+    bbox_max_lat        DOUBLE PRECISION,
+    bbox_max_lon        DOUBLE PRECISION,
     source_url          TEXT,
     raw_attributes      JSONB,
     reject_reason       VARCHAR(64),
@@ -140,3 +167,39 @@ CREATE TABLE IF NOT EXISTS project_staging.stg_opensky_state (
     created_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     CONSTRAINT uq_stg_opensky_source_record UNIQUE (source_record_id)
 );
+
+-- Idempotent upgrades for staging tables created before WP-04 review fixes.
+ALTER TABLE project_staging.stg_adsb_position
+    ADD COLUMN IF NOT EXISTS source_row_number INTEGER;
+
+ALTER TABLE project_staging.stg_uas_position
+    ADD COLUMN IF NOT EXISTS source_row_number INTEGER,
+    ADD COLUMN IF NOT EXISTS altitude_msl_ft DOUBLE PRECISION,
+    ADD COLUMN IF NOT EXISTS altitude_agl_ft DOUBLE PRECISION,
+    ADD COLUMN IF NOT EXISTS ground_speed_kts DOUBLE PRECISION,
+    ADD COLUMN IF NOT EXISTS vertical_speed_fps DOUBLE PRECISION,
+    ADD COLUMN IF NOT EXISTS flight_state VARCHAR(32),
+    ADD COLUMN IF NOT EXISTS is_on_ground BOOLEAN,
+    ADD COLUMN IF NOT EXISTS is_motor_on BOOLEAN,
+    ADD COLUMN IF NOT EXISTS is_gps_used BOOLEAN,
+    ADD COLUMN IF NOT EXISTS home_latitude DOUBLE PRECISION,
+    ADD COLUMN IF NOT EXISTS home_longitude DOUBLE PRECISION,
+    ADD COLUMN IF NOT EXISTS home_altitude_ft DOUBLE PRECISION,
+    ADD COLUMN IF NOT EXISTS source_speed_value DOUBLE PRECISION,
+    ADD COLUMN IF NOT EXISTS source_speed_unit VARCHAR(16);
+
+ALTER TABLE project_staging.stg_weather_metar
+    ADD COLUMN IF NOT EXISTS source_row_number INTEGER,
+    ADD COLUMN IF NOT EXISTS report_type VARCHAR(16),
+    ADD COLUMN IF NOT EXISTS station_lat DOUBLE PRECISION,
+    ADD COLUMN IF NOT EXISTS station_lon DOUBLE PRECISION,
+    ADD COLUMN IF NOT EXISTS station_elevation_m DOUBLE PRECISION;
+
+ALTER TABLE project_staging.stg_airspace_zone
+    ADD COLUMN IF NOT EXISTS source_row_number INTEGER,
+    ADD COLUMN IF NOT EXISTS service_name VARCHAR(64),
+    ADD COLUMN IF NOT EXISTS airport_icao VARCHAR(8),
+    ADD COLUMN IF NOT EXISTS bbox_min_lat DOUBLE PRECISION,
+    ADD COLUMN IF NOT EXISTS bbox_min_lon DOUBLE PRECISION,
+    ADD COLUMN IF NOT EXISTS bbox_max_lat DOUBLE PRECISION,
+    ADD COLUMN IF NOT EXISTS bbox_max_lon DOUBLE PRECISION;

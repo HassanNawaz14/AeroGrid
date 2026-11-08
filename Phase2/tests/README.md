@@ -1,7 +1,29 @@
 # Phase 2 Tests
 
-This directory is intentionally empty. It will hold parser, transformation, key, DQ,
-and reporting tests once the relevant work package is authorized.
+Current `WP-03`/`WP-04` unit tests run without a database or Docker.
+
+## Coverage
+
+- `test_tartan.py`, `test_uas.py`, `test_faa.py`, `test_weather.py`,
+  `test_transforms.py`: source normalizers, units, rejects, and bounds.
+- `test_staging_writer.py`: reconciliation, rejects, savepoint rollback, staging
+  mapping, run-log lifecycle, and manifest hashing using `tests/fakes.py`.
+- `test_loaders.py`: raw iterators, row-number provenance, logical source files,
+  loader reject isolation, and normalized-to-staging mappings.
+
+## Commands
+
+From `Phase2/`:
+
+```text
+python -m pytest -q
+```
+
+From the repository root:
+
+```text
+python -m pytest -q Phase2/tests
+```
 
 ## Rules
 

@@ -2,17 +2,15 @@ from __future__ import annotations
 
 """Idempotent staging writer and reconciliation helpers (WP-04).
 
-Uses psycopg v3 when available (PostgreSQL). SQLite is supported only for local
-unit tests of SQL shape where compatible; production loads run through CI with a
-PostgreSQL connection.
-
-Do not pass credentials in code or chat. Connection strings come from environment
-variables injected by CI or by an approved local operator.
+Connection strings come from environment variables injected by CI or by an
+approved local operator. Never put credentials in code, logs, or chat.
 """
 
+import hashlib
 import json
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Mapping, Sequence
+from pathlib import Path
+from typing import Any, Callable, Iterable, Mapping, Sequence
 
 from etl.errors import RowRejected
 
@@ -68,6 +66,17 @@ def _record_reject(
     )
 
 
+def _fallback_source_id(
+    raw: Any, source_file: str | None
+) -> str | None:
+    if not source_file or not isinstance(raw, Mapping):
+        return None
+    row_number = raw.get("_source_row_number")
+    if row_number is None:
+        return None
+    return f"{source_file}#{row_number}"
+
+
 def insert_on_conflict_do_nothing(
     conn: Any,
     *,
@@ -77,14 +86,16 @@ def insert_on_conflict_do_nothing(
     conflict_target: str,
     etl_run_id: Any,
     source_system: str,
-    normalizer: Any = None,
+    normalizer: Callable[..., Mapping[str, Any]] | None = None,
     normalizer_kwargs: Mapping[str, Any] | None = None,
+    row_mapper: Callable[[Mapping[str, Any]], Mapping[str, Any]] | None = None,
+    source_file: str | None = None,
 ) -> LoadCounts:
-    """Normalize and insert rows idempotently.
+    """Normalize, map, and insert rows idempotently.
 
-    `normalizer` may raise `RowRejected`; rejected rows are recorded in `stg_reject`
-    and counted. Duplicate natural keys count as `rows_duplicate` (ON CONFLICT DO
-    NOTHING). Reconciliation: read = accepted + rejected + duplicate.
+    Rejected rows are written to ``stg_reject``. Database errors are rolled back
+    to a per-row savepoint so one bad row cannot abort the rest of the batch.
+    Reconciliation: read = accepted + rejected + duplicate.
     """
     counts = LoadCounts()
     cur = conn.cursor()
@@ -95,43 +106,176 @@ def insert_on_conflict_do_nothing(
         f"ON CONFLICT {conflict_target} DO NOTHING"
     )
     kwargs = dict(normalizer_kwargs or {})
+
+    def reject(
+        *,
+        raw: Mapping[str, Any],
+        reason_code: str,
+        detail: str,
+        source_record_id: str | None,
+    ) -> None:
+        counts.rows_rejected += 1
+        counts.rejects_by_reason[reason_code] = (
+            counts.rejects_by_reason.get(reason_code, 0) + 1
+        )
+        _record_reject(
+            conn,
+            etl_run_id=etl_run_id,
+            source_system=source_system,
+            source_record_id=source_record_id or _fallback_source_id(raw, source_file),
+            reason_code=reason_code,
+            reason_detail=detail,
+            raw_payload=raw,
+        )
+
     for raw in rows:
         counts.rows_read += 1
         source_record_id = None
         try:
             record = normalizer(raw, **kwargs) if normalizer else dict(raw)
             source_record_id = str(record.get("source_record_id") or "") or None
-            values = [record.get(col) for col in columns]
+            if row_mapper is not None:
+                record = row_mapper(record)
+        except RowRejected as exc:
+            reject(
+                raw=raw,
+                reason_code=exc.reason_code,
+                detail=exc.detail,
+                source_record_id=exc.source_record_id or source_record_id,
+            )
+            continue
+        except Exception as exc:
+            reject(
+                raw=raw,
+                reason_code="SCHEMA_DRIFT",
+                detail=str(exc)[:500],
+                source_record_id=source_record_id,
+            )
+            continue
+
+        values = [record.get(col) for col in columns]
+        cur.execute("SAVEPOINT staging_row")
+        try:
             cur.execute(sql, values)
-            # psycopg cursor.rowcount is 1 for insert, 0 for conflict-do-nothing
             if getattr(cur, "rowcount", 1) == 0:
                 counts.rows_duplicate += 1
             else:
                 counts.rows_accepted += 1
-        except RowRejected as exc:
-            counts.rows_rejected += 1
-            reason = exc.reason_code
-            counts.rejects_by_reason[reason] = counts.rejects_by_reason.get(reason, 0) + 1
-            _record_reject(
-                conn,
-                etl_run_id=etl_run_id,
-                source_system=source_system,
-                source_record_id=exc.source_record_id or source_record_id,
-                reason_code=reason,
-                reason_detail=exc.detail,
-                raw_payload=raw,
-            )
-        except Exception as exc:  # fail-closed row, continue batch
-            counts.rows_rejected += 1
-            reason = "SCHEMA_DRIFT"
-            counts.rejects_by_reason[reason] = counts.rejects_by_reason.get(reason, 0) + 1
-            _record_reject(
-                conn,
-                etl_run_id=etl_run_id,
-                source_system=source_system,
+        except Exception as exc:
+            cur.execute("ROLLBACK TO SAVEPOINT staging_row")
+            reject(
+                raw=raw,
+                reason_code="SCHEMA_DRIFT",
+                detail=str(exc)[:500],
                 source_record_id=source_record_id,
-                reason_code=reason,
-                reason_detail=str(exc)[:500],
-                raw_payload=raw,
             )
+        finally:
+            cur.execute("RELEASE SAVEPOINT staging_row")
+
     return counts
+
+
+def start_etl_run(
+    conn: Any, *, run_mode: str, code_version: str | None = None
+) -> int:
+    cur = conn.cursor()
+    cur.execute(
+        """
+        INSERT INTO project_staging.etl_run_log (run_mode, code_version)
+        VALUES (%s, %s)
+        RETURNING etl_run_id
+        """,
+        (run_mode, code_version),
+    )
+    return int(cur.fetchone()[0])
+
+
+def finish_etl_run(
+    conn: Any,
+    *,
+    etl_run_id: int,
+    counts: Any,
+    status: str,
+    facts_inserted: int = 0,
+    critical_dq_failures: int = 0,
+    failure_reason: str | None = None,
+) -> None:
+    cur = conn.cursor()
+    cur.execute(
+        """
+        UPDATE project_staging.etl_run_log
+        SET finished_at = NOW(),
+            status = %s,
+            rows_read = %s,
+            rows_accepted = %s,
+            rows_rejected = %s,
+            rows_duplicate = %s,
+            facts_inserted = %s,
+            critical_dq_failures = %s,
+            failure_reason = %s
+        WHERE etl_run_id = %s
+        """,
+        (
+            status,
+            counts.rows_read,
+            counts.rows_accepted,
+            counts.rows_rejected,
+            counts.rows_duplicate,
+            facts_inserted,
+            critical_dq_failures,
+            failure_reason,
+            etl_run_id,
+        ),
+    )
+
+
+def record_source_manifest(
+    conn: Any,
+    *,
+    source_name: str,
+    source_url: str,
+    license_name: str,
+    attribution: str,
+    fetched_at: Any,
+    file_path: str | Path,
+    object_key: str | None = None,
+    content_type: str | None = None,
+    source_version: str | None = None,
+) -> int:
+    path = Path(file_path)
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    cur = conn.cursor()
+    cur.execute(
+        """
+        INSERT INTO project_staging.source_manifest
+            (source_name, source_url, license_name, attribution, fetched_at,
+             file_name, byte_size, sha256, object_key, content_type, source_version)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT (source_name, sha256) DO UPDATE
+        SET source_url = EXCLUDED.source_url,
+            license_name = EXCLUDED.license_name,
+            attribution = EXCLUDED.attribution,
+            fetched_at = EXCLUDED.fetched_at,
+            object_key = EXCLUDED.object_key,
+            content_type = EXCLUDED.content_type,
+            source_version = EXCLUDED.source_version
+        RETURNING source_manifest_id
+        """,
+        (
+            source_name,
+            source_url,
+            license_name,
+            attribution,
+            fetched_at,
+            path.name,
+            path.stat().st_size,
+            digest.hexdigest(),
+            object_key,
+            content_type,
+            source_version,
+        ),
+    )
+    return int(cur.fetchone()[0])

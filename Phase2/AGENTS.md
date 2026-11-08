@@ -13,8 +13,9 @@ AeroGrid Phase 2. It is subordinate to the repository-wide
   `WP-03` (source validation) is `READY_FOR_REVIEW`. Tartan, Nightjar, nominal-io DJI,
   the granular FAA airspace services (`D-020`), and METAR/AWC/IEM are validated, the
   capacity estimate is recorded, and temporary raw samples are removed. Reviewers D
-  and E sign-off is pending. Later work packages remain `NOT_STARTED` until their
-  gate and authorization are recorded in [PROGRESS.md](PROGRESS.md).
+  and E sign-off is pending.
+- `WP-04` is implemented under `D-021` and `BLOCKED_ON_HUMAN` pending `H-011` Neon
+  DDL/load evidence. `WP-05` remains `NOT_STARTED` until `G3`.
 - The current gate and next action are recorded in [PROGRESS.md](PROGRESS.md).
 - The current authorization status is `implementation_authorized: YES`.
 
@@ -258,7 +259,8 @@ Stop and ask the human if asked to:
 - Mark a gate or work package `DONE` without the required evidence and human
   acceptance.
 
-`WP-02` and `WP-03` are the only authorized packages. `WP-02` is `DONE`; `WP-03` is
-`READY_FOR_REVIEW`. Do not load the FAA `Airspace (DEMO)` layer; use the approved
-granular services (`D-020`). Do not start `WP-04`. Later packages begin only after
-their gate is recorded in `PROGRESS.md`.
+`WP-02`, `WP-03`, and `WP-04` are authorized; `WP-04` operates under the recorded
+`D-021` exception. `WP-02` is `DONE`; `WP-03` is `READY_FOR_REVIEW`; `WP-04` is
+`BLOCKED_ON_HUMAN` on `H-011`. Do not load the FAA `Airspace (DEMO)` layer; use the
+approved granular services (`D-020`). Do not start `WP-05` before `G3`. Later packages
+begin only after their gate is recorded in `PROGRESS.md`.

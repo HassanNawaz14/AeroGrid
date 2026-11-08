@@ -77,7 +77,10 @@ The capacity estimate is recorded and temporary raw samples are removed.
 
 1. Reviewers D and E review the `WP-03` package and sign off.
 2. HassanNawaz14 closes `G2` once both `WP-02` and `WP-03` evidence is recorded and
-   reviewers sign off, then authorizes the `WP-04`/`WP-05` work.
+   reviewers sign off.
+3. `WP-04` is already authorized under `D-021`; resolve `H-011` so the ETL role can
+   apply staging DDL or have an owner apply it once, then rerun the WP-04 verifier.
+   `WP-05` still starts only after `G3`.
 
 To re-run the platform validation later, dispatch **Actions → Platform validation
 (WP-02) → Run workflow** and approve the `warehouse` environment when GitHub asks. The

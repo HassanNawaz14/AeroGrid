@@ -14,8 +14,10 @@ contract is [Phase2/AGENTS.md](Phase2/AGENTS.md). Read both before changing file
   PR #3 merged as `b6b76b9`. `WP-03` (Member B) is `READY_FOR_REVIEW`; Tartan,
   Nightjar, nominal-io DJI, the granular FAA airspace services (`D-020`), and
   METAR/AWC/IEM are validated, the capacity estimate is recorded, and temporary raw
-  samples are removed. Reviewers D and E sign-off is pending. Later work packages
-  wait until their gate is recorded.
+  samples are removed. Reviewers D and E sign-off is pending.
+- `WP-04` (Member B) is implemented and `BLOCKED_ON_HUMAN`; PR #5 review fixes pass
+  local tests, but Neon DDL/load evidence needs `H-011`. Later work packages wait
+  until their gate is recorded; `WP-05` remains `NOT_STARTED` until `G3`.
 
 ## Authority and precedence
 
@@ -161,9 +163,11 @@ already checked, and the safest next step. Do not silently work around the block
 
 ## Current instruction
 
-`G1` is cleared and implementation is authorized for `WP-02` and `WP-03`. `WP-02` is
-`DONE` with a recorded `PASS` validation run and a merged PR. `WP-03` is
-`READY_FOR_REVIEW`; do not load the FAA `Airspace (DEMO)` layer; use the approved
-granular services (`D-020`). Do not start `WP-04`. Work on one authorized package
-at a time, record evidence in `Phase2/PROGRESS.md`, and do not start a later package
-until its gate is recorded.
+`G1` is cleared and implementation is authorized for `WP-02`, `WP-03`, and `WP-04`
+under the recorded `D-021` exception. `WP-02` is `DONE` with a recorded `PASS`
+validation run and a merged PR. `WP-03` is `READY_FOR_REVIEW`. `WP-04` review fixes
+are implemented but `BLOCKED_ON_HUMAN` on `H-011` for Neon DDL/load evidence. Do not
+load the FAA `Airspace (DEMO)` layer; use the approved granular services (`D-020`).
+Do not start `WP-05` before `G3`. Work on one authorized package at a time, record
+evidence in `Phase2/PROGRESS.md`, and do not start a later package until its gate is
+recorded.

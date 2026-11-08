@@ -2,6 +2,11 @@ name: WP-04 staging DDL verify
 
 on:
   workflow_dispatch:
+    inputs:
+      tartan_sample_path:
+        description: "Optional path to a real Tartan KBTP CSV sample on the runner"
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -28,9 +33,18 @@ jobs:
       - name: Install dependencies
         run: >
           python -m pip install --disable-pip-version-check
-          "psycopg[binary]>=3.2,<4"
+          "psycopg[binary]>=3.2,<4" "pytest>=8,<10"
+
+      - name: Run WP-04 unit tests
+        run: python -m pytest -q Phase2/tests
 
       - name: Verify WP-04 staging DDL
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: python Phase2/etl/verify_wp04_staging.py
+          TARTAN_SAMPLE: ${{ inputs.tartan_sample_path }}
+        run: |
+          if [ -n "$TARTAN_SAMPLE" ]; then
+            python Phase2/etl/verify_wp04_staging.py --tartan-sample "$TARTAN_SAMPLE"
+          else
+            python Phase2/etl/verify_wp04_staging.py
+          fi
