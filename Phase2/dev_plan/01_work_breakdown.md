@@ -8,7 +8,7 @@
 | `WP-01` | Human prerequisites and approvals | A | Human | DONE |
 | `WP-02` | Platform validation and access proof | A | B + C | DONE |
 | `WP-03` | Source validation and georeferencing spike | B | D + E | DONE |
-| `WP-04` | Staging DDL and loaders | B | C + D | IN_PROGRESS (real-sample evidence; owner-closable) |
+| `WP-04` | Staging DDL and loaders | B | C + D | DONE |
 | `WP-05` | Dimensions, keys, and data dictionary | C | A + D | READY (owner-closable) |
 | `WP-06` | Tracking and journey facts | D | C + E | NOT_STARTED |
 | `WP-07` | Derived facts | E | C + D | NOT_STARTED |
@@ -320,8 +320,9 @@ laptop.
 
 ## WP-05: Dimensions, keys, and data dictionary
 
-**Status:** READY (Member C; start condition met: `WP-03`/`WP-04` merged as `f9087f4`;
-delegated closeout under `D-023`)
+**Status:** DONE (Member C; delegated closeout under `D-023`; all dimension DDL,
+seeds, verifier, workflow, data dictionary, DBML, and tests implemented; Neon DB
+verifier PASS recorded 2026-11-08; `G3` stays `IN_PROGRESS` for the human)
 **Owner:** Member C
 **Reviewers:** Members A and D (Member D acts during the delegated window)
 **Prerequisites:** WP-02, model approved

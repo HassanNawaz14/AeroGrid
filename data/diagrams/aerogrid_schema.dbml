@@ -57,50 +57,30 @@ Table project_staging.dq_result {
 
 Table project_dw.dim_time {
   time_key bigint [pk, increment]
-  hour_ts timestamptz [not null, unique]
-  full_date date [not null]
-  year smallint [not null]
-  quarter smallint [not null]
-  month smallint [not null]
-  month_name varchar(20) [not null]
-  day_of_month smallint [not null]
-  day_of_week smallint [not null]
-  day_name varchar(20) [not null]
-  hour_of_day smallint [not null]
-  is_weekend boolean [not null]
-  time_of_day_band varchar(20) [not null]
+  hour_ts timestamptz [not null]
+  date_utc date [not null]
+  hour_utc smallint [not null]
+
+  indexes {
+    (hour_ts) [unique]
+  }
 }
 
 Table project_dw.dim_site {
   site_key bigint [pk, increment]
-  site_code varchar(32) [not null, unique]
-  site_name varchar(120) [not null]
-  site_type varchar(32) [not null]
-  city varchar(80)
-  state varchar(40)
-  country varchar(40) [not null]
-  latitude numeric(9,6) [not null]
-  longitude numeric(9,6) [not null]
-  bbox_min_lat numeric(9,6) [not null]
-  bbox_min_lon numeric(9,6) [not null]
-  bbox_max_lat numeric(9,6) [not null]
-  bbox_max_lon numeric(9,6) [not null]
-  source_system varchar(32) [not null]
-  description text
+  site_code text [not null]
+  site_name text
+
+  indexes {
+    (site_code) [unique]
+  }
 }
 
 Table project_dw.dim_vehicle {
   vehicle_key bigint [pk, increment]
-  source_system varchar(32) [not null]
-  source_entity_id varchar(128) [not null]
-  icao24 varchar(16)
-  serial_number varchar(128)
-  callsign varchar(32)
-  registration_number varchar(32)
-  vehicle_category varchar(32) [not null]
-  vehicle_subcategory varchar(48)
-  operator_name varchar(120)
-  engine_type varchar(32)
+  source_system text [not null]
+  source_entity_id text [not null]
+  vehicle_type text
   first_seen_ts timestamptz
   last_seen_ts timestamptz
 
@@ -111,37 +91,24 @@ Table project_dw.dim_vehicle {
 
 Table project_dw.dim_spatial_grid {
   grid_key bigint [pk, increment]
-  grid_cell_id varchar(64) [not null, unique]
+  grid_cell_id text [not null]
   site_key bigint [not null, ref: > project_dw.dim_site.site_key]
-  latitude_center numeric(9,6) [not null]
-  longitude_center numeric(9,6) [not null]
-  latitude_min numeric(9,6) [not null]
-  latitude_max numeric(9,6) [not null]
-  longitude_min numeric(9,6) [not null]
-  longitude_max numeric(9,6) [not null]
-  altitude_band_name varchar(32) [not null]
-  altitude_min_ft integer [not null]
-  altitude_max_ft integer [not null]
-  cell_size_deg numeric(8,6) [not null]
-  altitude_band_order smallint [not null]
+  lat_bin double precision
+  lon_bin double precision
+
+  indexes {
+    (grid_cell_id) [unique]
+  }
 }
 
 Table project_dw.dim_weather {
   weather_key bigint [pk, increment]
-  station_icao varchar(8) [not null]
+  station_icao text [not null]
   observation_ts timestamptz [not null]
   site_key bigint [not null, ref: > project_dw.dim_site.site_key]
-  raw_text text
-  flight_category varchar(8)
   temperature_c numeric(5,2)
-  dewpoint_c numeric(5,2)
   wind_speed_kts numeric(6,2)
-  wind_gust_kts numeric(6,2)
-  wind_direction_deg smallint
-  visibility_sm numeric(6,2)
-  cloud_ceiling_ft integer
-  altimeter_inhg numeric(6,2)
-  source_system varchar(16) [not null]
+  visibility_m numeric(9,2)
 
   indexes {
     (station_icao, observation_ts) [unique]
@@ -150,25 +117,10 @@ Table project_dw.dim_weather {
 
 Table project_dw.dim_airspace_zone {
   zone_key bigint [pk, increment]
-  source_system varchar(32) [not null]
-  source_object_id varchar(128) [not null]
+  source_system text [not null]
+  source_object_id text [not null]
+  zone_name text
   site_key bigint [not null, ref: > project_dw.dim_site.site_key]
-  restriction_id varchar(64)
-  zone_name varchar(200) [not null]
-  restriction_type varchar(48) [not null]
-  lower_limit_ft integer
-  upper_limit_ft integer
-  effective_start_ts timestamptz
-  effective_end_ts timestamptz
-  is_static boolean [not null]
-  geometry_wkt text [not null]
-  bbox_min_lat numeric(9,6)
-  bbox_min_lon numeric(9,6)
-  bbox_max_lat numeric(9,6)
-  bbox_max_lon numeric(9,6)
-  source_url text
-  first_seen_ts timestamptz [not null]
-  last_seen_ts timestamptz [not null]
 
   indexes {
     (source_system, source_object_id) [unique]
