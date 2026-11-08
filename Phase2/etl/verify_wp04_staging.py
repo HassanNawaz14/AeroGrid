@@ -186,6 +186,23 @@ def main() -> int:
             version_short = (version or "").split(",")[0]
             print(f"connected user={user} db={db} server={version_short}")
 
+            cur.execute(
+                """
+                SELECT has_schema_privilege(current_user, 'project_staging', 'USAGE'),
+                       has_schema_privilege(current_user, 'project_staging', 'CREATE')
+                """
+            )
+            usage_ok, create_ok = cur.fetchone()
+            if not (usage_ok and create_ok):
+                print(
+                    "preflight: FAILED; current_user lacks "
+                    f"USAGE={usage_ok} CREATE={create_ok} on project_staging. "
+                    "Run Phase2/sql/00_grants.sql as the project owner (neondb_owner) "
+                    "in the Neon SQL Editor, then rerun this verifier."
+                )
+                return 3
+            print("preflight: project_staging privileges OK")
+
             def apply(label: str) -> None:
                 for path in SQL_FILES:
                     sql = path.read_text(encoding="utf-8")

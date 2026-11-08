@@ -154,9 +154,8 @@ Implementation may begin only when:
 - The assigned work package is `READY`.
 - The human explicitly authorizes the work package.
 
-`WP-02` and `WP-03` are currently authorized. `WP-02` is `DONE` (accepted 2026-11-07;
-PR #3 merged); `WP-03` is `READY_FOR_REVIEW`. Tartan, Nightjar, nominal-io DJI, the
-granular FAA airspace services (`D-020`), and METAR/AWC/IEM are validated, the
-capacity estimate is recorded, and temporary raw samples are removed. Reviewers D
-and E sign-off is pending. Later packages start only after their gate is recorded in
+`WP-02`, `WP-03`, `WP-04`, and `WP-05` are currently authorized. `WP-02` and `WP-03`
+are `DONE` (PR #3 `b6b76b9`, PR #5 `f9087f4`), which closed `G2` on 2026-11-08.
+`WP-04` code is merged but its Neon evidence is `BLOCKED_ON_HUMAN` on `H-011`; `WP-05`
+is `READY` under `D-022`. Later packages start only after their gate is recorded in
 `PROGRESS.md`.

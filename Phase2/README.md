@@ -4,16 +4,11 @@ Phase 2 turns the Phase 1 dimensional design into a shared, reproducible Postgre
 data warehouse loaded from real public data. This directory is the control point for
 Phase 2 documentation, planning, status, and future implementation.
 
-**Implementation status: AUTHORIZED (2026-11-04, `H-007`).** The documentation and
-folder baseline is accepted (`G0`/`H-001`), the `G1` human prerequisites are closed,
-and `WP-02` (platform validation), `WP-03` (source validation), and `WP-04` (staging)
-are authorized; `WP-04` operates under the `D-021` exception. `WP-02` passed platform
-validation on 2026-11-07 (run `42276737288`) and is `DONE` after review and merge
-(PR #3); `WP-03` is `READY_FOR_REVIEW`. Tartan, Nightjar, nominal-io DJI, the granular
-FAA airspace services (`D-020`), and METAR/AWC/IEM are validated, the capacity estimate
-is recorded, and temporary raw samples are removed; reviewers D and E sign-off is
-pending. `WP-04` staging DDL/loaders are implemented and `BLOCKED_ON_HUMAN` on `H-011`
-for Neon DDL/load evidence. The next gate is `G2`.
+**Implementation status: AUTHORIZED (2026-11-04, `H-007`).** `G0`, `G1`, and `G2` are
+closed. `WP-02` (run `42276737288`, PR #3 `b6b76b9`) and `WP-03` (PR #5 `f9087f4`)
+are `DONE`, so `G2` closed on 2026-11-08. `WP-04` staging DDL/loaders are merged but
+`BLOCKED_ON_HUMAN` on `H-011` for Neon DDL/load evidence; `WP-05` (dimensions and
+keys) is `READY` for Member C under `D-022`. The next gate is `G3`.
 
 ## Quick links
 
@@ -92,8 +87,8 @@ Statuses use the vocabulary in [AGENTS.md](AGENTS.md). Detail is in
 |---|---|---|
 | `G0` | Documentation baseline complete and links valid | `DONE` (`H-001`) |
 | `G1` | Human prerequisites and approvals | `DONE` (`H-007`; `H-002` deferred) |
-| `G2` | Platform and source readiness validated | `IN_PROGRESS` (`WP-02` `DONE`; `WP-03` `READY_FOR_REVIEW`) |
-| `G3` | Staging, dimensional schema, and keys validated | `NOT_STARTED` |
+| `G2` | Platform and source readiness validated | `DONE` 2026-11-08 (`WP-02`/`WP-03`; PR #5 `f9087f4`) |
+| `G3` | Staging, dimensional schema, and keys validated | `IN_PROGRESS` (`WP-05` `READY`; `WP-04` blocked on `H-011`) |
 | `G4` | Core tracking and journey facts loaded | `NOT_STARTED` |
 | `G5` | Derived facts and thresholds validated | `NOT_STARTED` |
 | `G6` | DQ, reports, views, and automation complete | `NOT_STARTED` |
@@ -104,9 +99,9 @@ Statuses use the vocabulary in [AGENTS.md](AGENTS.md). Detail is in
 | `WP-00` Documentation and folder baseline | Member A | `DONE` |
 | `WP-01` Human prerequisites and shared platform | Member A + human | `DONE` |
 | `WP-02` Platform validation and access proof | Member A | `DONE` |
-| `WP-03` Source validation and georeferencing | Member B | `READY_FOR_REVIEW` |
-| `WP-04` Staging DDL and loaders | Member B | `BLOCKED_ON_HUMAN` |
-| `WP-05` Dimensions, keys, and dictionary | Member C | `NOT_STARTED` |
+| `WP-03` Source validation and georeferencing | Member B | `DONE` |
+| `WP-04` Staging DDL and loaders | Member B | `BLOCKED_ON_HUMAN` (code merged) |
+| `WP-05` Dimensions, keys, and dictionary | Member C | `READY` |
 | `WP-06` Tracking and journey facts | Member D | `NOT_STARTED` |
 | `WP-07` Derived facts | Member E | `NOT_STARTED` |
 | `WP-08` Data-quality framework | Member E | `NOT_STARTED` |
@@ -117,20 +112,15 @@ Statuses use the vocabulary in [AGENTS.md](AGENTS.md). Detail is in
 
 ## Current blockers and next action
 
-**`WP-02` is `DONE`; `WP-03` is `READY_FOR_REVIEW`; `WP-04` is
-`BLOCKED_ON_HUMAN`.** The final platform validation run passed on 2026-11-07 (22 pass,
-1 warn, 0 fail), including every read-only role check, and PR #3 merged as `b6b76b9`.
-`H-002` remains deferred by the human; the Member B-E names are recorded in
-[docs/08_team_work_division.md](docs/08_team_work_division.md). Tartan, Nightjar,
-nominal-io DJI, FAA, METAR/AWC, and IEM are validated; the capacity estimate is
-recorded and temporary raw samples are removed. The human approved the granular
-Class/Special Use/Route airspace services (`D-020`) instead of the
-`Airspace (DEMO)` layer. `WP-04` review fixes pass local tests; `H-011` still needs the
-`aerogrid_etl` role to receive `project_staging` DDL rights (or an owner-applied DDL
-path) before Neon load evidence can close it.
+**`WP-03` is `DONE` and `G2` is closed; `WP-05` is `READY`.** Platform validation
+passed on 2026-11-07 (22 pass, 1 warn, 0 fail) and source validation merged in PR #5
+(`f9087f4`). `H-002` remains deferred by the human; the Member B-E names are recorded
+in [docs/08_team_work_division.md](docs/08_team_work_division.md). `WP-04` code is
+merged, but Neon DDL/load evidence needs `H-011`: run
+[`sql/00_grants.sql`](sql/00_grants.sql) as the owner, then rerun the WP-04 verifier.
 
-**Next actions:** Reviewers D and E review the `WP-03` package and sign off;
-HassanNawaz14 closes `G2` once the evidence is recorded.
+**Next actions:** Member C starts `WP-05`; HassanNawaz14 runs `00_grants.sql` for
+`H-011`; `G3` is recorded after `WP-04`/`WP-05` acceptance.
 Human-only actions still require the human (for example, grants, secret changes, or
 destructive operations).
 

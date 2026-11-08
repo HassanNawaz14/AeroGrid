@@ -7,9 +7,9 @@
 | `WP-00` | Documentation and folder baseline | A | B + C | DONE |
 | `WP-01` | Human prerequisites and approvals | A | Human | DONE |
 | `WP-02` | Platform validation and access proof | A | B + C | DONE |
-| `WP-03` | Source validation and georeferencing spike | B | D + E | READY_FOR_REVIEW |
+| `WP-03` | Source validation and georeferencing spike | B | D + E | DONE |
 | `WP-04` | Staging DDL and loaders | B | C + D | BLOCKED_ON_HUMAN |
-| `WP-05` | Dimensions, keys, and data dictionary | C | A + D | NOT_STARTED |
+| `WP-05` | Dimensions, keys, and data dictionary | C | A + D | READY |
 | `WP-06` | Tracking and journey facts | D | C + E | NOT_STARTED |
 | `WP-07` | Derived facts | E | C + D | NOT_STARTED |
 | `WP-08` | Data-quality framework | E | B + D | NOT_STARTED |
@@ -177,11 +177,12 @@ data.
 
 ## WP-03: Source validation and georeferencing spike
 
-**Status:** READY_FOR_REVIEW (Member B, Hamid4325; 2026-11-07)
+**Status:** DONE (Member B, Hamid4325; accepted by HassanNawaz14 2026-11-08; PR #5
+merged `f9087f4`)
 **Owner:** Member B
 **Reviewers:** Members D and E
 **Prerequisites:** WP-01, G1 cleared
-**Gate:** G2
+**Gate:** G2 (closed on this package)
 
 ### Objective
 
@@ -276,11 +277,11 @@ Create the staging schema and reproducible source-to-staging loaders.
 
 ## WP-05: Dimensions, keys, and data dictionary
 
-**Status:** NOT_STARTED
+**Status:** READY (`D-022` start condition met: `WP-03`/`WP-04` merged as `f9087f4`)
 **Owner:** Member C
 **Reviewers:** Members A and D
 **Prerequisites:** WP-02, model approved
-**Gate:** `D-022` (`WP-03` and `WP-04` merged)
+**Gate:** `D-022` start; `G3` acceptance
 
 ### Objective
 

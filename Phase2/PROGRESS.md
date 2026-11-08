@@ -6,14 +6,14 @@ read it before acting. Update it at the end of every work session.
 | Field | Value |
 |---|---|
 | Last updated | `2026-11-08` |
-| Phase state | `G2_IN_PROGRESS_WP-02_DONE_WP-03_READY_FOR_REVIEW_WP-04_BLOCKED_ON_HUMAN` |
+| Phase state | `G2_DONE_WP-03_DONE_WP-04_BLOCKED_ON_HUMAN_WP-05_READY` |
 | Implementation authorized | `YES` (`H-007`, 2026-11-04) |
-| Current gate | `G2 - Platform and source readiness` |
-| Current gate status | `IN_PROGRESS (WP-02 DONE; WP-03 READY_FOR_REVIEW; WP-04 review fixes implemented and BLOCKED_ON_HUMAN on H-011 DB acceptance)` |
-| Active work package | `WP-04` staging DDL and loaders (under `D-021` gate exception) |
-| Active work package status | `BLOCKED_ON_HUMAN` (`H-011`: grant `project_staging` rights or owner-apply DDL; local review fixes pass tests) |
-| Next work package | `WP-05` dimensions and keys (after `WP-03`/`WP-04` merge, `D-022`) |
-| Next action owner | Human/Member A resolves `H-011`; Reviewers C/D re-review PR #5; D/E review WP-03; HassanNawaz14 records `G2`/acceptance after DB evidence |
+| Current gate | `G3 - Staging and dimensional schema` |
+| Current gate status | `IN_PROGRESS (WP-05 READY; WP-04 DDL applied on Neon, real-sample evidence pending)` |
+| Active work package | `WP-05` dimensions and keys (Member C) |
+| Active work package status | `READY` (`D-022` start condition met: `WP-03`/`WP-04` merged as `f9087f4`) |
+| Next work package | `WP-06` tracking and journey facts (after `G3`) |
+| Next action owner | Member C starts `WP-05`; human reruns `Phase2/sql/00_grants.sql` and Member B produces real-sample loader evidence (`H-011`); HassanNawaz14 records `G3` after `WP-04`/`WP-05` acceptance |
 
 ## Status vocabulary
 
@@ -41,14 +41,14 @@ Gate definitions are canonical in
 |---|---|---|---|
 | `G0` | Documentation, plan, and folder baseline exist and links are valid | `DONE` | HassanNawaz14 |
 | `G1` | Human approvals, named owners, Neon/GitHub access, and secrets ready | `DONE` (`H-007`; `H-002` deferred) | HassanNawaz14 |
-| `G2` | Platform access and source validation spikes pass | `IN_PROGRESS` (`WP-02` `DONE`; `WP-03` `READY_FOR_REVIEW`) | HassanNawaz14 / Member B |
-| `G3` | Staging, physical schema, constraints, indexes, keys, and seeds validated | `NOT_STARTED` | Members B/C |
+| `G2` | Platform access and source validation spikes pass | `DONE` 2026-11-08 (`WP-02` and `WP-03` accepted; PR #5 merged as `f9087f4`) | HassanNawaz14 / Member B |
+| `G3` | Staging, physical schema, constraints, indexes, keys, and seeds validated | `IN_PROGRESS` (`WP-05` `READY`; `WP-04` blocked on `H-011`) | Members B/C |
 | `G4` | Core tracking and journey facts loaded and reconciled | `NOT_STARTED` | Member D |
 | `G5` | Derived facts and approved thresholds validated | `NOT_STARTED` | Member E |
 | `G6` | DQ, reports, reporting views, and automation validated | `NOT_STARTED` | Member E / HassanNawaz14 |
 | `G7` | A clean end-to-end run and team read access are demonstrated | `NOT_STARTED` | HassanNawaz14 |
 
-`G0` and `G1` are closed. `G0` was accepted via `H-001`; `G1` was closed and implementation authorized via `H-007` on 2026-11-04. The next gate is `G2`.
+`G0`, `G1`, and `G2` are closed. `G0` was accepted via `H-001`; `G1` was closed and implementation authorized via `H-007` on 2026-11-04; `G2` was accepted by HassanNawaz14 on 2026-11-08 after `WP-03` review and PR #5 merge. The next gate is `G3`.
 
 ## Work package status
 
@@ -57,9 +57,9 @@ Gate definitions are canonical in
 | `WP-00` | Documentation and folder baseline | HassanNawaz14 | none | `DONE` | Accepted via `H-001` |
 | `WP-01` | Human prerequisites and shared platform | HassanNawaz14 | `WP-00` | `DONE` | G1 cleared; proceed with WP-02 and WP-03. |
 | `WP-02` | Platform validation and access proof | HassanNawaz14 | `WP-01` | `DONE` | Accepted 2026-11-07 by HassanNawaz14; run [42276737288](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42276737288) `PASS`; PR #3 merged as `b6b76b9` |
-| `WP-03` | Source validation and georeferencing | Member B (Hamid4325) | `WP-01` | `READY_FOR_REVIEW` | Tartan, Nightjar, and nominal-io DJI validated (`PASS`); FAA facility/TFR usable; granular Class/Special Use/Route airspace approved (`D-020`) and validated; METAR/AWC `PASS` and IEM `PASS WITH LIMITATION`; capacity estimate recorded; temp raw samples removed; reviewers D/E sign-off pending |
-| `WP-04` | Staging DDL and loaders | Member B (Hamid4325) | `WP-03` | `BLOCKED_ON_HUMAN` | Review fixes added: savepoint rollback, staging mappings, logical source files, strict numeric/timestamp rejects, run-log/manifest writers, rollback-only real-sample verification, DDL upgrades, docs. 38 local tests pass. DB apply + real-sample evidence blocked on `H-011`; `WP-05` waits for `WP-03`/`WP-04` merge (`D-022`). |
-| `WP-05` | Dimensions, keys, and dictionary | Member C | `WP-02`, model approval | `NOT_STARTED` | Wait for `WP-03`/`WP-04` merge (`D-022`) |
+| `WP-03` | Source validation and georeferencing | Member B (Hamid4325) | `WP-01` | `DONE` | Accepted 2026-11-08 by HassanNawaz14 after review; PR #5 merged as `f9087f4`. Tartan, Nightjar, nominal-io DJI, FAA facility/TFR plus granular airspace (`D-020`), and METAR/AWC/IEM are validated; capacity estimate recorded; temp raw samples removed. `G2` closed on this evidence. |
+| `WP-04` | Staging DDL and loaders | Member B (Hamid4325) | `WP-03` | `BLOCKED_ON_HUMAN` | Code merged (`f9087f4`); 38 local tests pass. DDL evidence recorded 2026-11-08: run [42474788058](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42474788058) applied the three SQL files twice as `aerogrid_etl` and created 11 empty `project_staging` tables. Remaining on `H-011`: rerun `00_grants.sql` so the reader can read those tables, then a real Tartan sample load/rerun for reconciliation and idempotency evidence. |
+| `WP-05` | Dimensions, keys, and dictionary | Member C | `WP-02`, model approval | `READY` | `D-022` start condition met (`WP-03`/`WP-04` merged). Member C starts dimension DDL, keys, and the data dictionary; acceptance is recorded at `G3`. |
 | `WP-06` | Tracking and journey facts | Member D | `WP-04`, `WP-05` | `NOT_STARTED` | Wait for `G3` |
 | `WP-07` | Derived facts | Member E | `WP-06` | `NOT_STARTED` | Wait for `G4` and threshold approval |
 | `WP-08` | Data-quality framework | Member E | `WP-04` to `WP-07` | `NOT_STARTED` | Wait for derived facts |
@@ -76,13 +76,13 @@ Gate definitions are canonical in
 | `H-002` | Assign real names to Members B-E | Work packages need accountable owners | Names are recorded in [docs/08_team_work_division.md](docs/08_team_work_division.md): Hamid4325 (B), HarveyWebbs (C), ahmadazad-dev (D), x-abdullah-saeed-x (E). Formal closure remains deferred by HassanNawaz14; this does not block `WP-02`/`WP-03`. | `BLOCKED` (deferred) |
 | `H-003` | Create the Neon project, database, and object-storage bucket | The shared warehouse and raw archive are human-owned resources | Recorded in the Neon resource record: project `AeroGrid-DW`, branch `production`, database `neondb`, bucket `aerogrid-raw`, ETL role `aerogrid_etl` | `DONE` |
 | `H-004` | Add GitHub environment secrets for the warehouse | CI cannot connect to Neon without secrets | `warehouse` environment created and the six required secrets added; values not recorded | `DONE` |
-| `H-005` | Invite the other members and create read-only access | All five members must read the shared warehouse | Invitations sent; `aerogrid_reader` role and read-only plan recorded; HassanNawaz14 confirmed the role exists on 2026-11-06. Grants follow `WP-04`/`WP-05`/`WP-10`. | `DONE` |
+| `H-005` | Invite the other members and create read-only access | All five members must read the shared warehouse | Invitations sent; `aerogrid_reader` role and read-only plan recorded; HassanNawaz14 confirmed the role exists on 2026-11-06. Recurring member grants are in `Phase2/sql/00_grants.sql` (`H-011`). | `DONE` |
 | `H-006` | Confirm data licenses, attribution, and optional OpenSky access | Redistribution and source-use terms must be confirmed | Confirmed data licenses, attribution requirements, and optional OpenSky access (`D-011`, `D-012`, `D-013`, `docs/03_data_sources_and_licensing.md`) | `DONE` |
 | `H-007` | Explicitly authorize Phase 2 implementation | Opens the implementation phase | **DONE 2026-11-04** — Authorized implementation; G1 closed; WP-02/WP-03 assigned | `DONE` |
 | `H-008` | Confirm handling of the tracked legacy synthetic samples under `data/sample/` | Prevents synthetic demo files from being mistaken for real Phase 2 data | HassanNawaz14 confirmed the five files are intentionally retained as demo-only artifacts for offline user/evaluator viewing; excluded from all Phase 2 loads and reports; `D-017` | `DONE` |
 | `H-009` | Run the `WP-02` validation workflow and confirm read-only access | The probe needs the `warehouse` secrets, and the read-only connection string is member-only | Runs [42266493857](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42266493857) and [42272052476](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42272052476) are done. `aerogrid_reader` was replaced on 2026-11-07 (console delete, SQL recreate, password reset, secret updated). Final run [42276737288](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42276737288) `PASS`: 22 pass, 1 warn, 0 fail, 0 skip; every negative reader check rejected with SQLSTATE `42501`. | `DONE` |
 | `H-010` | Confirm the FAA Airspace source license/provenance or approve a replacement | The `Airspace` ArcGIS item is titled `Airspace (DEMO)` and has no `licenseInfo` or `accessInformation`; loading it without confirmation risks an unapproved source | Human approved the granular FAA services (`Class_Airspace`, `Special_Use_Airspace`, `Route_Airspace`) on 2026-11-07; `D-020` records the decision and the DEMO layer is excluded. | `DONE` |
-| `H-011` | Grant `aerogrid_etl` DDL/DML rights on `project_staging` (or run WP-04 DDL once as owner) | WP-04 DDL verify connected as `aerogrid_etl` to `neondb` but failed with `InsufficientPrivilege: permission denied for schema project_staging` on `CREATE TABLE IF NOT EXISTS project_staging.source_manifest` (2026-11-07, Member B local run of `Phase2/etl/verify_wp04_staging.py`; no secrets recorded). `project_staging` exists from WP-02 probe but ETL role grants are pending. | Member A/human runs non-destructive grants on `project_staging` for `aerogrid_etl` (USAGE/CREATE + table/sequence privileges/default privileges as appropriate), or applies WP-04 DDL once via approved owner path; then rerun DDL verify and proceed to real-sample load/rerun evidence. | `BLOCKED_ON_HUMAN` |
+| `H-011` | Apply `Phase2/sql/00_grants.sql` as `neondb_owner` | WP-04 DDL verify connected as `aerogrid_etl` to `neondb` but failed with `InsufficientPrivilege: permission denied for schema project_staging` on `CREATE TABLE IF NOT EXISTS project_staging.source_manifest` (2026-11-07, Member B local run of `Phase2/etl/verify_wp04_staging.py`; no secrets recorded). The same gap would block every later schema and every member read. | Human ran `Phase2/sql/00_grants.sql` as `neondb_owner` on 2026-11-08: all 13 self-check rows returned `true`. WP-04 DDL verify run [42474788058](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42474788058) then applied the staging DDL twice as `aerogrid_etl` with no privilege error and created the 11 expected tables. Remaining: (1) have `aerogrid_etl` grant `SELECT` on the 10 staging tables it owns — the updated self-check returned `false` for `reader can select every existing table` because `neondb_owner` cannot grant on another role's tables (verified 2026-11-08: all 10 tables `owner=aerogrid_etl`, `reader_select=false`; only the owner-created `wp02_read_probe` was readable); `00_schemas.sql` now grants these on every ETL run; (2) rerun `00_grants.sql` to confirm all 15 rows; (3) produce real-sample loader/idempotency evidence. | `BLOCKED_ON_HUMAN` |
 | `H-012` | Confirm the authoritative start gate for `WP-05` | `PROGRESS.md` and `dev_plan/01_work_breakdown.md` said `WP-05` waits for `G3`, but `dev_plan/02_dependencies_and_gates.md` said `G2`; `G3` itself requires `WP-05`, so the records could not all be correct. Starting Member C work without a decision would violate the gate rules. | Human decided on 2026-11-08: do not start `WP-05` until `WP-03` and `WP-04` are merged; `D-022` records the rule and `G3` remains the acceptance gate after both packages. | `DONE` |
 
 `H-002` remains `BLOCKED` until Members B-E choose roles and provide real names.
@@ -134,7 +134,7 @@ canonical steps for the Neon setup are also in
 | `B-006` | Legacy synthetic files remain tracked under `data/sample/` | They are intentionally retained for offline demo/evaluator viewing and must not be mistaken for real data | `H-008`, `D-017` | `RESOLVED` (Retained as documented demo-only samples via `D-017`) |
 | `B-007` | `aerogrid_reader` could insert into `project_staging.wp02_read_probe` | The read-only guarantee was not met, and `WP-02`/`G2` could not close | Root cause: the platform-created role was a member of `neon_superuser`, and `neondb_owner` has no ADMIN on it, so it could not be revoked, altered, or dropped from SQL. Fixed 2026-11-07 by deleting the role in the Neon Console and recreating it from SQL with `SELECT`-only grants; run `42276737288` shows `42501` on insert, update, delete, create table, and create schema. | `RESOLVED` |
 | `B-008` | FAA Airspace source provenance/license is unresolved | Airspace facts cannot be loaded; `WP-03`/`G2` cannot close | `H-010` | `RESOLVED` (Human approved granular `Class_Airspace`, `Special_Use_Airspace`, and `Route_Airspace` services via `D-020`; DEMO layer excluded) |
-| `B-009` | `aerogrid_etl` lacks `project_staging` DDL rights for WP-04 acceptance | Staging DDL cannot be applied; real-sample load/reconciliation evidence cannot be collected | `H-011` | `OPEN` |
+| `B-009` | `aerogrid_etl` lacks `project_staging` DDL rights for WP-04 acceptance | Staging DDL cannot be applied; real-sample load/reconciliation evidence cannot be collected | `H-011` | `OPEN` (Fix authored 2026-11-08: `Phase2/sql/00_grants.sql` plus a fast-fail privilege preflight in `Phase2/etl/verify_wp04_staging.py`; awaiting the owner run) |
 | `B-010` | `WP-05` start gate conflicts across canonical documents | Member C work cannot start without violating either the gate record or the dependency table; `G3` also requires `WP-05` | `H-012`, `D-022` | `RESOLVED` (Human directed no `WP-05` start until `WP-03`/`WP-04` merge; `D-022`) |
 
 ## Documentation baseline evidence
@@ -270,6 +270,8 @@ Caveats:
 | `2026-11-07` | Member B (Hamid4325) | Reviewers C/D | `WP-04` | Added staging bootstrap/DDL (`project_staging`, manifest/run/reject/DQ, source-shaped tables), reject code catalog, idempotent staging writer with reconciliation counts, file iterators for Tartan/Nightjar/Nominal/AWC/IEM/FAA, `etl` package init + pytest `conftest`, and staging-writer tests. Updated `data/data_dictionary.md` staging notes and `Phase2/sql/README.md`. Normalizers for Tartan/Nightjar/Nominal/FAA/AWC/IEM already present and covered by tests. | `Phase2/sql/00_schemas.sql`, `Phase2/sql/01_staging/*.sql`, `Phase2/sql/README.md`, `Phase2/etl/__init__.py`, `Phase2/etl/reject_codes.md`, `Phase2/etl/staging_writer.py`, `Phase2/etl/loaders.py`, `Phase2/tests/conftest.py`, `Phase2/tests/test_staging_writer.py`, `data/data_dictionary.md`, `Phase2/PROGRESS.md` | `python -m pytest -q` from `Phase2`: **24 passed**; `python -m pytest Phase2/tests -q` from repo root: **24 passed**; `git diff --check` clean | **DB acceptance pending (human/CI):** apply DDL to Neon `neondb` and run a real-sample load + rerun to prove reconciliation and idempotency. No local psycopg/credentials; do not paste secrets in chat. DJI site mapping remains unresolved before `WP-05`. |
 | `2026-11-08` | Member B (Hamid4325) | Reviewers C/D | `WP-04` | Addressed PR #5 review blockers: raw iterators now yield source rows and row numbers; loaders add staging mappings and logical source files; writer uses per-row savepoints, reject fallback IDs, run-log/manifest helpers; Tartan reject IDs and AWC/IEM strict numeric/timestamp rejects added; DDL aliases staging columns; verifier can prove real-sample load/rerun in a rolled-back transaction; workflow runs pytest. Updated stale ETL/tests/pipeline/data-dictionary docs. DB evidence remains blocked by `H-011`. | `Phase2/etl/staging_writer.py`, `Phase2/etl/loaders.py`, `Phase2/etl/sources/tartan.py`, `Phase2/etl/sources/metar.py`, `Phase2/etl/verify_wp04_staging.py`, `Phase2/sql/01_staging/02_source_tables.sql`, `.github/workflows/wp04-staging-verify.yml`, `Phase2/tests/*`, `Phase2/etl/README.md`, `Phase2/tests/README.md`, `Phase2/docs/05_etl_pipeline.md`, `data/data_dictionary.md`, `Phase2/PROGRESS.md` | `python -m pytest -q`: **38 passed**; `python -m compileall -q Phase2\etl`: **OK**; `git diff --check`: **clean** (CRLF warnings only) | Human/Member A resolves `H-011`; then run DDL + optional real-sample verification and update PR #5. Do not start `WP-05` until `WP-03`/`WP-04` merge (`D-022`). |
 | `2026-11-08` | Member B (Hamid4325) | Human | `WP-04` | Committed and pushed the PR #5 review fixes as `1ac7518`. Recorded `D-022` after the human directed that `WP-05` remain `NOT_STARTED` until `WP-03` and `WP-04` are merged; closed `H-012`/`B-010`. | `Phase2/DECISIONS.md`, `Phase2/PROGRESS.md`, `AGENTS.md`, `Phase2/AGENTS.md`, `Phase2/dev_plan/01_work_breakdown.md`, `Phase2/dev_plan/02_dependencies_and_gates.md`, `Phase2/docs/10_human_operating_manual.md` | `git push` updated `origin/phase2/wp03-wp04-source-validation-staging`; `python -m pytest -q`: **38 passed**; `git diff --check` clean | Resolve `H-011`; merge `WP-03`/`WP-04`; then start `WP-05` under `D-022`. |
+| `2026-11-08` | HassanNawaz14 | Team | `WP-03` closeout / `G2` | Reviewed and merged PR #5 as `f9087f4`; recorded `WP-03` `DONE` and `G2` `DONE`, and started `WP-05` under `D-022`. Added the owner-run `Phase2/sql/00_grants.sql`, reader default privileges in the staging bootstrap, and a fast-fail privilege preflight in the WP-04 verifier for `H-011`. | `Phase2/PROGRESS.md`, `Phase2/sql/00_grants.sql`, `Phase2/sql/00_schemas.sql`, `Phase2/etl/verify_wp04_staging.py`, `AGENTS.md`, `Phase2/AGENTS.md`, `README.md`, `Phase2/README.md`, `Phase2/dev_plan/01`-`02`, `Phase2/dev_plan/README.md`, `Phase2/docs/01`, `05`, `07`, `09`, `10`, `Phase2/sql/README.md` | `pytest` 38 passed; `compileall`; stale-status grep; relative-link check; `git diff --check` | Member C starts `WP-05`; human runs `00_grants.sql` (`H-011`); HassanNawaz14 records `G3` after `WP-04`/`WP-05` acceptance. |
+| `2026-11-08` | HassanNawaz14 | Human | `WP-04` | Recorded DDL evidence from run [42474788058](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42474788058): `aerogrid_etl` applied the three SQL files twice with no privilege error and created the 11 expected `project_staging` tables (all empty); the sample load was skipped. Because those tables were created after the first grants run, extended `00_grants.sql` with table-level self-checks and gave `00_schemas.sql` reader defaults for all three schemas. | `Phase2/sql/00_grants.sql`, `Phase2/sql/00_schemas.sql`, `Phase2/docs/07_operations_access_and_security.md`, `Phase2/PROGRESS.md` | `python -m pytest -q Phase2/tests`: **38 passed**; `python -m compileall -q Phase2\etl`: **OK**; `git diff --check`: **clean** | Human reruns the updated `00_grants.sql` (15 rows); Member B produces real-sample load/rerun evidence for `WP-04` |
 
 ## Change log
 
@@ -298,6 +300,9 @@ Caveats:
 | `2026-11-07` | Human approved starting `WP-04` before `G2` and reviewing `WP-03`/`WP-04` together; recorded `D-021` and set `WP-04` to `IN_PROGRESS` | Member B | `WP-04`, `D-021` |
 | `2026-11-07` | Added WP-04 staging DDL, reject catalog, idempotent writer/reconciliation helpers, source file iterators, and staging tests; local tests pass (24). DB apply/load/rerun acceptance still requires approved CI/human Neon path. | Member B (Hamid4325) | `WP-04`, `D-021` |
 | `2026-11-08` | Applied PR #5 review fixes and added loader/writer tests; local tests pass (38). WP-04 set to `BLOCKED_ON_HUMAN` pending `H-011` DB grant/owner DDL path. | Member B (Hamid4325) | `WP-04`, `D-021`, `H-011` |
+| `2026-11-08` | WP-04 DDL verified on Neon (run `42474788058`, two idempotent passes, 11 staging tables). Added table-level reader self-checks and ETL default privileges for all three schemas so staging tables created by the ETL role stay readable to members. | HassanNawaz14 | `WP-04`, `H-011` |
+| `2026-11-08` | The 15-row self-check exposed an ownership gap: the 10 staging tables are owned by `aerogrid_etl` and `neondb_owner` cannot grant on them, so the reader had `SELECT` on none. `00_schemas.sql` now grants `SELECT` on all existing ETL-owned tables plus the defaults, on every ETL run. | HassanNawaz14 | `WP-04`, `H-011`, `B-009` |
+| `2026-11-08` | Reviewed and merged PR #5; `WP-03` `DONE`, `G2` `DONE`, `WP-05` `READY`. Added `00_grants.sql` (ETL + reader grants, default privileges, self-check) and a verifier preflight so missing privileges fail fast with a fix. | HassanNawaz14 | `WP-03`, `G2`, `H-011`, `B-009` |
 
 ## Update protocol
 
@@ -317,11 +322,18 @@ When updating this file:
 |---|---|
 | Authorized by | `HassanNawaz14` |
 | Authorization date | `2026-11-04` |
-| Authorized scope | Phase 2 implementation under gated work packages, starting with `WP-02` and `WP-03` |
-| Next gate to clear | `G2` |
+| Authorized scope | Phase 2 implementation under gated work packages; `WP-02`/`WP-03` accepted, `WP-04` under `D-021` pending DB evidence, `WP-05` `READY` under `D-022` |
+| Next gate to clear | `G3` |
 
 ### Package acceptance
 
 | Package | Accepted by | Date | Evidence |
 |---|---|---|---|
 | `WP-02` | `HassanNawaz14` | `2026-11-07` | Run [42276737288](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42276737288) `PASS`; PR #3 merged as `b6b76b9`. The agent marked it `DONE` on HassanNawaz14's explicit instruction. |
+| `WP-03` | `HassanNawaz14` | `2026-11-08` | Reviewed and merged via PR #5 (`f9087f4`). Source records in [`docs/source_validation/`](docs/source_validation/): Tartan, Nightjar, DJI, FAA, and METAR all `PASS` (IEM `PASS WITH LIMITATION`), capacity estimate recorded. The agent marked it `DONE` on HassanNawaz14's explicit instruction. |
+
+### Gate acceptance
+
+| Gate | Accepted by | Date | Evidence |
+|---|---|---|---|
+| `G2` | `HassanNawaz14` | `2026-11-08` | `WP-02` access proof (run `42276737288`) and `WP-03` source validation merged in PR #5. A later privilege gap is tracked separately as `H-011`/`B-009` and does not reopen `G2`. |

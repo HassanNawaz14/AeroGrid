@@ -4,10 +4,12 @@
 
 This document defines the accepted operating model. The Neon project, database,
 bucket, `aerogrid_etl` and `aerogrid_reader` roles, GitHub `warehouse` environment,
-and required secrets exist. The `WP-02` validation workflow passed on 2026-11-07,
-proving CI writer, storage, and read-only access; `WP-02` is `DONE` and merged as
-`b6b76b9`. Schema grants, ETL, and the production workflow remain pending. The human
-owns all account and secret actions.
+and required secrets exist. `WP-02` proved CI writer, storage, and read-only access
+(run `42276737288`), and `WP-03` source validation merged in PR #5 (`f9087f4`); `G2`
+closed on 2026-11-08. Role privileges are centralized in
+[`../sql/00_grants.sql`](../sql/00_grants.sql); the owner run is tracked as `H-011`.
+The production workflow remains pending. The human owns all account and secret
+actions.
 
 ## Operating model
 
@@ -60,7 +62,9 @@ owns all account and secret actions.
 - Neon project `AeroGrid-DW`, branch `production`, database `neondb`, bucket
   `aerogrid-raw`: created.
 - `aerogrid_etl` and `aerogrid_reader` roles: created; the reader was recreated from SQL
-  on 2026-11-07 without `neon_superuser`; schema/table grants follow `WP-04`/`WP-05`/`WP-10`.
+  on 2026-11-07 without `neon_superuser`. All schema/table/sequence grants and their
+  default privileges live in [`../sql/00_grants.sql`](../sql/00_grants.sql); the owner
+  run is `H-011`.
 - GitHub `warehouse` environment and six required secrets: created.
 - `main` protection: confirmed.
 - Member invitations: sent.
@@ -114,9 +118,9 @@ account actions. Steps 1-10 were completed by 2026-11-04; step 11 was completed 
 2. Create a project named `AeroGrid-DW` in `aws-us-east-2` with Object storage enabled.
 3. Confirm or create the database and a private raw bucket named `aerogrid-raw` on the
    `production` branch.
-4. Create the `aerogrid_etl` role early enough to build `DATABASE_URL`; grant
-   schema/table privileges after `WP-04`/`WP-05`. Create `aerogrid_reader` after the
-   schema and reporting views exist.
+4. Create the `aerogrid_etl` role early enough to build `DATABASE_URL`; create
+   `aerogrid_reader` for members. Run `Phase2/sql/00_grants.sql` once as the owner,
+   and again after any schema or object-class change.
 5. Create the CI storage credential with `storage:read` and `storage:write`.
 6. Create a member storage credential with `storage:read` only, if needed.
 7. Invite the other four members to the Neon organization.
@@ -143,6 +147,82 @@ The read-only role must:
 
 The human shares the connection string privately. Do not commit it, paste it into an
 issue, or send it to an agent.
+
+## Role privileges and grants
+
+Grant changes are human-only. The single source of truth is
+[`../sql/00_grants.sql`](../sql/00_grants.sql), run whole as `neondb_owner` in the
+Neon SQL Editor. It is idempotent, a grants-only script: it creates no tables, changes
+no rows, and contains an explicit `REVOKE` so `aerogrid_reader` can never write.
+
+| Role | Database | Schemas | Tables and views | Sequences |
+|---|---|---|---|---|
+| `aerogrid_etl` | `CONNECT` | `USAGE, CREATE` on `project_staging`, `project_dw`, `project_reporting` | `SELECT, INSERT, UPDATE, DELETE, TRUNCATE` (current and future) | `USAGE, SELECT` (current and future) |
+| `aerogrid_reader` | `CONNECT` | `USAGE` only | `SELECT` only (current and future) | none |
+
+Run it again when any of these changes:
+
+- A work package adds a schema or a new object class.
+- A verifier or workflow reports a missing privilege.
+- A member reports a read error.
+
+The self-check ends with a table-level pair: `reader can select every existing table`
+and `reader cannot write any existing table`. A `false` on the first row means the
+reader cannot read a table that exists right now.
+
+Ownership decides who can fix that. `neondb_owner` can grant only on objects it owns, so
+a table created by `aerogrid_etl` is not covered by this script — confirmed on
+2026-11-08, when all 10 staging tables showed `reader_select = false` after the owner
+script ran. The repair path is the ETL bootstrap
+[`../sql/00_schemas.sql`](../sql/00_schemas.sql), which runs as `aerogrid_etl` and, for
+all three schemas:
+
+1. grants `SELECT` on every table it owns that already exists;
+2. sets `ALTER DEFAULT PRIVILEGES ... GRANT SELECT ON TABLES TO aerogrid_reader` so
+   later ETL-created tables are readable without another manual step.
+
+Run the WP-04 verifier after any ETL-applied DDL, then rerun `00_grants.sql` to confirm
+the table-level row flips to `true`. If a future package applies DDL as a third role,
+that package's bootstrap must grant the reader itself.
+
+The WP-04 verifier now checks `USAGE` and `CREATE` on `project_staging` immediately
+after connecting and exits with the exact missing privilege and this remediation
+instead of a raw `InsufficientPrivilege` deep in the DDL step.
+
+### Member read-access check
+
+Connect with the shared read-only string (or open a Neon SQL Editor session using the
+read-only role) and run:
+
+```sql
+SELECT current_user;                                                    -- aerogrid_reader
+SELECT has_schema_privilege('project_staging', 'USAGE');                -- true
+SELECT has_schema_privilege('project_dw', 'USAGE');                     -- true
+SELECT count(*) FROM information_schema.tables
+WHERE table_schema IN ('project_staging', 'project_dw', 'project_reporting');
+```
+
+Then confirm write access is refused, using any staging table that exists (for example
+`project_staging.source_manifest` after the WP-04 DDL is applied):
+
+```sql
+SELECT has_table_privilege('project_staging.source_manifest', 'INSERT'); -- false
+```
+
+If the probe table exists in staging, `SELECT count(*) FROM
+project_staging.wp02_read_probe;` proves real read access. A `false` where `true` is
+expected, or an error, is an access defect: report the message text (never the
+connection string) to Member A.
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `permission denied for schema project_staging` as `aerogrid_etl` | `00_grants.sql` not run, or run before the schema existed | Rerun the script as owner; confirm every self-check row is `true` |
+| `reader can select every existing table` is `false` | The tables are owned by `aerogrid_etl`; `neondb_owner` cannot grant on another role's tables | Run the WP-04 verifier or any ETL bootstrap run of `00_schemas.sql`, then rerun `00_grants.sql` to confirm |
+| `permission denied for table ...` as `aerogrid_etl` | Object created by another role and no default privilege covers it | Rerun `00_grants.sql`; add the matching `ALTER DEFAULT PRIVILEGES` to that work package's bootstrap |
+| Reader `INSERT` succeeds | The role holds `neon_superuser`, which overrides grants | Follow [the reader remediation](#if-the-reader-check-reports-that-insert-succeeded); grants alone cannot fix it |
+| `password authentication failed` | Role password rotated or mistyped | Human resets it in the Neon Console and re-shares the string privately; do not paste it |
+| `relation ... does not exist` | The object belongs to a later work package | Not an access defect; wait for that package |
+| `SSL connection is required` | Connection string lacks TLS | Append `sslmode=require`; never disable TLS |
 
 ## Data handling
 
@@ -427,5 +507,7 @@ run unless the human explicitly authorizes it.
 - CI can read/write the raw bucket.
 - A member can connect with the read-only role.
 - The read-only role cannot insert, update, delete, create, or drop.
+- The `00_grants.sql` self-check returns `ok = true` for every role row, including
+  `reader can select every existing table` and `reader cannot write any existing table`.
 - A reporting view returns rows for a known real period.
 - No secret appears in the repository or logs.

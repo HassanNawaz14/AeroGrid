@@ -8,17 +8,14 @@ contract is [Phase2/AGENTS.md](Phase2/AGENTS.md). Read both before changing file
 - Phase 1 is complete and frozen as the historical design baseline.
 - Phase 2 documentation and planning baseline is accepted (`G0`/`H-001`).
 - **Phase 2 implementation is authorized** (`H-007`, 2026-11-04).
-- The current gate is `G2 - Platform and source readiness`, tracked in
+- The current gate is `G3 - Staging and dimensional schema`, tracked in
   [Phase2/PROGRESS.md](Phase2/PROGRESS.md).
-- `WP-02` (Member A) is `DONE`; validation run `42276737288` passed on 2026-11-07 and
-  PR #3 merged as `b6b76b9`. `WP-03` (Member B) is `READY_FOR_REVIEW`; Tartan,
-  Nightjar, nominal-io DJI, the granular FAA airspace services (`D-020`), and
-  METAR/AWC/IEM are validated, the capacity estimate is recorded, and temporary raw
-  samples are removed. Reviewers D and E sign-off is pending.
-- `WP-04` (Member B) is implemented and `BLOCKED_ON_HUMAN`; PR #5 review fixes pass
-  local tests, but Neon DDL/load evidence needs `H-011`. Later work packages wait
-  until their gate is recorded; `WP-05` remains `NOT_STARTED` until `WP-03` and `WP-04`
-  are merged (`D-022`).
+- `WP-02` (Member A) and `WP-03` (Member B) are `DONE`; run `42276737288` passed and
+  PR #3 merged as `b6b76b9`; source validation merged via PR #5 as `f9087f4`, which
+  closed `G2` on 2026-11-08.
+- `WP-04` (Member B) code is merged but `BLOCKED_ON_HUMAN` on `H-011` for Neon
+  DDL/load evidence; `WP-05` (Member C) is `READY` under `D-022`. Later work packages
+  wait until their gate is recorded.
 
 ## Authority and precedence
 
@@ -164,11 +161,9 @@ already checked, and the safest next step. Do not silently work around the block
 
 ## Current instruction
 
-`G1` is cleared and implementation is authorized for `WP-02`, `WP-03`, and `WP-04`
-under the recorded `D-021` exception. `WP-02` is `DONE` with a recorded `PASS`
-validation run and a merged PR. `WP-03` is `READY_FOR_REVIEW`. `WP-04` review fixes
-are implemented but `BLOCKED_ON_HUMAN` on `H-011` for Neon DDL/load evidence. Do not
-load the FAA `Airspace (DEMO)` layer; use the approved granular services (`D-020`).
-Do not start `WP-05` until `WP-03` and `WP-04` are merged (`D-022`). Work on one
-authorized package at a time, record evidence in `Phase2/PROGRESS.md`, and do not
-start a later package until its gate is recorded.
+`G2` is closed and implementation is authorized for `WP-02`, `WP-03`, `WP-04` (under
+the recorded `D-021` exception), and `WP-05` (under `D-022`). `WP-02` and `WP-03` are
+`DONE`. `WP-04` code is merged but `BLOCKED_ON_HUMAN` on `H-011` for Neon DDL/load
+evidence. Do not load the FAA `Airspace (DEMO)` layer; use the approved granular
+services (`D-020`). Work on one authorized package at a time, record evidence in
+`Phase2/PROGRESS.md`, and do not start a later package until its gate is recorded.
