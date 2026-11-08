@@ -61,27 +61,34 @@ remains deferred; the Member B-E names are recorded in
 `WP-04` is merged but blocked on `H-011`; `WP-05` is `READY`. Do not start a later
 work package until its gate is recorded in `../PROGRESS.md`.
 
-## Current action: run the grants script, then `WP-05`
+## Current action: rerun the grants, then real-sample evidence
 
 `G2` is closed. `WP-03` source validation merged in PR #5 (`f9087f4`) on 2026-11-08;
 platform validation remains proven by run
 [42276737288](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42276737288)
 (22 pass, 1 warn, 0 fail, 0 skip).
 
-One human step unblocks `WP-04` and protects every later package:
+The first grants run succeeded (all 13 self-check rows `true`), and WP-04 DDL verify
+run [42474788058](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42474788058)
+applied the staging DDL twice as `aerogrid_etl` and created the 11 expected
+`project_staging` tables. The sample load was skipped in that run.
+
+Two steps remain before `WP-04` can be accepted:
 
 1. Open the Neon SQL Editor as `neondb_owner` on project `AeroGrid-DW`, branch
-   `production`, database `neondb`.
-2. Paste and run [`../sql/00_grants.sql`](../sql/00_grants.sql) whole. It is
-   grants-only and idempotent: it creates no tables, changes no data, and never gives
-   `aerogrid_reader` write access. It creates `project_dw` and `project_reporting`
-   empty and locks their grants early.
-3. Confirm every row of the final self-check query shows `ok = true`. A `false` row
-   means stop and report it, not paste secrets.
-4. Rerun **Actions → WP-04 staging DDL verify** (or
-   `python Phase2/etl/verify_wp04_staging.py` with your own connection string). It now
-   fails fast with the exact missing privilege and the same fix.
-5. Record the `H-011` result in [`../PROGRESS.md`](../PROGRESS.md); `WP-04` can then be
+   `production`, database `neondb`, and rerun
+   [`../sql/00_grants.sql`](../sql/00_grants.sql) whole. The staging tables exist now,
+   so this run is what gives `aerogrid_reader` `SELECT` on them; it also installs the
+   default privileges that keep future tables readable. It is still grants-only and
+   never gives the reader write access.
+2. Confirm all 15 self-check rows show `ok = true`, including
+   `reader can select every existing table`. A `false` row means stop and report it,
+   not paste secrets.
+3. Have the `WP-04` owner (Member B) run
+   `python Phase2/etl/verify_wp04_staging.py --tartan-sample <path to a real Tartan CSV>`
+   with their own connection string and report the read/accepted/rejected/duplicate
+   counts. Raw data is never stored in Git, so the workflow cannot supply this sample.
+4. Record the `H-011` result in [`../PROGRESS.md`](../PROGRESS.md); `WP-04` can then be
    accepted and `G3` recorded after `WP-05`.
 
 Member C starts `WP-05` now; Members D and E remain on review or their later gates.

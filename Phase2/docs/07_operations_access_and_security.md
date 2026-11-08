@@ -163,13 +163,20 @@ no rows, and contains an explicit `REVOKE` so `aerogrid_reader` can never write.
 Run it again when any of these changes:
 
 - A work package adds a schema or a new object class.
+- A work package creates tables; default privileges only cover objects created
+  *after* they are set, so existing tables need the script's `GRANT SELECT`.
 - A verifier or workflow reports a missing privilege.
 - A member reports a read error.
+
+The self-check ends with a table-level pair: `reader can select every existing table`
+and `reader cannot write any existing table`. A `false` on the first row means the
+reader cannot read something that exists right now; rerun the script after the DDL
+that created those objects.
 
 DDL applied by `aerogrid_etl` cannot be covered by the owner's default privileges, so
 every ETL-applied bootstrap file must also set
 `ALTER DEFAULT PRIVILEGES IN SCHEMA <schema> GRANT SELECT ON TABLES TO aerogrid_reader;`
-as [`../sql/00_schemas.sql`](../sql/00_schemas.sql) does for staging. Owner-applied
+as [`../sql/00_schemas.sql`](../sql/00_schemas.sql) does for all three schemas. Owner-applied
 DDL is covered by the script; either way, rerun the script after the merge.
 
 The WP-04 verifier now checks `USAGE` and `CREATE` on `project_staging` immediately
@@ -493,6 +500,7 @@ run unless the human explicitly authorizes it.
 - CI can read/write the raw bucket.
 - A member can connect with the read-only role.
 - The read-only role cannot insert, update, delete, create, or drop.
-- The `00_grants.sql` self-check returns `ok = true` for every role row.
+- The `00_grants.sql` self-check returns `ok = true` for every role row, including
+  `reader can select every existing table` and `reader cannot write any existing table`.
 - A reporting view returns rows for a known real period.
 - No secret appears in the repository or logs.

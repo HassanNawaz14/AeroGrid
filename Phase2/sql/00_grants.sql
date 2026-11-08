@@ -1,6 +1,8 @@
 -- Phase 2 role grants (owner-run: neondb_owner, in the Neon SQL Editor)
 --
 -- Run once, and again after any change that adds a schema or a new object class.
+-- Re-running after a work package creates tables is also what grants the reader role
+-- SELECT on those tables: default privileges only affect objects created afterwards.
 -- This script only adds or tightens privileges; it creates no tables and touches no
 -- data. It never grants write access to aerogrid_reader.
 --
@@ -108,6 +110,27 @@ UNION ALL SELECT 'reader has no neon_superuser membership',
            JOIN pg_roles granted_role ON granted_role.oid = am.roleid
            WHERE member_role.rolname = 'aerogrid_reader'
              AND granted_role.rolname = 'neon_superuser'
+       )
+UNION ALL SELECT 'reader can select every existing table',
+       NOT EXISTS (
+           SELECT 1
+           FROM pg_class c
+           JOIN pg_namespace n ON n.oid = c.relnamespace
+           WHERE n.nspname IN ('project_staging', 'project_dw', 'project_reporting')
+             AND c.relkind IN ('r', 'p')
+             AND NOT has_table_privilege('aerogrid_reader', c.oid, 'SELECT')
+       )
+UNION ALL SELECT 'reader cannot write any existing table',
+       NOT EXISTS (
+           SELECT 1
+           FROM pg_class c
+           JOIN pg_namespace n ON n.oid = c.relnamespace
+           WHERE n.nspname IN ('project_staging', 'project_dw', 'project_reporting')
+             AND c.relkind IN ('r', 'p')
+             AND (has_table_privilege('aerogrid_reader', c.oid, 'INSERT')
+                  OR has_table_privilege('aerogrid_reader', c.oid, 'UPDATE')
+                  OR has_table_privilege('aerogrid_reader', c.oid, 'DELETE')
+                  OR has_table_privilege('aerogrid_reader', c.oid, 'TRUNCATE'))
        );
 
 COMMIT;
