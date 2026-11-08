@@ -11,8 +11,9 @@ AeroGrid Phase 2. It is subordinate to the repository-wide
 - **Phase 2 implementation is authorized** (`H-007`, 2026-11-04).
 - `WP-02` (platform validation) and `WP-03` (source validation) are `DONE`; `WP-03`
   merged via PR #5 (`f9087f4`) and closed `G2` on 2026-11-08.
-- `WP-04` code is merged under `D-021` but `BLOCKED_ON_HUMAN` pending `H-011` Neon
-  DDL/load evidence. `WP-05` is `READY` under `D-022` (`WP-03`/`WP-04` merged).
+- `WP-04` code is merged under `D-021` and its staging DDL is applied on Neon; only
+  real-sample evidence remains. `WP-05` is `READY` under `D-022`. Both are
+  owner-closable under `D-023`, and the human is hands-off until `G3`.
 - The current gate and next action are recorded in [PROGRESS.md](PROGRESS.md).
 - The current authorization status is `implementation_authorized: YES`.
 
@@ -117,7 +118,9 @@ Use only these statuses in `PROGRESS.md`:
 | `CANCELLED` | Human-approved removal from scope. |
 
 Only the human or the work package owner with human confirmation may mark work
-`DONE`.
+`DONE`. Delegated exception (`D-023`): until `G3` is recorded, Member B may mark
+`WP-04` `DONE` and Member C may mark `WP-05` `DONE` once the evidence in their agent
+briefs is recorded. Every other package still needs human confirmation.
 
 ## Stop-and-ask register
 
@@ -254,10 +257,12 @@ Stop and ask the human if asked to:
 - Invite members, change repository visibility, or change branch protection.
 - Run destructive SQL, drop/truncate tables, or load production data outside CI.
 - Mark a gate or work package `DONE` without the required evidence and human
-  acceptance.
+  acceptance. Exception: `WP-04`/`WP-05` owners close those two packages under
+  `D-023`; gates stay human.
 
 `WP-02`, `WP-03`, `WP-04`, and `WP-05` are authorized; `WP-04` runs under the recorded
-`D-021` exception and `WP-05` under `D-022`. `WP-02` and `WP-03` are `DONE`; `WP-04`
-code is merged but `BLOCKED_ON_HUMAN` on `H-011`; `WP-05` is `READY`. Do not load the
+`D-021` exception and `WP-05` under `D-022`. `WP-02` and `WP-03` are `DONE`. `WP-04`
+has its DDL applied and needs only real-sample evidence; `WP-05` is `READY`. Both are
+owner-closable under `D-023`, and the human is hands-off until `G3`. Do not load the
 FAA `Airspace (DEMO)` layer; use the approved granular services (`D-020`). Later
 packages begin only after their gate is recorded in `PROGRESS.md`.

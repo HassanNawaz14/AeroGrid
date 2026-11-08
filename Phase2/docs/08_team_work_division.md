@@ -15,6 +15,27 @@ deferred by the human, so agents must not invent or reassign identities.
 - The human approves scope, source, license, capacity, and gate changes.
 - Work is merged through short-lived branches and PRs, never directly to `main`.
 
+## Delegated closeout window (`D-023`, 2026-11-08 → `G3`)
+
+HassanNawaz14 has handed off `WP-04` and `WP-05` so no human input is needed until
+`G3` is recorded:
+
+- Member B closes `WP-04`; Member C closes `WP-05`. Each owner records its evidence and
+  marks its own package `DONE`. Gates stay with the human.
+- Both are `warehouse` environment reviewers and may approve their own workflow runs.
+  All database writes stay in CI; never run loaders from a laptop.
+- PRs need one peer approval: Member C or D reviews `WP-04`; Member D reviews `WP-05`.
+  The author merges after approval.
+- Member C starts `WP-05` now. Members D and E stay on review duty and must not start
+  `WP-06`/`WP-07` until `G3`/`G4` are recorded.
+- Human-only actions are unchanged: secrets, Neon roles and branches, repository and
+  environment settings, destructive SQL, and gate acceptance.
+
+The exact step-by-step briefs, including commands and required log lines, are in
+[dev_plan/01_work_breakdown.md](../dev_plan/01_work_breakdown.md) under `WP-04` and
+`WP-05`. Any blocker that needs a human action becomes a new `H-###` row and stops the
+package; the window does not authorize it.
+
 ## Member roles
 
 | Name / Username | Role | Primary scope | Secondary scope |

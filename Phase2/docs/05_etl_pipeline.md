@@ -4,9 +4,9 @@
 
 This is the implementation plan plus the current `WP-04` staging package. `WP-02` and
 `WP-03` are `DONE`; `WP-04` code is merged under `D-021` and its staging DDL is applied
-on Neon (run `42474788058`, two idempotent passes), with real-sample loader evidence
-still pending under `H-011`. `WP-05` is `READY` under `D-022`; later packages remain
-gated by `G3`.
+on Neon (runs `42474788058` and `42477720902`, two idempotent passes), with real-sample
+loader evidence delegated to Member B under `D-023`. `WP-05` is `READY` under `D-022`;
+later packages remain gated by `G3`.
 
 ## Pipeline principles
 
@@ -147,8 +147,9 @@ Planned staging tables:
 normalized fields to staging columns, write rejects through per-row savepoints, and
 use `ON CONFLICT DO NOTHING` on source-scoped keys. `verify_wp04_staging.py` can load
 a real sample twice inside a rolled-back transaction to prove rejects, reconciliation,
-and idempotency. The DDL has been applied to Neon by `aerogrid_etl`; what remains on
-`H-011` is the real-sample run, because raw data is never stored in Git.
+and idempotency. The DDL has been applied to Neon by `aerogrid_etl`; what remains for
+`WP-04` is the real-sample run, because raw data is never stored in Git. Member B
+produces that evidence through the `warehouse` workflow under `D-023`.
 
 ### Staging transformations
 

@@ -21,9 +21,10 @@ warehouse without exposing secrets.
 - Phase 2 documentation and planning baseline is accepted (`G0`/`H-001`).
 - Implementation is **authorized** (`H-007`, 2026-11-04).
 - `G2` is closed; the current gate is `G3`.
-- `WP-02` and `WP-03` are `DONE` (PR #3 `b6b76b9`, PR #5 `f9087f4`). `WP-04` code is
-  merged but its Neon evidence is `BLOCKED_ON_HUMAN` on `H-011`; `WP-05` is `READY`
-  for Member C under `D-022`.
+- `WP-02` and `WP-03` are `DONE` (PR #3 `b6b76b9`, PR #5 `f9087f4`). `WP-04` has its
+  DDL applied and needs only real-sample evidence; `WP-05` is `READY` for Member C
+  under `D-022`. Both run in the delegated window `D-023`; the human is hands-off until
+  `G3`.
 
 ## The one rule for secrets
 
@@ -47,46 +48,76 @@ The canonical queue is in [`../PROGRESS.md`](../PROGRESS.md). Current status:
 | `H-008` | Confirm handling of tracked legacy synthetic samples | `DONE` via `D-017` |
 | `H-009` | Run the `WP-02` platform validation workflow and confirm read-only access | `DONE` 2026-11-07; run `42276737288` `PASS` after the reader role was replaced |
 | `H-010` | Confirm the FAA airspace source or approve a replacement | `DONE` 2026-11-07 via `D-020` (granular services) |
-| `H-011` | Run `Phase2/sql/00_grants.sql` as `neondb_owner` | `BLOCKED_ON_HUMAN`; unblocks `WP-04` DB evidence and all member reads |
+| `H-011` | Run `Phase2/sql/00_grants.sql` as `neondb_owner` | `DONE` 2026-11-08; 15-row self-check all `true`; remaining sample evidence is delegated to Member B under `D-023` |
 | `H-012` | Confirm the `WP-05` start gate | `DONE` 2026-11-08 via `D-022` |
 
 Project `AeroGrid-DW`, branch `br-royal-cherry-beij6hxw`, database `neondb`, bucket
 `aerogrid-raw`, and the storage endpoint are recorded in
 [`../PROGRESS.md`](../PROGRESS.md) → Neon resource record. The GitHub `warehouse`
-environment and its six required secrets are in place; `main` is protected. `H-002`
-remains deferred; the Member B-E names are recorded in
-[docs/08_team_work_division.md](08_team_work_division.md).
+environment and its six required secrets are in place. `main` protection was recorded
+as done in `H-004`, but an API check on 2026-11-08 found no protection rule; re-check
+it when you return at `G3`. `H-002` remains deferred; the Member B-E names are recorded
+in [docs/08_team_work_division.md](08_team_work_division.md).
 
 `WP-02`, `WP-03`, `WP-04`, and `WP-05` are authorized. `WP-02`/`WP-03` are `DONE`;
-`WP-04` is merged but blocked on `H-011`; `WP-05` is `READY`. Do not start a later
-work package until its gate is recorded in `../PROGRESS.md`.
+`WP-04` and `WP-05` are owner-closable under `D-023`. Do not start a later work
+package until its gate is recorded in `../PROGRESS.md`.
 
-## Current action: real-sample evidence for `WP-04`
+## Hands-off window: your input is zero until `G3`
 
-`G2` is closed. `WP-03` source validation merged in PR #5 (`f9087f4`) on 2026-11-08;
-platform validation remains proven by run
-[42276737288](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42276737288)
-(22 pass, 1 warn, 0 fail, 0 skip).
+`WP-04` and `WP-05` are delegated under `D-023` (2026-11-08). Member B closes `WP-04`,
+Member C closes `WP-05`, and both may approve their own `warehouse` workflow runs. You
+do not approve runs, run SQL, or merge PRs for these two packages.
 
-Staging is in place and readable. WP-04 DDL verify runs
+Current position: staging DDL is applied and readable, and the 15-row `00_grants.sql`
+self-check returns `true` on every row after runs
 [42474788058](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42474788058) and
-[42477720902](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42477720902)
-applied the DDL twice, the ETL bootstrap granted `aerogrid_reader` `SELECT` on the
-staging tables, and the 15-row `00_grants.sql` self-check returns `true` on every row.
+[42477720902](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42477720902).
 
-One step remains before `WP-04` can be accepted:
+### One-time setup before you step away (5 minutes)
 
-1. Have the `WP-04` owner (Member B) produce real-sample loader evidence with a real
-   Tartan CSV: `python Phase2/etl/verify_wp04_staging.py --tartan-sample <path>`, using
-   their own connection string. Report the read/accepted/rejected/duplicate counts and
-   the `sample pass2 accepted=0` idempotency result. Raw data is never stored in Git, so
-   the workflow cannot supply this sample.
-2. Record the result in [`../PROGRESS.md`](../PROGRESS.md); `WP-04` can then be
-   accepted and `G3` recorded after `WP-05`.
+GitHub does not let an agent change environment protection, so do this part yourself:
 
-Member C starts `WP-05` now; Members D and E remain on review or their later gates.
-Team read access uses the shared `aerogrid_reader` connection string; each member can
-verify it with the checks in
+1. Open **Settings → Environments → `warehouse`**.
+2. Add **Hamid4325** and **HarveyWebbs** as **Required reviewers**; keep yourself.
+3. Leave **Prevent self-review** unchecked, then **Save protection rules**.
+
+After that the window runs without you.
+
+### What the owners do
+
+- Member B produces CI real-sample evidence and marks `WP-04` `DONE`. Brief:
+  [dev_plan/01_work_breakdown.md](../dev_plan/01_work_breakdown.md#wp-04-staging-ddl-and-loaders).
+- Member C builds the six dimensions, keys, seeds, and data dictionary, then marks
+  `WP-05` `DONE`. Brief:
+  [dev_plan/01_work_breakdown.md](../dev_plan/01_work_breakdown.md#wp-05-dimensions-keys-and-data-dictionary).
+- Peer review: Member C or D approves `WP-04`; Member D approves `WP-05`. The author
+  merges.
+- Any human-only blocker becomes a new `H-###` row and stops that package. The window
+  does not authorize secrets, Neon role/branch changes, repository settings, or
+  destructive SQL.
+
+### When you return
+
+1. Read [`../PROGRESS.md`](../PROGRESS.md): `WP-04` and `WP-05` should be `DONE` with
+   run links and counts.
+2. Rerun [`../sql/00_grants.sql`](../sql/00_grants.sql) as `neondb_owner` once; all 15
+   rows must be `true`.
+3. Review and record `G3`.
+4. Restore the environment: **Settings → Environments → `warehouse`** → remove
+   Hamid4325 and HarveyWebbs from Required reviewers, re-enable **Prevent self-review**,
+   **Save**.
+5. Check **Settings → Branches** for a `main` protection rule. On 2026-11-08 the API
+   reported `Branch not protected`, so re-enable it if it is still missing. This does
+   not block `WP-04`/`WP-05` and is not part of the delegated window.
+
+Remember the ownership rule this window exposed: tables created by `aerogrid_etl` can
+only be granted by `aerogrid_etl`, which is why the reader grants live in
+[`../sql/00_schemas.sql`](../sql/00_schemas.sql).
+
+Member D and E stay on review duty; they must not start `WP-06`/`WP-07` until `G3`/`G4`
+are recorded. Team read access uses the shared `aerogrid_reader` connection string;
+each member can verify it with the checks in
 [docs/07](07_operations_access_and_security.md#member-read-access-check).
 
 To re-run the platform validation later, dispatch **Actions → Platform validation

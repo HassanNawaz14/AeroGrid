@@ -5,9 +5,10 @@
 This is the column-level logical dictionary for the Phase 2 model. It is synchronized
 with [`../Phase2/docs/04_data_model.md`](../Phase2/docs/04_data_model.md) and
 [`diagrams/aerogrid_schema.dbml`](diagrams/aerogrid_schema.dbml). `WP-04` staging DDL
-and loaders are implemented; applying them to Neon is blocked on `H-011` until the
-`aerogrid_etl` role receives `project_staging` rights. Dimension and fact DDL remains
-authorized only inside the owning work package (`WP-05`, `WP-06`/`WP-07`).
+and loaders are implemented, the DDL is applied to Neon, and the reader grants are in
+place. Real-sample staging evidence is delegated to Member B under `D-023`. Dimension
+and fact DDL remains authorized only inside the owning work package (`WP-05`,
+`WP-06`/`WP-07`).
 
 Physical DDL may use equivalent PostgreSQL types, but names, grains, keys, and
 meanings must match this dictionary.

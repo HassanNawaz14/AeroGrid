@@ -13,7 +13,7 @@ capacity.
 | Phase 2 | Documentation baseline accepted (`G0`/`H-001`) |
 | Phase 2 implementation | **Authorized** 2026-11-04 (`H-007`) |
 | Current human gate | `G3 - Staging and dimensional schema` |
-| Current work packages | `WP-03` (Member B), `DONE`; `WP-04` (Member B), merged, `BLOCKED_ON_HUMAN`; `WP-05` (Member C), `READY` |
+| Current work packages | `WP-03` (Member B), `DONE`; `WP-04` (Member B), `IN_PROGRESS`, owner-closable; `WP-05` (Member C), `READY`, owner-closable |
 
 Nothing in `Phase1/` should be edited. Phase 2 work is controlled from
 [`Phase2/`](Phase2/README.md), and the current status, blockers, and human action queue
@@ -61,9 +61,10 @@ The Phase 2 course brief is
 - **No secrets in the repository.** Humans add them through GitHub/Neon UI.
 - **Phase 1 is frozen.** Do not edit its `.tex` or PDF files.
 - **Implementation is authorized by work package.** `WP-02` and `WP-03` are `DONE`
-  (PR #3 `b6b76b9`, PR #5 `f9087f4`), which closed `G2` on 2026-11-08. `WP-04` code is
-  merged but Neon DDL/load evidence is `BLOCKED_ON_HUMAN` on `H-011`; `WP-05` is
-  `READY`. Later packages wait for their gate (`G3`).
+  (PR #3 `b6b76b9`, PR #5 `f9087f4`), which closed `G2` on 2026-11-08. `WP-04` staging
+  DDL is applied and readable; only its real-sample evidence remains. `WP-04` and
+  `WP-05` are owner-closable under the delegated window `D-023`. Later packages wait
+  for their gate (`G3`).
 
 ## Accepted Phase 2 architecture
 
@@ -157,13 +158,18 @@ AeroGrid/
 
 ## What happens next
 
-`G2` is closed. The next actions belong to the work package owners:
+`G2` is closed. The next actions belong to the work package owners under the
+delegated closeout window `D-023`:
 
-1. Member C: start `WP-05` dimensions, keys, and the data dictionary (`D-022`).
-2. HassanNawaz14: run `Phase2/sql/00_grants.sql` as `neondb_owner` (`H-011`), then
-   rerun the WP-04 staging verification to close `WP-04`.
-3. Record results and gate evidence in
-   [`Phase2/PROGRESS.md`](Phase2/PROGRESS.md); `G3` follows `WP-04`/`WP-05`.
+1. Member B: add the real-sample load/rerun evidence and mark `WP-04` `DONE` using
+   the agent brief in
+   [`Phase2/dev_plan/01_work_breakdown.md`](Phase2/dev_plan/01_work_breakdown.md).
+2. Member C: build the six dimensions, keys, seeds, and data dictionary, then mark
+   `WP-05` `DONE` using the same brief.
+3. HassanNawaz14: return at `G3` only — do the one-time `warehouse` reviewer setup
+   in [`Phase2/docs/10_human_operating_manual.md`](Phase2/docs/10_human_operating_manual.md)
+   before stepping away, then record `G3` and restore the environment afterwards.
 
-Human-only actions still apply: grants, secret changes, destructive operations, and
-gate acceptance. Later work packages wait until their gate is recorded.
+Human-only actions still apply: secrets, Neon roles, repository and environment
+settings, destructive SQL, and gate acceptance. Later work packages wait until their
+gate is recorded.

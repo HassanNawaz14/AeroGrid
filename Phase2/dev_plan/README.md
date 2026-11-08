@@ -10,9 +10,10 @@ is the canonical plan for Members A-E and their agents. The status dashboard rem
 
 - Phase 2 implementation is **authorized** (`H-007`, 2026-11-04).
 - `G2` is closed; the current gate is `G3`.
-- `WP-02` and `WP-03` are `DONE` (PR #3 `b6b76b9`, PR #5 `f9087f4`). `WP-04` code is
-  merged but its Neon evidence is `BLOCKED_ON_HUMAN` on `H-011`; `WP-05` is `READY`
-  for Member C under `D-022`.
+- `WP-02` and `WP-03` are `DONE` (PR #3 `b6b76b9`, PR #5 `f9087f4`). `WP-04` staging
+  DDL is applied and readable, with only its real-sample evidence open; `WP-05` is
+  `READY`. Both are owner-closable under `D-023`. The `WP-04` and `WP-05` agent briefs
+  are in [`01_work_breakdown.md`](01_work_breakdown.md).
 - Later work packages begin only after their gate and authorization are recorded in
   [`../PROGRESS.md`](../PROGRESS.md).
 - Do not create resources or data outside the assigned work package.

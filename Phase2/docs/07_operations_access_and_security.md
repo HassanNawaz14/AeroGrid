@@ -112,7 +112,8 @@ chat with an agent.
 
 The human performs these steps. Member A may provide checklists but must not execute
 account actions. Steps 1-10 were completed by 2026-11-04; step 11 was completed via
-`H-007`.
+`H-007`. Step 9 needs re-verification: an API check on 2026-11-08 reported
+`Branch not protected` for `main`.
 
 1. Create or join the Neon organization.
 2. Create a project named `AeroGrid-DW` in `aws-us-east-2` with Object storage enabled.
