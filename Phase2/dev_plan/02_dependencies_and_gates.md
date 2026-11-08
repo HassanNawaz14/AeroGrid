@@ -118,8 +118,8 @@ Evidence:
 
 ### G2: Platform and source readiness
 
-**Status:** IN_PROGRESS; `WP-02` is `DONE` (validation passed 2026-11-07), `WP-03` is
-`READY_FOR_REVIEW` (all sources validated, capacity estimate recorded).
+**Status:** DONE 2026-11-08; `WP-02` passed access validation (run `42276737288`) and
+`WP-03` source validation merged in PR #5 (`f9087f4`). Accepted by HassanNawaz14.
 **Owner:** Member A for platform; Member B for sources
 **Reviewers:** Members C, D, E
 **Required WPs:** `WP-02`, `WP-03`
@@ -147,6 +147,8 @@ Evidence:
 
 ### G3: Staging and dimensional schema
 
+**Status:** IN_PROGRESS; `WP-05` is `READY`, `WP-04` code is merged but its Neon DDL/
+load evidence is `BLOCKED_ON_HUMAN` on `H-011`.
 **Owner:** Member C for schema; Member B for staging
 **Reviewers:** Members A, D
 **Required WPs:** `WP-04`, `WP-05`

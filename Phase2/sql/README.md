@@ -15,6 +15,7 @@ credentials, dumps, or raw data are committed.
 
 ```text
 sql/
+├── 00_grants.sql                           # owner-run grants: aerogrid_etl + aerogrid_reader
 ├── 00_schemas.sql                          # WP-04 bootstrap: project_staging schema
 ├── 01_staging/
 │   ├── 01_source_manifest_run_reject_dq.sql # WP-04 manifest/run/reject/DQ tables
@@ -29,6 +30,12 @@ sql/
 ## Rules
 
 - Apply in filename order; DDL is idempotent (`IF NOT EXISTS`) where practical.
+- `00_grants.sql` is owner-run (human-only), grants-only, and idempotent. Rerun it
+  after any schema or object-class change. Its final self-check must return `true` for
+  every row.
+- Bootstrap files applied by `aerogrid_etl` must set
+  `ALTER DEFAULT PRIVILEGES IN SCHEMA <schema> GRANT SELECT ON TABLES TO aerogrid_reader;`
+  so shared reads keep working for objects ETL creates.
 - Use explicit schema qualification (`project_staging.*`, etc.).
 - Seed the `-1` unknown member for every dimension (`WP-05`).
 - Keep destructive SQL out unless a human explicitly approves it.

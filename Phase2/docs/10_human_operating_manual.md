@@ -20,12 +20,10 @@ warehouse without exposing secrets.
 - Phase 1 is complete and frozen.
 - Phase 2 documentation and planning baseline is accepted (`G0`/`H-001`).
 - Implementation is **authorized** (`H-007`, 2026-11-04).
-- `G1` is closed; the current gate is `G2`.
-- `WP-02` is `DONE` (accepted 2026-11-07; PR #3 merged); `WP-03` is
-  `READY_FOR_REVIEW`. Tartan, Nightjar, nominal-io DJI, the granular FAA airspace
-  services (`D-020`), and METAR/AWC/IEM are validated, the capacity estimate is
-  recorded, and temporary raw samples are removed. Reviewers D and E sign-off is
-  pending.
+- `G2` is closed; the current gate is `G3`.
+- `WP-02` and `WP-03` are `DONE` (PR #3 `b6b76b9`, PR #5 `f9087f4`). `WP-04` code is
+  merged but its Neon evidence is `BLOCKED_ON_HUMAN` on `H-011`; `WP-05` is `READY`
+  for Member C under `D-022`.
 
 ## The one rule for secrets
 
@@ -48,6 +46,9 @@ The canonical queue is in [`../PROGRESS.md`](../PROGRESS.md). Current status:
 | `H-007` | Authorize implementation after G1 | `DONE` 2026-11-04 |
 | `H-008` | Confirm handling of tracked legacy synthetic samples | `DONE` via `D-017` |
 | `H-009` | Run the `WP-02` platform validation workflow and confirm read-only access | `DONE` 2026-11-07; run `42276737288` `PASS` after the reader role was replaced |
+| `H-010` | Confirm the FAA airspace source or approve a replacement | `DONE` 2026-11-07 via `D-020` (granular services) |
+| `H-011` | Run `Phase2/sql/00_grants.sql` as `neondb_owner` | `BLOCKED_ON_HUMAN`; unblocks `WP-04` DB evidence and all member reads |
+| `H-012` | Confirm the `WP-05` start gate | `DONE` 2026-11-08 via `D-022` |
 
 Project `AeroGrid-DW`, branch `br-royal-cherry-beij6hxw`, database `neondb`, bucket
 `aerogrid-raw`, and the storage endpoint are recorded in
@@ -56,31 +57,37 @@ environment and its six required secrets are in place; `main` is protected. `H-0
 remains deferred; the Member B-E names are recorded in
 [docs/08_team_work_division.md](08_team_work_division.md).
 
-`WP-02` and `WP-03` are authorized. `WP-02` is `DONE`; `WP-03` is
-`READY_FOR_REVIEW`. Do not start a later work package until its gate is recorded in
-`../PROGRESS.md`.
+`WP-02`, `WP-03`, `WP-04`, and `WP-05` are authorized. `WP-02`/`WP-03` are `DONE`;
+`WP-04` is merged but blocked on `H-011`; `WP-05` is `READY`. Do not start a later
+work package until its gate is recorded in `../PROGRESS.md`.
 
-## Current action: `WP-03`, then close `G2`
+## Current action: run the grants script, then `WP-05`
 
-`WP-02` is closed. Run
+`G2` is closed. `WP-03` source validation merged in PR #5 (`f9087f4`) on 2026-11-08;
+platform validation remains proven by run
 [42276737288](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42276737288)
-returned `PASS`: 22 pass, 1 warn, 0 fail, 0 skip, and PR #3 merged as `b6b76b9` on
-2026-11-06. The writer connects over TLS and writes, the bucket round-trips a marker,
-quotas and cold-start timings are recorded, and `aerogrid_reader` can select but is
-rejected with SQLSTATE `42501` on insert, update, delete, create table, and create
-schema. The one warning is the absent `project_dw` and `project_reporting` schemas,
-which `WP-04`/`WP-05` create.
+(22 pass, 1 warn, 0 fail, 0 skip).
 
-What remains on `G2` is `WP-03` review, owned by Member B. Tartan, Nightjar,
-nominal-io DJI, FAA, METAR/AWC, and IEM are validated; FAA facility/TFR are usable.
-The capacity estimate is recorded and temporary raw samples are removed.
+One human step unblocks `WP-04` and protects every later package:
 
-1. Reviewers D and E review the `WP-03` package and sign off.
-2. HassanNawaz14 closes `G2` once both `WP-02` and `WP-03` evidence is recorded and
-   reviewers sign off.
-3. `WP-04` is already authorized under `D-021`; resolve `H-011` so the ETL role can
-   apply staging DDL or have an owner apply it once, then rerun the WP-04 verifier.
-   `WP-05` still starts only after `WP-03` and `WP-04` are merged (`D-022`).
+1. Open the Neon SQL Editor as `neondb_owner` on project `AeroGrid-DW`, branch
+   `production`, database `neondb`.
+2. Paste and run [`../sql/00_grants.sql`](../sql/00_grants.sql) whole. It is
+   grants-only and idempotent: it creates no tables, changes no data, and never gives
+   `aerogrid_reader` write access. It creates `project_dw` and `project_reporting`
+   empty and locks their grants early.
+3. Confirm every row of the final self-check query shows `ok = true`. A `false` row
+   means stop and report it, not paste secrets.
+4. Rerun **Actions → WP-04 staging DDL verify** (or
+   `python Phase2/etl/verify_wp04_staging.py` with your own connection string). It now
+   fails fast with the exact missing privilege and the same fix.
+5. Record the `H-011` result in [`../PROGRESS.md`](../PROGRESS.md); `WP-04` can then be
+   accepted and `G3` recorded after `WP-05`.
+
+Member C starts `WP-05` now; Members D and E remain on review or their later gates.
+Team read access uses the shared `aerogrid_reader` connection string; each member can
+verify it with the checks in
+[docs/07](07_operations_access_and_security.md#member-read-access-check).
 
 To re-run the platform validation later, dispatch **Actions → Platform validation
 (WP-02) → Run workflow** and approve the `warehouse` environment when GitHub asks. The

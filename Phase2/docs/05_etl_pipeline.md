@@ -2,10 +2,10 @@
 
 ## Status
 
-This is the implementation plan plus the current `WP-04` staging package. `WP-02` is
-`DONE`; `WP-03` is `READY_FOR_REVIEW`; `WP-04` is implemented locally under `D-021` and
-`BLOCKED_ON_HUMAN` for Neon apply/load evidence (`H-011`). `WP-05` and later packages
-remain gated by `G3` and are not implemented.
+This is the implementation plan plus the current `WP-04` staging package. `WP-02` and
+`WP-03` are `DONE`; `WP-04` code is merged under `D-021` but `BLOCKED_ON_HUMAN` for
+Neon apply/load evidence (`H-011`). `WP-05` is `READY` under `D-022`; later packages
+remain gated by `G3`.
 
 ## Pipeline principles
 
