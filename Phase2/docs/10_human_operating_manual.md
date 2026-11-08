@@ -75,19 +75,25 @@ applied the staging DDL twice as `aerogrid_etl` and created the 11 expected
 
 Two steps remain before `WP-04` can be accepted:
 
-1. Open the Neon SQL Editor as `neondb_owner` on project `AeroGrid-DW`, branch
-   `production`, database `neondb`, and rerun
-   [`../sql/00_grants.sql`](../sql/00_grants.sql) whole. The staging tables exist now,
-   so this run is what gives `aerogrid_reader` `SELECT` on them; it also installs the
-   default privileges that keep future tables readable. It is still grants-only and
-   never gives the reader write access.
-2. Confirm all 15 self-check rows show `ok = true`, including
-   `reader can select every existing table`. A `false` row means stop and report it,
-   not paste secrets.
-3. Have the `WP-04` owner (Member B) run
-   `python Phase2/etl/verify_wp04_staging.py --tartan-sample <path to a real Tartan CSV>`
-   with their own connection string and report the read/accepted/rejected/duplicate
-   counts. Raw data is never stored in Git, so the workflow cannot supply this sample.
+1. Repair reader access to the staging tables. They are owned by `aerogrid_etl`, and
+   `neondb_owner` cannot grant on another role's tables, so the owner script cannot fix
+   them. Either:
+   - have the `WP-04` owner (Member B) run `python Phase2/etl/verify_wp04_staging.py`
+     from this branch with their own connection string, which applies
+     [`../sql/00_schemas.sql`](../sql/00_schemas.sql) as `aerogrid_etl` and grants
+     `SELECT` on every ETL-owned table in all three schemas; or
+   - merge this branch and rerun **Actions → WP-04 staging DDL verify**, which runs the
+     same bootstrap as `aerogrid_etl`.
+
+   Do not try to fix this by rerunning `00_grants.sql`: it cannot grant on tables owned
+   by another role.
+2. Rerun [`../sql/00_grants.sql`](../sql/00_grants.sql) as `neondb_owner` and confirm
+   all 15 self-check rows show `ok = true`, including
+   `reader can select every existing table`.
+3. Have Member B produce real-sample loader evidence with a real Tartan CSV:
+   `python Phase2/etl/verify_wp04_staging.py --tartan-sample <path>`, and report the
+   read/accepted/rejected/duplicate counts. Raw data is never stored in Git, so the
+   workflow cannot supply this sample.
 4. Record the `H-011` result in [`../PROGRESS.md`](../PROGRESS.md); `WP-04` can then be
    accepted and `G3` recorded after `WP-05`.
 

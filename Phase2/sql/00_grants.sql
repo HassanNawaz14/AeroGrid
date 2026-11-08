@@ -33,6 +33,10 @@ REVOKE CREATE ON SCHEMA project_dw FROM aerogrid_reader;
 REVOKE CREATE ON SCHEMA project_reporting FROM aerogrid_reader;
 
 -- Existing objects ------------------------------------------------------------
+-- These grants cover objects owned by the role running this script (neondb_owner).
+-- Tables owned by aerogrid_etl are granted by aerogrid_etl in 00_schemas.sql; the
+-- owner cannot grant on another role's tables, so the table-level self-check below
+-- stays false until that ETL bootstrap has run.
 GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE
     ON ALL TABLES IN SCHEMA project_staging TO aerogrid_etl;
 GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE

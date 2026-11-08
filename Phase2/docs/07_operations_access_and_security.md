@@ -163,21 +163,27 @@ no rows, and contains an explicit `REVOKE` so `aerogrid_reader` can never write.
 Run it again when any of these changes:
 
 - A work package adds a schema or a new object class.
-- A work package creates tables; default privileges only cover objects created
-  *after* they are set, so existing tables need the script's `GRANT SELECT`.
 - A verifier or workflow reports a missing privilege.
 - A member reports a read error.
 
 The self-check ends with a table-level pair: `reader can select every existing table`
 and `reader cannot write any existing table`. A `false` on the first row means the
-reader cannot read something that exists right now; rerun the script after the DDL
-that created those objects.
+reader cannot read a table that exists right now.
 
-DDL applied by `aerogrid_etl` cannot be covered by the owner's default privileges, so
-every ETL-applied bootstrap file must also set
-`ALTER DEFAULT PRIVILEGES IN SCHEMA <schema> GRANT SELECT ON TABLES TO aerogrid_reader;`
-as [`../sql/00_schemas.sql`](../sql/00_schemas.sql) does for all three schemas. Owner-applied
-DDL is covered by the script; either way, rerun the script after the merge.
+Ownership decides who can fix that. `neondb_owner` can grant only on objects it owns, so
+a table created by `aerogrid_etl` is not covered by this script — confirmed on
+2026-11-08, when all 10 staging tables showed `reader_select = false` after the owner
+script ran. The repair path is the ETL bootstrap
+[`../sql/00_schemas.sql`](../sql/00_schemas.sql), which runs as `aerogrid_etl` and, for
+all three schemas:
+
+1. grants `SELECT` on every table it owns that already exists;
+2. sets `ALTER DEFAULT PRIVILEGES ... GRANT SELECT ON TABLES TO aerogrid_reader` so
+   later ETL-created tables are readable without another manual step.
+
+Run the WP-04 verifier after any ETL-applied DDL, then rerun `00_grants.sql` to confirm
+the table-level row flips to `true`. If a future package applies DDL as a third role,
+that package's bootstrap must grant the reader itself.
 
 The WP-04 verifier now checks `USAGE` and `CREATE` on `project_staging` immediately
 after connecting and exits with the exact missing privilege and this remediation
@@ -211,6 +217,7 @@ connection string) to Member A.
 | Symptom | Cause | Fix |
 |---|---|---|
 | `permission denied for schema project_staging` as `aerogrid_etl` | `00_grants.sql` not run, or run before the schema existed | Rerun the script as owner; confirm every self-check row is `true` |
+| `reader can select every existing table` is `false` | The tables are owned by `aerogrid_etl`; `neondb_owner` cannot grant on another role's tables | Run the WP-04 verifier or any ETL bootstrap run of `00_schemas.sql`, then rerun `00_grants.sql` to confirm |
 | `permission denied for table ...` as `aerogrid_etl` | Object created by another role and no default privilege covers it | Rerun `00_grants.sql`; add the matching `ALTER DEFAULT PRIVILEGES` to that work package's bootstrap |
 | Reader `INSERT` succeeds | The role holds `neon_superuser`, which overrides grants | Follow [the reader remediation](#if-the-reader-check-reports-that-insert-succeeded); grants alone cannot fix it |
 | `password authentication failed` | Role password rotated or mistyped | Human resets it in the Neon Console and re-shares the string privately; do not paste it |
