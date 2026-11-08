@@ -2,8 +2,10 @@
 
 ## Status
 
-This is a design and implementation plan. No ETL code exists yet. `G1` is cleared and
-`WP-02`/`WP-03` are authorized; ETL implementation begins with `WP-04` after `G2`.
+This is the implementation plan plus the current `WP-04` staging package. `WP-02` is
+`DONE`; `WP-03` is `READY_FOR_REVIEW`; `WP-04` is implemented locally under `D-021` and
+`BLOCKED_ON_HUMAN` for Neon apply/load evidence (`H-011`). `WP-05` and later packages
+remain gated by `G3` and are not implemented.
 
 ## Pipeline principles
 
@@ -21,26 +23,24 @@ This is a design and implementation plan. No ETL code exists yet. `G1` is cleare
 ```text
 Phase2/etl/
 ├── __init__.py
-├── run.py                  # CLI entry point and run modes
-├── config.py               # Environment, sites, thresholds, source settings
-├── storage.py              # Object-storage client and raw manifest
+├── errors.py               # RowRejected contract
+├── transforms.py           # Unit, visibility, ceiling, category helpers
+├── reject_codes.md         # Stable reject catalog
 ├── sources/
+│   ├── common.py
 │   ├── tartan.py
 │   ├── nightjar.py
 │   ├── dji_nominal.py
 │   ├── faa.py
-│   ├── metar.py
-│   └── opensky.py
-├── staging.py              # Raw-to-staging loads and reject handling
-├── dimensions.py           # Dimension upserts and surrogate-key mapping
-├── facts.py                # Core and derived fact loads
-├── dq.py                   # Data-quality checks and result persistence
-├── reports.py              # PDF report generation
-└── util.py                 # Time, unit, geometry, and retry helpers
+│   └── metar.py            # AWC and IEM normalizers
+├── loaders.py              # Raw iterators, staging mappings, load helpers
+├── staging_writer.py       # Savepoints, idempotency, rejects, run log, manifest
+└── verify_wp04_staging.py  # DDL/load verification
 ```
 
-The files above are **future paths**. Do not create them before the assigned work
-package is authorized.
+Future packages add `run.py`, `config.py`, `storage.py`, `dimensions.py`, `facts.py`,
+`dq.py`, `reports.py`, and `util.py`. Do not create them before their work package is
+authorized.
 
 ## Run modes
 
@@ -141,8 +141,13 @@ Planned staging tables:
 - `etl_run_log`
 - `dq_result`
 
-The exact DDL is owned by `WP-04`/`WP-05`; this list is a contract, not an
-implementation.
+`WP-04` implements `Phase2/sql/00_schemas.sql` and
+`Phase2/sql/01_staging/*.sql`. Loaders preserve source file + row number, map
+normalized fields to staging columns, write rejects through per-row savepoints, and
+use `ON CONFLICT DO NOTHING` on source-scoped keys. `verify_wp04_staging.py` can load
+a real sample twice inside a rolled-back transaction to prove rejects, reconciliation,
+and idempotency. Applying DDL to Neon is blocked on `H-011` because `aerogrid_etl`
+lacks `project_staging` schema rights.
 
 ### Staging transformations
 
@@ -335,10 +340,18 @@ Write a GitHub Actions job summary with the same key counts.
 | Missing secret | `BLOCKED_ON_HUMAN`; do not request secret in chat |
 | Partial optional source | Record `PARTIAL` only if the report exposes the gap |
 
-## Commands (future, not implemented)
+## Commands
 
-These are planned interfaces only. Do not create or run them before the owning work
-package is authorized.
+Implemented `WP-04` checks (from `Phase2/`):
+
+```text
+python -m pytest -q
+python -m compileall -q etl
+python -m etl.verify_wp04_staging
+python -m etl.verify_wp04_staging --tartan-sample /path/to/real/1.csv
+```
+
+Planned `WP-05`+ interfaces (do not create or run before authorization):
 
 ```text
 python -m etl.run --mode initial

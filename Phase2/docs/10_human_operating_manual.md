@@ -21,8 +21,11 @@ warehouse without exposing secrets.
 - Phase 2 documentation and planning baseline is accepted (`G0`/`H-001`).
 - Implementation is **authorized** (`H-007`, 2026-11-04).
 - `G1` is closed; the current gate is `G2`.
-- `WP-02` is `DONE` (accepted 2026-11-07; PR #3 merged); `WP-03` is `READY` and
-  authorized.
+- `WP-02` is `DONE` (accepted 2026-11-07; PR #3 merged); `WP-03` is
+  `READY_FOR_REVIEW`. Tartan, Nightjar, nominal-io DJI, the granular FAA airspace
+  services (`D-020`), and METAR/AWC/IEM are validated, the capacity estimate is
+  recorded, and temporary raw samples are removed. Reviewers D and E sign-off is
+  pending.
 
 ## The one rule for secrets
 
@@ -53,8 +56,9 @@ environment and its six required secrets are in place; `main` is protected. `H-0
 remains deferred; the Member B-E names are recorded in
 [docs/08_team_work_division.md](08_team_work_division.md).
 
-`WP-02` and `WP-03` are authorized. `WP-02` is `DONE`; `WP-03` proceeds with Member B.
-Do not start a later work package until its gate is recorded in `../PROGRESS.md`.
+`WP-02` and `WP-03` are authorized. `WP-02` is `DONE`; `WP-03` is
+`READY_FOR_REVIEW`. Do not start a later work package until its gate is recorded in
+`../PROGRESS.md`.
 
 ## Current action: `WP-03`, then close `G2`
 
@@ -67,12 +71,16 @@ rejected with SQLSTATE `42501` on insert, update, delete, create table, and crea
 schema. The one warning is the absent `project_dw` and `project_reporting` schemas,
 which `WP-04`/`WP-05` create.
 
-What remains on `G2` is `WP-03` source validation, owned by Member B (`B-004`,
-TartanAviation georeferencing is the first task):
+What remains on `G2` is `WP-03` review, owned by Member B. Tartan, Nightjar,
+nominal-io DJI, FAA, METAR/AWC, and IEM are validated; FAA facility/TFR are usable.
+The capacity estimate is recorded and temporary raw samples are removed.
 
-1. Member B runs `WP-03` and records its evidence in [`../PROGRESS.md`](../PROGRESS.md).
-2. HassanNawaz14 closes `G2` once both `WP-02` and `WP-03` evidence is recorded, then
-   authorizes the `WP-04`/`WP-05` work.
+1. Reviewers D and E review the `WP-03` package and sign off.
+2. HassanNawaz14 closes `G2` once both `WP-02` and `WP-03` evidence is recorded and
+   reviewers sign off.
+3. `WP-04` is already authorized under `D-021`; resolve `H-011` so the ETL role can
+   apply staging DDL or have an owner apply it once, then rerun the WP-04 verifier.
+   `WP-05` still starts only after `WP-03` and `WP-04` are merged (`D-022`).
 
 To re-run the platform validation later, dispatch **Actions → Platform validation
 (WP-02) → Run workflow** and approve the `warehouse` environment when GitHub asks. The

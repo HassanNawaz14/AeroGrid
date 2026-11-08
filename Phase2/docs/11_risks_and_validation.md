@@ -26,7 +26,7 @@ human decision before the dependent work package proceeds.
 | `R-02` | Object storage exceeds 5 GB | Low | High | B | Archive selected CSVs only; no DJI video; retention review | Bucket > 3.5 GB |
 | `R-03` | Tartan georeferencing is wrong | Medium | High | B + D | Validate known points/runway; document local-frame conversion; inspect sample tracks | Track outside airport or impossible speed |
 | `R-04` | Tartan volume is too large for a full load | High | Medium | B + D | Load a documented window; archive full raw; measure before load | Parsed rows or DB estimate exceed budget |
-| `R-05` | Nightjar/DJI timestamps are relative, not absolute | High | Medium | B + D | Preserve relative time; derive an explicit flight start only if source supports it; do not invent UTC | Timestamp starts at zero or 1970 |
+| `R-05` | Nightjar/DJI timestamp bases are inconsistent or ambiguous | Low | Medium | B + D | Preserve absolute UTC/epoch time; keep relative `flyTime`; reject 1970 initialization rows; do not trust the `timestamps_ns` header | Timestamp starts at zero/1970 or unit mismatch |
 | `R-06` | UAS and manned data cannot be spatially joined | Medium | High | D + E | Validate site mapping and coordinates; only pair within site/time; document limitations | Pairing requires impossible time travel |
 | `R-07` | Historical TFR coverage is unavailable | High | Medium | B + E | Use real snapshots/effective windows; document forward-only limitation; do not synthesize TFRs | No historical TFR source |
 | `R-08` | OpenSky historical access is unavailable | High | Low | A + B | Treat OpenSky as optional; use Tartan for primary ADS-B | Human cannot obtain access |
@@ -94,6 +94,12 @@ known. Fail: relative timestamps that cannot be anchored or unresolved altitude.
 Pass: real flights, valid coordinates, documented units. Fail: unreadable schema or
 unresolved time base.
 
+Result (2026-11-07): `PASS`. All three CSVs have absolute epoch-second time, valid
+WGS 84 coordinates, explicit mph speeds, feet altitude with recorded datums, and one
+consistent serial. Colorado/Offshore need `OSD.flyTime` for sub-second ordering;
+Colorado's pre-GPS zeros and the scaled `DETAILS.totalDistance` field require
+cleaning. See [`source_validation/SRC-DJI-NOMINAL.md`](source_validation/SRC-DJI-NOMINAL.md).
+
 ### FAA
 
 1. Query each layer with a small bounding box.
@@ -115,6 +121,13 @@ usable geometry or unclear license.
 
 Pass: real observations parse and station mapping is defensible. Fail: invalid units
 or no historical coverage.
+
+`WP-03` result: AWC and IEM pass. The AWC/IEM cross-check matched 48 common routine
+observations with zero numeric differences after unit conversion. IEM is
+`PASS WITH LIMITATION` because KTOA coverage is sparse and Nightjar's nearest station
+is 13.4 nm away. See
+[`source_validation/SRC-METAR-AWC.md`](source_validation/SRC-METAR-AWC.md) and
+[`source_validation/SRC-METAR-IEM.md`](source_validation/SRC-METAR-IEM.md).
 
 ### OpenSky
 
@@ -153,6 +166,23 @@ Before a full load:
 7. Record the estimate and decision.
 
 Do not discover capacity by filling the database.
+
+`WP-03` initial-load estimate:
+
+| Item | Rows/features | Database estimate |
+|---|---:|---:|
+| Tartan KBTP, 2022-01-01 to 2022-01-07 UTC | ~609,000 | 122-305 MB |
+| Nightjar `20260804` | 12,448 | 2.5-6.2 MB |
+| Nominal-io DJI, three flights | 10,314 | 2.1-5.2 MB |
+| FAA filtered study-site features | <1,000 | <1 MB |
+| METAR/AWC + IEM initial study dates | <1,000 | <0.5 MB |
+| **Initial total** | **~632,000** | **~130-320 MB** |
+
+The range uses 200-500 bytes/row including indexes. The estimated initial load is
+below the 500 MiB target and the 1 GiB limit. Do not load the full Tartan year
+(~22 million rows, ~4.4 GB at 200 bytes/row); it exceeds the 1 GiB limit. Object
+storage for the selected archives and samples is about 755 MB (720 MiB), below the
+2 GiB target and the 5 GiB bucket limit.
 
 ## Risk review points
 

@@ -13,8 +13,11 @@ conflicts with them, the higher-level file wins.
 - Phase 2 documentation and planning baseline is accepted (`G0`/`H-001`).
 - Phase 2 implementation is **authorized** (`H-007`, 2026-11-04).
 - `G1` is closed; the current gate is `G2`.
-- `WP-02` is `DONE` (accepted 2026-11-07; PR #3 merged); `WP-03` is `READY` and
-  authorized.
+- `WP-02` is `DONE` (accepted 2026-11-07; PR #3 merged); `WP-03` is
+  `READY_FOR_REVIEW`. Tartan, Nightjar, nominal-io DJI, the granular FAA airspace
+  services (`D-020`), and METAR/AWC/IEM are validated, the capacity estimate is
+  recorded, and temporary raw samples are removed. Reviewers D and E sign-off is
+  pending.
 - Later work packages begin only after their gate and authorization are recorded in
   [`../PROGRESS.md`](../PROGRESS.md).
 
@@ -240,7 +243,10 @@ A task is complete only when:
 
 `WP-02` (platform validation and access proof) is `DONE`, accepted on 2026-11-07 with
 validation run `42276737288` `PASS`. `WP-03` (source validation and georeferencing) is
-the active Member B package and is authorized. Do not start a later package until its
-gate is recorded in [`../PROGRESS.md`](../PROGRESS.md), and do not fabricate evidence.
+`READY_FOR_REVIEW`; all required sources are validated, the capacity estimate is
+recorded, and temporary raw samples are removed. Reviewers D and E sign-off is
+pending. Do not load the `Airspace (DEMO)` layer; use the approved granular services
+(`D-020`). Do not start a later package until the gate is
+recorded in [`../PROGRESS.md`](../PROGRESS.md), and do not fabricate evidence.
 The `DONE` marking for `WP-02` was made on HassanNawaz14's explicit instruction and is
 recorded in the package acceptance table there.

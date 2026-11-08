@@ -47,7 +47,7 @@ Members may work in parallel only where the explicit dependency table allows it.
 | `WP-02` | `WP-01` | `WP-03` | G1 |
 | `WP-03` | `WP-01` | `WP-02` | G1 |
 | `WP-04` | `WP-03` | `WP-05` | G2 |
-| `WP-05` | `WP-02`, model approved | `WP-04` | G2 |
+| `WP-05` | `WP-02`, model approved | `WP-04` | `D-022` (`WP-03`/`WP-04` merged) |
 | `WP-06` | `WP-04`, `WP-05` | None | G3 |
 | `WP-07` | `WP-06`, thresholds approved | `WP-10` design | G4 |
 | `WP-08` | `WP-04` to `WP-07` | `WP-09` design | G5 |
@@ -119,7 +119,7 @@ Evidence:
 ### G2: Platform and source readiness
 
 **Status:** IN_PROGRESS; `WP-02` is `DONE` (validation passed 2026-11-07), `WP-03` is
-`READY`.
+`READY_FOR_REVIEW` (all sources validated, capacity estimate recorded).
 **Owner:** Member A for platform; Member B for sources
 **Reviewers:** Members C, D, E
 **Required WPs:** `WP-02`, `WP-03`

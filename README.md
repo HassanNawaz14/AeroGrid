@@ -13,7 +13,7 @@ capacity.
 | Phase 2 | Documentation baseline accepted (`G0`/`H-001`) |
 | Phase 2 implementation | **Authorized** 2026-11-04 (`H-007`) |
 | Current human gate | `G2 - Platform and source readiness` |
-| Current work packages | `WP-02` (Member A), `DONE`; `WP-03` (Member B), `READY` |
+| Current work packages | `WP-02` (Member A), `DONE`; `WP-03` (Member B), `READY_FOR_REVIEW`; `WP-04` (Member B), `BLOCKED_ON_HUMAN` |
 
 Nothing in `Phase1/` should be edited. Phase 2 work is controlled from
 [`Phase2/`](Phase2/README.md), and the current status, blockers, and human action queue
@@ -61,8 +61,12 @@ The Phase 2 course brief is
 - **No secrets in the repository.** Humans add them through GitHub/Neon UI.
 - **Phase 1 is frozen.** Do not edit its `.tex` or PDF files.
 - **Implementation is authorized by work package.** `WP-02` is `DONE` (validation
-  passed 2026-11-07, PR #3 merged); `WP-03` is `READY`. Later packages wait for their
-  gate.
+  passed 2026-11-07, PR #3 merged); `WP-03` is `READY_FOR_REVIEW`. Tartan,
+  Nightjar, nominal-io DJI, the granular FAA airspace services (`D-020`), and
+  METAR/AWC/IEM are validated, the capacity estimate is recorded, and temporary raw
+  samples are removed; reviewers D and E sign-off is pending. `WP-04` review fixes
+  pass local tests but Neon DDL/load evidence is `BLOCKED_ON_HUMAN` on `H-011`. Later
+  packages wait for their gate; `WP-05` waits for `G3`.
 
 ## Accepted Phase 2 architecture
 
@@ -159,8 +163,10 @@ AeroGrid/
 The baseline and `G1` are complete. The next actions belong to the work package
 owners:
 
-1. Member B: complete `WP-03` source validation and Tartan georeferencing.
-2. HassanNawaz14: close `G2` once `WP-02` and `WP-03` acceptance evidence is recorded.
+1. Reviewers D/E: review the `WP-03` package; use the approved granular FAA airspace
+   services (`D-020`), not the `Airspace (DEMO)` layer.
+2. HassanNawaz14: close `G2` once `WP-02` and `WP-03` acceptance evidence is recorded
+   and reviewers D/E sign off.
 3. Record results and gate evidence in
    [`Phase2/PROGRESS.md`](Phase2/PROGRESS.md).
 

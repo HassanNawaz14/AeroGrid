@@ -1,7 +1,8 @@
 # Phase 2 SQL
 
-This directory is intentionally empty. It will hold versioned DDL, seeds, checks, and
-reporting views once the relevant work package is authorized.
+Versioned DDL and checks for Phase 2. SQL is applied through the approved CI/human
+path against the shared Neon warehouse (no local PostgreSQL, no Docker). No
+credentials, dumps, or raw data are committed.
 
 ## Ownership
 
@@ -10,26 +11,27 @@ reporting views once the relevant work package is authorized.
 - Member D owns core fact SQL.
 - Member E owns derived facts, DQ checks, and reporting views.
 
-## Planned layout
+## Layout
 
 ```text
 sql/
-├── 00_schemas.sql
+├── 00_schemas.sql                          # WP-04 bootstrap: project_staging schema
 ├── 01_staging/
-├── 02_dimensions/
-├── 03_facts/
-├── 04_reporting/
-├── 05_checks/
-└── seeds/
+│   ├── 01_source_manifest_run_reject_dq.sql # WP-04 manifest/run/reject/DQ tables
+│   └── 02_source_tables.sql                # WP-04 source-shaped staging tables
+├── 02_dimensions/                          # WP-05 (Member C)
+├── 03_facts/                               # WP-06/WP-07 (Members D/E)
+├── 04_reporting/                           # WP-10 (Member E)
+├── 05_checks/                              # WP-08 (Member E)
+└── seeds/                                  # dimension seeds, unknown members
 ```
 
 ## Rules
 
-- No SQL is authorized until `WP-04`/`WP-05` begin.
-- No local PostgreSQL or Docker.
-- Use explicit schema qualification.
-- Use idempotent DDL where practical.
-- Seed the `-1` unknown member for every dimension.
+- Apply in filename order; DDL is idempotent (`IF NOT EXISTS`) where practical.
+- Use explicit schema qualification (`project_staging.*`, etc.).
+- Seed the `-1` unknown member for every dimension (`WP-05`).
 - Keep destructive SQL out unless a human explicitly approves it.
-- Do not commit credentials, dumps, or raw data.
-- Update `data/data_dictionary.md` and the DBML with model changes.
+- `etl_run_log` enforces `rows_read = rows_accepted + rows_rejected + rows_duplicate`;
+  loaders must update run counts atomically at end-of-batch.
+- Update `data/data_dictionary.md` when staging columns or constraints change.

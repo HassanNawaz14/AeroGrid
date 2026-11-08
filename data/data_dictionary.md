@@ -4,9 +4,10 @@
 
 This is the column-level logical dictionary for the Phase 2 model. It is synchronized
 with [`../Phase2/docs/04_data_model.md`](../Phase2/docs/04_data_model.md) and
-[`diagrams/aerogrid_schema.dbml`](diagrams/aerogrid_schema.dbml). No tables exist yet;
-physical DDL is authorized only inside the owning work package (`WP-04` staging, `WP-05`
-dimensions, `WP-06`/`WP-07` facts).
+[`diagrams/aerogrid_schema.dbml`](diagrams/aerogrid_schema.dbml). `WP-04` staging DDL
+and loaders are implemented; applying them to Neon is blocked on `H-011` until the
+`aerogrid_etl` role receives `project_staging` rights. Dimension and fact DDL remains
+authorized only inside the owning work package (`WP-05`, `WP-06`/`WP-07`).
 
 Physical DDL may use equivalent PostgreSQL types, but names, grains, keys, and
 meanings must match this dictionary.
@@ -359,31 +360,49 @@ Unique: `(source_name, sha256)`.
 
 ### `project_staging.stg_adsb_position`
 
-Core columns: `staging_id`, `etl_run_id`, `source_manifest_id`, `source_record_id`,
-`event_ts`, `icao24`, `callsign`, `latitude`, `longitude`, `altitude_ft`,
-`altitude_source`, `ground_speed_kts`, `heading_deg`, `vertical_rate_fps`,
-`on_ground`, `raw_file`, `source_quality_flag`, `reject_reason`.
+Core columns: `staging_id`, `etl_run_id`, `source_manifest_id`, `source_system`,
+`source_record_id`, `source_row_number`, `event_ts`, `icao24`, `callsign`,
+`latitude`, `longitude`, `altitude_ft`, `altitude_source`, `ground_speed_kts`,
+`heading_deg`, `vertical_rate_fps`, `on_ground`, `raw_file`, `source_quality_flag`,
+`reject_reason`.
 
 ### `project_staging.stg_uas_position`
 
-Core columns: `staging_id`, `etl_run_id`, `source_manifest_id`, `source_record_id`,
-`event_ts`, `vehicle_serial`, `flight_id`, `latitude`, `longitude`,
-`altitude_value`, `altitude_unit`, `altitude_datum`, `speed_value`, `speed_unit`,
-`heading_deg`, `raw_file`, `reject_reason`.
+Core columns: `staging_id`, `etl_run_id`, `source_manifest_id`, `source_system`,
+`source_record_id`, `source_row_number`, `event_ts`, `vehicle_serial`, `flight_id`,
+`latitude`, `longitude`, `altitude_msl_ft`, `altitude_agl_ft`, `ground_speed_kts`,
+`vertical_speed_fps`, `flight_state`, `is_on_ground`, `is_motor_on`, `is_gps_used`,
+`home_latitude`, `home_longitude`, `home_altitude_ft`, `source_speed_value`,
+`source_speed_unit`, `raw_file`, `reject_reason`.
+
+Unique: `(source_system, source_record_id)`. `source_system` distinguishes Nightjar
+and Nominal-io DJI loaders; DJI site-code mapping remains unresolved before `WP-05`.
+Legacy `altitude_value`/`speed_value` columns remain nullable for upgrade compatibility.
 
 ### `project_staging.stg_weather_metar`
 
-Core columns: `staging_id`, `etl_run_id`, `source_manifest_id`, `station_icao`,
-`observation_ts`, `raw_text`, `flight_category`, `temperature_c`, `dewpoint_c`,
+Core columns: `staging_id`, `etl_run_id`, `source_manifest_id`, `source_system`,
+`source_record_id`, `source_row_number`, `station_icao`, `observation_ts`,
+`report_type`, `raw_text`, `flight_category`, `temperature_c`, `dewpoint_c`,
 `wind_speed_kts`, `wind_gust_kts`, `wind_direction_deg`, `visibility_sm`,
-`cloud_ceiling_ft`, `altimeter_inhg`, `reject_reason`.
+`cloud_ceiling_ft`, `altimeter_inhg`, `station_lat`, `station_lon`,
+`station_elevation_m`, `reject_reason`.
+
+Unique: `(station_icao, observation_ts, source_system)` to allow AWC/IEM coexistence
+during validation; loaders may normalize to a single authoritative source per
+observation before warehouse load.
 
 ### `project_staging.stg_airspace_zone`
 
-Core columns: `staging_id`, `etl_run_id`, `source_manifest_id`, `source_object_id`,
-`restriction_id`, `zone_name`, `restriction_type`, `lower_limit_ft`,
+Core columns: `staging_id`, `etl_run_id`, `source_manifest_id`, `source_system`,
+`source_record_id`, `source_object_id`, `source_row_number`, `service_name`,
+`restriction_id`, `zone_name`, `airport_icao`, `restriction_type`, `lower_limit_ft`,
 `upper_limit_ft`, `effective_start_ts`, `effective_end_ts`, `is_static`,
-`geometry_wkt`, `source_url`, `reject_reason`.
+`geometry_wkt`, `bbox_min_lat`, `bbox_min_lon`, `bbox_max_lat`, `bbox_max_lon`,
+`source_url`, `raw_attributes` (JSONB), `reject_reason`.
+
+Unique: `(source_system, source_record_id)` (`GLOBAL_ID`/`GLOBALID`/`FAA_ID`). The
+DEMO airspace layer is excluded (`D-020`).
 
 ### `project_staging.stg_restriction_snapshot`
 

@@ -10,7 +10,10 @@ is the canonical plan for Members A-E and their agents. The status dashboard rem
 
 - Phase 2 implementation is **authorized** (`H-007`, 2026-11-04).
 - `G1` is closed; the current gate is `G2`.
-- `WP-02` is `DONE`; `WP-03` is `READY` and authorized.
+- `WP-02` is `DONE`; `WP-03` is `READY_FOR_REVIEW`. Tartan, Nightjar, nominal-io DJI,
+  the granular FAA airspace services (`D-020`), and METAR/AWC/IEM are validated, the
+  capacity estimate is recorded, and temporary raw samples are removed. Reviewers D
+  and E sign-off is pending.
 - Later work packages begin only after their gate and authorization are recorded in
   [`../PROGRESS.md`](../PROGRESS.md).
 - Do not create resources or data outside the assigned work package.
