@@ -38,6 +38,7 @@ decision. Use the template in [templates/DECISION_RECORD.md](templates/DECISION_
 | `D-019` | Weekly Monday 06:00 UTC schedule; artifact report mode | `ACCEPTED` | Accepted by HassanNawaz14 |
 | `D-020` | Use FAA granular airspace services instead of `Airspace (DEMO)` | `ACCEPTED` | Accepted in session by the human, 2026-11-07 |
 | `D-021` | Start `WP-04` before `G2` is recorded and review `WP-03`/`WP-04` together | `ACCEPTED` | Approved in session by the human, 2026-11-07 |
+| `D-022` | Keep `WP-05` not started until `WP-03` and `WP-04` are merged; record `G3` after `WP-04` and `WP-05` acceptance | `ACCEPTED` | Approved in session by the human, 2026-11-08 |
 
 ## D-001: Neon Free PostgreSQL
 
@@ -402,6 +403,30 @@ the evidence separate.
 - `WP-04` implementation and tests may proceed, but database acceptance evidence still
   requires the approved CI path or human-run verification.
 - `WP-04` and `WP-03` changes must remain separable for review and any eventual commit.
+
+## D-022: Keep WP-05 blocked until WP-03 and WP-04 are merged
+
+**Status:** `ACCEPTED`
+
+**Context:** `PROGRESS.md` and the work breakdown described `WP-05` as waiting for
+`G3`, while the dependency table listed `G2`; `G3` itself requires both `WP-04` and
+`WP-05`. The human resolved the operational question on 2026-11-08: do not start
+`WP-05` until `WP-03` and `WP-04` are merged.
+
+**Decision:** Keep `WP-05` `NOT_STARTED` until `WP-03` and `WP-04` are merged. Do not
+start Member C work early. `G3` remains the gate that records acceptance of both
+staging and dimensions, and is recorded after `WP-04` and `WP-05` are accepted.
+
+**Rationale:** Starting dimensions before the staging contract and review are settled
+risks rework and breaks the documented one-package-at-a-time rule. Waiting for both
+merges keeps Member C's work aligned with the accepted source and staging model.
+
+**Consequences:**
+
+- The dependency table's `G2` entry no longer authorizes `WP-05` early; `D-022` is the
+  operative start rule.
+- `WP-05` remains `NOT_STARTED` while `WP-04` is `BLOCKED_ON_HUMAN` on `H-011`.
+- `G3` is recorded only after `WP-04` and `WP-05` acceptance evidence exists.
 
 ## Change process
 

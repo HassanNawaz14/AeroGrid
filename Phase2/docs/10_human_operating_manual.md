@@ -80,7 +80,7 @@ The capacity estimate is recorded and temporary raw samples are removed.
    reviewers sign off.
 3. `WP-04` is already authorized under `D-021`; resolve `H-011` so the ETL role can
    apply staging DDL or have an owner apply it once, then rerun the WP-04 verifier.
-   `WP-05` still starts only after `G3`.
+   `WP-05` still starts only after `WP-03` and `WP-04` are merged (`D-022`).
 
 To re-run the platform validation later, dispatch **Actions → Platform validation
 (WP-02) → Run workflow** and approve the `warehouse` environment when GitHub asks. The

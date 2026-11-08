@@ -280,7 +280,7 @@ Create the staging schema and reproducible source-to-staging loaders.
 **Owner:** Member C
 **Reviewers:** Members A and D
 **Prerequisites:** WP-02, model approved
-**Gate:** G3
+**Gate:** `D-022` (`WP-03` and `WP-04` merged)
 
 ### Objective
 
