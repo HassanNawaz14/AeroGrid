@@ -12,11 +12,10 @@ conflicts with them, the higher-level file wins.
 - Phase 1 is frozen.
 - Phase 2 documentation and planning baseline is accepted (`G0`/`H-001`).
 - Phase 2 implementation is **authorized** (`H-007`, 2026-11-04).
-- `G2` is closed; the current gate is `G3`.
-- `WP-02` and `WP-03` are `DONE` (PR #3 `b6b76b9`, PR #5 `f9087f4`). `WP-04` has its
-  DDL applied and needs only real-sample evidence; `WP-05` is `READY` for Member C
-  under `D-022`. Both are owner-closable under `D-023`, and the human is hands-off
-  until `G3`.
+- `G2` and `G3` are closed; the current gate is `G4`.
+- `WP-02`-`WP-05` are `DONE` (PR #3 `b6b76b9`, PR #5 `f9087f4`, PR #7, PR #8).
+  `WP-06` is `READY` for Member D under `D-024`; Member C completes the real dimension
+  members and records `G4`. The human is hands-off until the `WP-07` thresholds.
 - Later work packages begin only after their gate and authorization are recorded in
   [`../PROGRESS.md`](../PROGRESS.md).
 
@@ -66,14 +65,14 @@ If two authoritative sources conflict, stop and ask. Do not guess.
 - Keep edits inside the assigned package.
 - Do not opportunistically refactor unrelated files.
 - Do not start a dependent package early.
-- Do not mark `DONE` without acceptance evidence. Exception in the delegated window
-  `D-023`: the `WP-04` and `WP-05` owners may mark their own package `DONE` once the
-  brief's evidence is recorded. Gates still need the human.
+- Do not mark `DONE` without acceptance evidence. Exceptions: `D-023` let Members B
+  and C close `WP-04`/`WP-05`; `D-024` lets Member D close `WP-06` and Member C record
+  `G4` after verification. Every other gate needs the human.
 - Do not mix documentation and implementation in one commit unless the package
   requires it.
-- Do not commit, push, open a PR, or create a tag unless explicitly asked. Exception in
-  `D-023`: the `WP-04`/`WP-05` owners may push their own package branch and merge its
-  PR after one peer approval.
+- Do not commit, push, open a PR, or create a tag unless explicitly asked. Exceptions:
+  `D-023` for the `WP-04`/`WP-05` owners, and `D-024` for Members C and D on their
+  `WP-06` branches, each after one peer approval.
 - Do not implement directly on `main`.
 
 ## Before editing
@@ -244,11 +243,12 @@ A task is complete only when:
 
 ## Current next action
 
-`WP-02` and `WP-03` are `DONE`; `G2` closed on 2026-11-08. `WP-04` needs only
-real-sample evidence, and `WP-05` (dimensions and keys) is `READY` for Member C under
-`D-022`. Both run in the delegated window `D-023`: their owners close them, and the
-human is hands-off until `G3` is recorded. Use the step-by-step briefs in
-[`../dev_plan/01_work_breakdown.md`](../dev_plan/01_work_breakdown.md). Do not load the
-`Airspace (DEMO)` layer; use the approved granular services (`D-020`). Do not start a
-later package until its gate is recorded in [`../PROGRESS.md`](../PROGRESS.md), and do
-not fabricate evidence.
+`WP-02`-`WP-05` are `DONE`; `G3` closed on 2026-11-09 and `G4` is the current gate.
+`WP-06` (tracking and journey facts) is `READY` for Member D under `D-024`, with Member
+C completing the real dimension members first and recording `G4` after verification.
+Use the step-by-step briefs in
+[`../dev_plan/01_work_breakdown.md`](../dev_plan/01_work_breakdown.md). Close `B-011`
+by loading real Tartan rows through staging and reconciling the tracking facts. Do not
+load the `Airspace (DEMO)` layer; use the approved granular services (`D-020`). Do not
+start `WP-07` until approved thresholds exist, do not start any later package until its
+gate is recorded in [`../PROGRESS.md`](../PROGRESS.md), and do not fabricate evidence.

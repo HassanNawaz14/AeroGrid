@@ -15,26 +15,30 @@ deferred by the human, so agents must not invent or reassign identities.
 - The human approves scope, source, license, capacity, and gate changes.
 - Work is merged through short-lived branches and PRs, never directly to `main`.
 
-## Delegated closeout window (`D-023`, 2026-11-08 → `G3`)
+## Delegated closeout windows (`D-023` → `G3`, `D-024` → `G4`)
 
-HassanNawaz14 has handed off `WP-04` and `WP-05` so no human input is needed until
-`G3` is recorded:
+`D-023` handed off `WP-04`/`WP-05` to Members B and C; both packages are `DONE` and
+`G3` was recorded on 2026-11-09. `D-024` now hands off the next step so no human input
+is needed until `G4`:
 
-- Member B closes `WP-04`; Member C closes `WP-05`. Each owner records its evidence and
-  marks its own package `DONE`. Gates stay with the human.
-- Both are `warehouse` environment reviewers and may approve their own workflow runs.
-  All database writes stay in CI; never run loaders from a laptop.
-- PRs need one peer approval: Member C or D reviews `WP-04`; Member D reviews `WP-05`.
-  The author merges after approval.
-- Member C starts `WP-05` now. Members D and E stay on review duty and must not start
-  `WP-06`/`WP-07` until `G3`/`G4` are recorded.
+- Member C completes the real `dim_vehicle` (and grid) members from observed
+  identities, then verifies the fact load and records `G4`. This is the only gate an
+  agent may record.
+- Member D loads real Tartan staging rows and builds `fact_vehicle_tracking` and
+  `fact_flight_journey`, records counts, reconciliation, idempotency, and orphan
+  evidence, and marks `WP-06` `DONE`.
+- Member C and Member B can approve the `warehouse` runs that Member D dispatches,
+  because D is not an environment reviewer. All database writes stay in CI; never run
+  loaders from a laptop.
+- PRs need one peer approval: Member C or E reviews `WP-06`. The author merges.
+- Member E stays a reviewer and must not start `WP-07`; it needs approved thresholds.
 - Human-only actions are unchanged: secrets, Neon roles and branches, repository and
-  environment settings, destructive SQL, and gate acceptance.
+  environment settings, destructive SQL, thresholds, and every gate except `G4`.
 
 The exact step-by-step briefs, including commands and required log lines, are in
-[dev_plan/01_work_breakdown.md](../dev_plan/01_work_breakdown.md) under `WP-04` and
-`WP-05`. Any blocker that needs a human action becomes a new `H-###` row and stops the
-package; the window does not authorize it.
+[dev_plan/01_work_breakdown.md](../dev_plan/01_work_breakdown.md) under `WP-06`. Any
+blocker that needs a human action becomes a new `H-###` row and stops the package; the
+window does not authorize it.
 
 ## Member roles
 

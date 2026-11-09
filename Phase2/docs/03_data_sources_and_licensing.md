@@ -180,8 +180,9 @@ Use CSV files only. Do not download the large MP4 files.
 - All three flights use serial `1581F6Z9C241P003` and name `DJI Mini 4 Pro`; this is
   one vehicle and three flights.
 - The three home points are distinct: Colorado, Palos Verdes, and Offshore San
-  Francisco. The current `dim_site` seed lists only `DJI_CO` and `DJI_CA`; confirm
-  the mapping before `WP-05`.
+  Francisco. The current `dim_site` seed lists only `DJI_CO` and `DJI_CA`; the
+  unresolved mapping stays null and keys to `dim_site(-1)`. Member C can add real
+  site members in `WP-06` once a source-grounded mapping exists.
 
 ### Validation
 

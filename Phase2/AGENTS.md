@@ -9,11 +9,14 @@ AeroGrid Phase 2. It is subordinate to the repository-wide
 - Phase 1 is frozen and must not be edited.
 - Phase 2 documentation and planning baseline is accepted (`G0`/`H-001`).
 - **Phase 2 implementation is authorized** (`H-007`, 2026-11-04).
-- `WP-02` (platform validation) and `WP-03` (source validation) are `DONE`; `WP-03`
-  merged via PR #5 (`f9087f4`) and closed `G2` on 2026-11-08.
-- `WP-04` code is merged under `D-021` and its staging DDL is applied on Neon; only
-  real-sample evidence remains. `WP-05` is `READY` under `D-022`. Both are
-  owner-closable under `D-023`, and the human is hands-off until `G3`.
+- `WP-02` (platform validation), `WP-03` (source validation), `WP-04` (staging), and
+  `WP-05` (dimensions) are `DONE`; PR #3 (`b6b76b9`), PR #5 (`f9087f4`), PR #7, and
+  PR #8 are merged. `G3` was recorded `DONE` on 2026-11-09.
+- `WP-06` (core tracking and journey facts) is `READY` under the delegated window
+  `D-024`: Member C seeds the real dimension members first, Member D implements and
+  evidences the facts, and Member C records `G4`. Blocker `B-011` (the `WP-04` sample
+  run used the excluded legacy demo CSV) closes inside `WP-06`.
+- The human is hands-off until `G4`; their next input is `H-013` (WP-07 thresholds).
 - The current gate and next action are recorded in [PROGRESS.md](PROGRESS.md).
 - The current authorization status is `implementation_authorized: YES`.
 
@@ -93,7 +96,10 @@ Do not begin implementation if the work package is `NOT_STARTED`, `BLOCKED`, or
 - One owner is accountable per work package. Other members may review or support.
 - Do not mix unrelated refactors with the assigned package.
 - Keep implementation changes on a short-lived branch.
-- Do not commit, push, or open a PR unless the human explicitly asks.
+- Do not commit, push, or open a PR unless the human explicitly asks. Exception
+  (`D-023`/`D-024`): the `WP-04`/`WP-05`/`WP-06` owners may push their own package
+  branch, open its PR, and merge it after one peer approval, and Member C may record
+  `G4`, all without further human confirmation.
 - If implementation is authorized, use the acceptance evidence in
   [dev_plan/04_acceptance_and_definition_of_done.md](dev_plan/04_acceptance_and_definition_of_done.md).
 - Update [PROGRESS.md](PROGRESS.md) before ending a session. Include status, files
@@ -118,9 +124,11 @@ Use only these statuses in `PROGRESS.md`:
 | `CANCELLED` | Human-approved removal from scope. |
 
 Only the human or the work package owner with human confirmation may mark work
-`DONE`. Delegated exception (`D-023`): until `G3` is recorded, Member B may mark
-`WP-04` `DONE` and Member C may mark `WP-05` `DONE` once the evidence in their agent
-briefs is recorded. Every other package still needs human confirmation.
+`DONE`. Delegated exception (`D-024`): inside the window that ends when `G4` is
+recorded, Member D may mark `WP-06` `DONE` once the evidence in the `WP-06` agent
+brief is recorded, and Member C may record gate `G4` after verifying that evidence.
+`G3` was recorded the same way under `D-023`. Every other gate and package still
+needs human confirmation.
 
 ## Stop-and-ask register
 
@@ -257,12 +265,12 @@ Stop and ask the human if asked to:
 - Invite members, change repository visibility, or change branch protection.
 - Run destructive SQL, drop/truncate tables, or load production data outside CI.
 - Mark a gate or work package `DONE` without the required evidence and human
-  acceptance. Exception: `WP-04`/`WP-05` owners close those two packages under
-  `D-023`; gates stay human.
+  acceptance. Exception: `WP-06` and gate `G4` close under `D-024`; every other
+  package and gate still needs human acceptance.
 
-`WP-02`, `WP-03`, `WP-04`, and `WP-05` are authorized; `WP-04` runs under the recorded
-`D-021` exception and `WP-05` under `D-022`. `WP-02` and `WP-03` are `DONE`. `WP-04`
-has its DDL applied and needs only real-sample evidence; `WP-05` is `READY`. Both are
-owner-closable under `D-023`, and the human is hands-off until `G3`. Do not load the
-FAA `Airspace (DEMO)` layer; use the approved granular services (`D-020`). Later
-packages begin only after their gate is recorded in `PROGRESS.md`.
+`WP-02` through `WP-05` are `DONE` and `WP-06` is authorized; `WP-06` runs under the
+recorded `D-024` window. Member C completes the real dimension members, Member D
+loads the tracking and journey facts, and Member C records `G4`; the human is
+hands-off until then. Do not load the FAA `Airspace (DEMO)` layer; use the approved
+granular services (`D-020`). Later packages begin only after their gate is recorded
+in `PROGRESS.md`.
