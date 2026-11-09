@@ -112,8 +112,10 @@ chat with an agent.
 
 The human performs these steps. Member A may provide checklists but must not execute
 account actions. Steps 1-10 were completed by 2026-11-04; step 11 was completed via
-`H-007`. Step 9 needs re-verification: an API check on 2026-11-08 reported
-`Branch not protected` for `main`.
+`H-007`. On 2026-11-09 the repository ruleset `main-protection` (id `26542485`) is
+active: it requires one approving review and blocks non-fast-forward pushes. The
+classic branch-protection API still returns `Branch not protected`, so check
+**Settings → Rules** rather than **Settings → Branches**.
 
 1. Create or join the Neon organization.
 2. Create a project named `AeroGrid-DW` in `aws-us-east-2` with Object storage enabled.

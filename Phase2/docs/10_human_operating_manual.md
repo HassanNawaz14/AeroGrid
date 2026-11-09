@@ -54,9 +54,10 @@ The canonical queue is in [`../PROGRESS.md`](../PROGRESS.md). Current status:
 Project `AeroGrid-DW`, branch `br-royal-cherry-beij6hxw`, database `neondb`, bucket
 `aerogrid-raw`, and the storage endpoint are recorded in
 [`../PROGRESS.md`](../PROGRESS.md) → Neon resource record. The GitHub `warehouse`
-environment and its six required secrets are in place. `main` protection was recorded
-as done in `H-004`, but an API check on 2026-11-08 found no protection rule; re-check
-it when you return after `G4`. `H-002` remains deferred; the Member B-E names are recorded
+environment and its six required secrets are in place. `main` is covered by the active
+repository ruleset `main-protection` (one approving review plus no force-push), checked
+on 2026-11-09; the classic branch-protection API returns 404, so use **Settings →
+Rules**, not **Settings → Branches**. `H-002` remains deferred; the Member B-E names are recorded
 in [docs/08_team_work_division.md](08_team_work_division.md).
 
 `WP-02` through `WP-05` are `DONE`. `WP-06` is `READY` under `D-024`; the human is
@@ -109,8 +110,9 @@ need to be a reviewer.
 5. Restore the environment when the last delegated window ends:
    **Settings → Environments → `warehouse`** → remove Hamid4325 and HarveyWebbs from
    Required reviewers, re-enable **Prevent self-review**, **Save**.
-6. Check **Settings → Branches** for a `main` protection rule. On 2026-11-08 the API
-   reported `Branch not protected`, so re-enable it if it is still missing.
+6. Confirm the `main-protection` ruleset is still active (**Settings → Rules**): it
+   needs one approving review and blocks force-push. The classic **Settings →
+   Branches** page will still show "not protected"; that is expected.
 
 Remember the ownership rule this delegation exposed: tables created by `aerogrid_etl`
 can only be granted by `aerogrid_etl`, which is why the reader grants live in
