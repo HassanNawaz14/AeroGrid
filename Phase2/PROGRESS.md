@@ -11,9 +11,9 @@ read it before acting. Update it at the end of every work session.
 | Current gate | `G4 - Core movement facts` |
 | Current gate status | `IN_PROGRESS (WP-06 real tracking and journey facts; Member C records G4 under D-024)` |
 | Active work package | `WP-06` tracking and journey facts (Member D) with dimension completion (Member C) |
-| Active work package status | `IN_PROGRESS` (`WP-06` code, DDL, verifier, workflow, and unit tests implemented on `phase2/wp06-tracking-facts`; waiting on Member C's `03_seed_real.sql` + `samples/kbtp/01-01-22/1.csv` S3 upload before Neon verification; owner-closable under `D-024`; `B-011` closes with the real load) |
+| Active work package status | `IN_PROGRESS` (`WP-06` fact DDL, ETL, verifier, workflow, tests, and model docs committed on `phase2/wp06-tracking-facts`; handed off to Member C for `03_seed_real.sql` + `aerogrid-raw` upload, shared-branch CI persistence, closeout, and `G4` under `D-024`; `B-011` closes with the real load) |
 | Next work package | `WP-07` derived facts (after `G4` and approved thresholds) |
-| Next action owner | Member C extends real dimension members; Member D closes `WP-06`; Member C records `G4`; HassanNawaz14 returns for the `WP-07` thresholds (`D-024`) |
+| Next action owner | Member C (`HarveyWebbs`) completes `03_seed_real.sql` + `samples/kbtp/01-01-22/1.csv` upload and runs/closes the remaining `WP-06` verification steps on `phase2/wp06-tracking-facts` before recording `G4`; HassanNawaz14 returns for `WP-07` thresholds (`D-024`) |
 
 ## Status vocabulary
 
@@ -62,7 +62,7 @@ Gate definitions are canonical in
 | `WP-03` | Source validation and georeferencing | Member B (Hamid4325) | `WP-01` | `DONE` | Accepted 2026-11-08 by HassanNawaz14 after review; PR #5 merged as `f9087f4`. Tartan, Nightjar, nominal-io DJI, FAA facility/TFR plus granular airspace (`D-020`), and METAR/AWC/IEM are validated; capacity estimate recorded; temp raw samples removed. `G2` closed on this evidence. |
 | `WP-04` | Staging DDL and loaders | Member B (Hamid4325) | `WP-03` | `DONE` | DDL applied and readable (runs `42474788058`, `42477720902`; 15/15 self-check). Sample evidence recorded 2026-11-08 (4 read, 0 accepted, 4 rejected `INVALID_VEHICLE_ID`; idempotent; rolled back) used the legacy demo CSV, so accepted-row proof moves to `WP-06` under `B-011`. |
 | `WP-05` | Dimensions, keys, and dictionary | Member C | `WP-02`, model approval | `DONE` | `D-022` start condition met. All deliverables implemented on branch `phase2/wp05-dimensions`: six dimension DDL (`01_dimensions.sql`) with identity surrogate keys, natural-key uniqueness, `-1` unknown members, `dim_site` FKs, idempotent; `02_seed.sql` derived `dim_time` hourly spine 2022-01-01..2022-01-07 (168 real-derived rows, ≥100 floor; site codes KBTP/KAGC/NIGHTJAR_PA/DJI_CO from WP-03; unresolved DJI site → `-1`); verifier (`verify_wp05_dimensions.py`) applied DDL+seed twice idempotently, asserts six tables, `-1` row each, no duplicate natural keys, FK targets exist, reader SELECT = true; workflow `wp05-dimensions-verify.yml` (15-min warehouse env, DATABASE_URL secret); `etl/dimensions.py` + `tests/test_dimensions.py`; data dictionary and DBML synchronized to DDL. Neon verifier PASS 2026-11-08: connected `aerogrid_etl` → `neondb` PG 18.6; six tables present; dim_time=169/dim_site=5/others=1 with `-1` row each; no duplicate natural keys; all dim_site FK targets exist; reader SELECT true. `WP-05` `DONE` under `D-023`; `G3` stays `IN_PROGRESS` for HassanNawaz14 to record. | `Phase2/sql/02_dimensions/*`, `Phase2/etl/verify_wp05_dimensions.py`, `Phase2/etl/dimensions.py`, `.github/workflows/wp05-dimensions-verify.yml`, `Phase2/tests/test_dimensions.py`, `data/data_dictionary.md`, `data/diagrams/aerogrid_schema.dbml`, `Phase2/PROGRESS.md` | pytest 43 passed; compileall OK; git diff --check clean; Neon verifier PASS | `G3` remains `IN_PROGRESS` (human records after WP-05); WP-06 waits for G3. |
-| `WP-06` | Tracking and journey facts | Member D | `WP-04`, `WP-05` | `IN_PROGRESS` | Branch `phase2/wp06-tracking-facts`: added `03_facts/01_facts.sql` (`fact_vehicle_tracking`, `fact_flight_journey`), `etl/facts.py`, `etl/verify_wp06_facts.py`, `.github/workflows/wp06-facts-verify.yml` (temp branch `push` trigger while open), `tests/test_facts.py`, chunked `staging_writer.py`/`loaders.py` batching (`batch_size=500` opt-in for `WP-06`, preserving `batch_size=1` default), and aligned data dictionary/DBML/ETL docs (`altitude_source VARCHAR(32)`). Next: wait for Member C to upload `samples/kbtp/01-01-22/1.csv` to `aerogrid-raw` and merge `03_seed_real.sql`; then rebase, run `wp06-facts-verify.yml` persistently with Member C/B `warehouse` approval, remove temp `push` trigger, close `B-011`, and hand back to Member C for `G4` (`D-024`). |
+| `WP-06` | Tracking and journey facts | Member D | `WP-04`, `WP-05` | `IN_PROGRESS` | Branch `phase2/wp06-tracking-facts`: Member D committed `03_facts/01_facts.sql`, `etl/facts.py`, `etl/verify_wp06_facts.py`, `.github/workflows/wp06-facts-verify.yml` (temp branch `push` trigger while open), `tests/test_facts.py`, chunked `staging_writer.py`/`loaders.py` batching, and aligned dictionary/DBML/ETL docs (`altitude_source VARCHAR(32)`). Next (handed off to Member C, `HarveyWebbs`, on this branch/Draft PR): upload `samples/kbtp/01-01-22/1.csv` to `aerogrid-raw`, merge `03_seed_real.sql`, rebase `phase2/wp06-tracking-facts`, run `wp06-facts-verify.yml` persistently (`warehouse` approval), remove temp `push` trigger, close `B-011`/`WP-06`, merge PR, and record `G4` (`D-024`). |
 | `WP-07` | Derived facts | Member E | `WP-06` | `NOT_STARTED` | Wait for `G4` and threshold approval |
 | `WP-08` | Data-quality framework | Member E | `WP-04` to `WP-07` | `NOT_STARTED` | Wait for derived facts |
 | `WP-09` | PDF reports | Member E | `WP-08` | `NOT_STARTED` | Wait for DQ results |
@@ -249,6 +249,44 @@ Caveats:
    `warehouse` environment was restored to `prevent_self_review: true` after each
    approval.
 
+## WP-06 handoff and Member C execution checklist
+
+Member D (`ahmadazad-dev`) implemented and committed all `WP-06` fact DDL, ETL modules,
+verifier, workflow, unit tests, and dictionary/DBML updates on shared-repository branch
+`phase2/wp06-tracking-facts`. Remaining CI/warehouse execution and closeout steps are
+handed off to Member C (`HarveyWebbs`) inside the same branch/PR (`D-024`):
+
+- **Collaborator write access:** `phase2/wp06-tracking-facts` is a branch on
+  `HassanNawaz14/AeroGrid` (not a private fork), so collaborators with repository Write
+  access (`HarveyWebbs`) may check it out and push commits directly into the PR
+  (`git fetch origin && git checkout -b phase2/wp06-tracking-facts origin/phase2/wp06-tracking-facts`).
+- **Already done by Member D:**
+  - `Phase2/sql/03_facts/01_facts.sql`, `Phase2/etl/facts.py` (`wp06-v1`, `300s` gap
+    split, `-1` optional grid/weather fallback, fail-closed required dims), batching in
+    `staging_writer.py`/`loaders.py`, `Phase2/etl/verify_wp06_facts.py`,
+    `.github/workflows/wp06-facts-verify.yml`, `Phase2/tests/test_facts.py`, and
+    dictionary/DBML/doc sync (`altitude_source VARCHAR(32)`).
+- **Remaining tasks to be executed by Member C (`HarveyWebbs`):**
+  1. Upload real Tartan `kbtp/01-01-22/1.csv` (SHA-256
+     `86342d09e5004102d765b82d04d16b43b6f15f2e7d829bfbde7909187d08a762`) to Neon bucket
+     `aerogrid-raw` at `samples/kbtp/01-01-22/1.csv`.
+  2. Add, CI-verify, and merge `Phase2/sql/02_dimensions/03_seed_real.sql` (real Tartan
+     `dim_vehicle` rows and optional grid cells/policy while preserving `-1` rows and
+     natural-key uniqueness).
+  3. Rebase `phase2/wp06-tracking-facts` onto `origin/main` (or push dimension/CI fixes
+     to `phase2/wp06-tracking-facts`) and approve + run `wp06-facts-verify.yml`
+     (`dry_run=false`) in the `warehouse` environment (Member C or B approves).
+  4. Verify CI outputs: real `pytest` pass, accepted staging rows `> 0` (closing
+     `B-011`), `fact_vehicle_tracking + fact_flight_journey >= 10,000`, 1-to-1
+     staging-to-tracking reconciliation, `0` new inserts on Pass 2, `0` FK orphans, `0`
+     `-1` rows on required dims, and `aerogrid_reader` `SELECT = true`.
+  5. Remove the temporary `push:` trigger from `.github/workflows/wp06-facts-verify.yml`
+     before marking Ready & merging; record the CI run URL and exact counts below, mark
+     `B-011` `RESOLVED` and `WP-06` `DONE` (`D-024`).
+  6. Submit one approving peer review from an account other than the PR author (Member C
+     or E can approve Member D's PR even after collaborating on the branch), merge,
+     re-dispatch `wp06-facts-verify.yml` from `main`, and record `G4` `DONE`.
+
 ## Handoff log
 
 | Date | From | To | Work package | Summary | Files | Checks | Next step |
@@ -280,6 +318,7 @@ Caveats:
 | `2026-11-08` | HassanNawaz14 | Team | `D-023` closeout window | Documented the delegated closeout window so Member B and Member C agents can finish without human input: decision `D-023`, agent briefs in `dev_plan/01`, role and review mapping in `docs/08`, operating-rule exceptions in `docs/09`, and a hands-off window with a one-time environment setup and return checklist in `docs/10`. No code or data changed. | `Phase2/DECISIONS.md`, `AGENTS.md`, `Phase2/AGENTS.md`, `Phase2/PROGRESS.md`, `Phase2/README.md`, `README.md`, `Phase2/dev_plan/01_work_breakdown.md`, `Phase2/dev_plan/02_dependencies_and_gates.md`, `Phase2/dev_plan/README.md`, `Phase2/docs/01`, `Phase2/docs/05`, `Phase2/docs/07`, `Phase2/docs/08`, `Phase2/docs/09`, `Phase2/docs/10`, `data/data_dictionary.md`, `.github/workflows/README.md` | `pytest` 38 passed; `git diff --check`; stale-status and table-format checks | `HassanNawaz14` does the one-time `warehouse` reviewer setup, then Member B closes `WP-04` and Member C closes `WP-05`; the human returns at `G3` |
 | `2026-11-09` | HassanNawaz14 | Team | `G3` / `D-024` | Recorded `G3` `DONE` on HassanNawaz14's explicit instruction and opened `D-024`: Member D owns `WP-06`; Member C completes real `dim_vehicle` (and grid) members and verifies the fact load before recording `G4`. Flagged `B-011`: the prior `WP-04` sample proof used the legacy demo CSV, so `WP-06` must load real Tartan rows, show accepted rows > 0, and reconcile tracking facts to staging. No application code changed. | `Phase2/PROGRESS.md`, `Phase2/DECISIONS.md`, `AGENTS.md`, `Phase2/AGENTS.md`, `Phase2/README.md`, `README.md`, `Phase2/dev_plan/01_work_breakdown.md`, `Phase2/dev_plan/02_dependencies_and_gates.md`, `Phase2/dev_plan/README.md`, `Phase2/docs/01`, `Phase2/docs/03`, `Phase2/docs/05`, `Phase2/docs/07`, `Phase2/docs/08`, `Phase2/docs/09`, `Phase2/docs/10`, `.github/workflows/README.md` | `pytest` 43 passed; `git diff --check`; status and link checks | PR #9 needs one approving review to merge; then Member C extends dimensions; Member D loads real Tartan staging + facts and closes `WP-06`; Member C records `G4` |
 | `2026-11-09` | Member D (`ahmadazad-dev`) | Member C (`HarveyWebbs`) / Team | `WP-06` | Implemented `WP-06` core movement facts on branch `phase2/wp06-tracking-facts`: idempotent `fact_vehicle_tracking` and `fact_flight_journey` DDL (`01_facts.sql`), bulk dimension lookup/mapping (`-1` only for unresolved optional grid/weather; fail-closed required dims), deterministic gap-split (`300s`, `wp06-v1`) journey segmentation skipping single-point tracks, chunked staging/fact batching (`batch_size=500` opt-in, preserving `batch_size=1` default), Neon/S3 SHA-256 verifier, workflow (temp branch `push` trigger while open), 10 new unit tests, and dictionary/DBML/doc sync (`altitude_source VARCHAR(32)`). No Neon write run executed yet; `B-011` remains open until Member C lands `03_seed_real.sql` and uploads `samples/kbtp/01-01-22/1.csv` into `aerogrid-raw`. | `Phase2/sql/03_facts/01_facts.sql`, `Phase2/etl/facts.py`, `Phase2/etl/verify_wp06_facts.py`, `Phase2/etl/staging_writer.py`, `Phase2/etl/loaders.py`, `.github/workflows/wp06-facts-verify.yml`, `Phase2/tests/test_facts.py`, `data/data_dictionary.md`, `data/diagrams/aerogrid_schema.dbml`, `Phase2/docs/05_etl_pipeline.md`, `Phase2/sql/README.md`, `Phase2/etl/README.md`, `Phase2/tests/README.md`, `.github/workflows/README.md`, `Phase2/README.md`, `Phase2/PROGRESS.md` | `python -m compileall -q Phase2/etl Phase2/tests` OK; local Python 3.12 scratch test runner (`53 passed, 0 failed`; real `pytest` runs in CI); `git diff --check` clean; YAML/DBML/SQL/link checks OK | Member C uploads `samples/kbtp/01-01-22/1.csv` to `aerogrid-raw` and merges `03_seed_real.sql`; Member D rebases onto `main`, runs `wp06-facts-verify.yml` persistently (Member C/B approves `warehouse` run), removes temp `push` trigger, closes `B-011`, and opens PR for peer review (`D-024`). |
+| `2026-11-09` | Member D (`ahmadazad-dev`) | Member C (`HarveyWebbs`) | `WP-06` PR handoff | Documented Member C's collaborator workflow and remaining `WP-06` execution checklist inside `Phase2/PROGRESS.md` (`03_seed_real.sql`, `aerogrid-raw` upload, shared-branch CI persistence on `phase2/wp06-tracking-facts`, temp trigger removal, `B-011`/`WP-06` closeout, peer review, merge, and `G4`) ahead of pushing `phase2/wp06-tracking-facts`. | `Phase2/PROGRESS.md`, `Phase2/README.md` | `git diff --check` clean; Markdown links/tables verified | Push `phase2/wp06-tracking-facts`, open Draft PR on `HassanNawaz14/AeroGrid` allowing collaborator edits, and hand execution of remaining checklist items to Member C (`HarveyWebbs`). |
 
 ## Change log
 
@@ -315,6 +354,7 @@ Caveats:
 | `2026-11-08` | Recorded `D-023`, the delegated closeout window: Members B and C may self-approve their `warehouse` runs, peer-review each other, merge their own package PRs, and mark `WP-04`/`WP-05` `DONE`. Gates, secrets, roles, repository settings, and destructive SQL stay human-only. The human returns only at `G3`. | HassanNawaz14 | `D-023`, `WP-04`, `WP-05`, `G3` |
 | `2026-11-09` | Recorded `G3` `DONE` on explicit human instruction; opened `WP-06` for Member D with Member C completing dimension members and recording `G4` under `D-024`; tracked `B-011` for the demo-CSV sample proof | HassanNawaz14 | `G3`, `WP-06`, `D-024`, `B-011` |
 | `2026-11-09` | Implemented `WP-06` core movement facts DDL, mapping/journey ETL, S3/Neon verifier, workflow, batched staging writer optimization, unit tests, and doc/dictionary/DBML alignment on `phase2/wp06-tracking-facts`; Neon acceptance load awaits Member C's `03_seed_real.sql` and raw S3 upload | Member D (`ahmadazad-dev`) | `WP-06`, `D-024`, `B-011` |
+| `2026-11-09` | Documented `WP-06` Member C collaborator execution checklist on `phase2/wp06-tracking-facts` so Member C can finish `03_seed_real.sql`/S3, run/approve CI persistence in this PR, close `B-011`/`WP-06`, and record `G4` | Member D (`ahmadazad-dev`) | `WP-06`, `D-024`, `B-011` |
 
 ## Update protocol
 
