@@ -32,6 +32,8 @@ from etl.facts import (
 from etl.loaders import TARTAN_COLUMNS, load_tartan
 from etl.staging_writer import insert_on_conflict_do_nothing
 from etl.verify_wp06_facts import (
+    DIMENSION_SEED_SQL,
+    SQL_FILES,
     check_preflight,
     main as verify_main,
     redact_secrets,
@@ -538,6 +540,12 @@ def test_verifier_sha256_fails_closed_and_preflight_requires_real_vehicles(tmp_p
     errs = check_preflight(_PreflightCursor())
     assert len(errs) == 1
     assert "03_seed_real.sql" in errs[0]
+
+
+def test_verifier_applies_real_dimension_seed_before_fact_ddl():
+    assert DIMENSION_SEED_SQL.name == "03_seed_real.sql"
+    assert DIMENSION_SEED_SQL.is_file()
+    assert DIMENSION_SEED_SQL not in SQL_FILES
 
 
 def test_vehicle_lookup_handles_unpadded_sql_to_hex_ids():
