@@ -20,11 +20,10 @@ warehouse without exposing secrets.
 - Phase 1 is complete and frozen.
 - Phase 2 documentation and planning baseline is accepted (`G0`/`H-001`).
 - Implementation is **authorized** (`H-007`, 2026-11-04).
-- `G2` is closed; the current gate is `G3`.
-- `WP-02` and `WP-03` are `DONE` (PR #3 `b6b76b9`, PR #5 `f9087f4`). `WP-04` has its
-  DDL applied and needs only real-sample evidence; `WP-05` is `READY` for Member C
-  under `D-022`. Both run in the delegated window `D-023`; the human is hands-off until
-  `G3`.
+- `G2` and `G3` are closed; the current gate is `G4`.
+- `WP-02`-`WP-05` are `DONE` (PR #3 `b6b76b9`, PR #5 `f9087f4`, PR #7, PR #8).
+  `WP-06` is delegated to Member D under `D-024`, with Member C completing the real
+  dimension members and recording `G4`. The human is hands-off until `G4`.
 
 ## The one rule for secrets
 
@@ -48,76 +47,75 @@ The canonical queue is in [`../PROGRESS.md`](../PROGRESS.md). Current status:
 | `H-008` | Confirm handling of tracked legacy synthetic samples | `DONE` via `D-017` |
 | `H-009` | Run the `WP-02` platform validation workflow and confirm read-only access | `DONE` 2026-11-07; run `42276737288` `PASS` after the reader role was replaced |
 | `H-010` | Confirm the FAA airspace source or approve a replacement | `DONE` 2026-11-07 via `D-020` (granular services) |
-| `H-011` | Run `Phase2/sql/00_grants.sql` as `neondb_owner` | `DONE` 2026-11-08; 15-row self-check all `true`; remaining sample evidence is delegated to Member B under `D-023` |
+| `H-011` | Run `Phase2/sql/00_grants.sql` as `neondb_owner` | `DONE` 2026-11-08; 15-row self-check all `true`; `WP-04` then closed under `D-023` with sample caveat `B-011` |
 | `H-012` | Confirm the `WP-05` start gate | `DONE` 2026-11-08 via `D-022` |
+| `H-013` | Approve the `WP-07` thresholds and algorithm version | `OPEN`; needed after `G4`, before Member E starts derived facts |
 
 Project `AeroGrid-DW`, branch `br-royal-cherry-beij6hxw`, database `neondb`, bucket
 `aerogrid-raw`, and the storage endpoint are recorded in
 [`../PROGRESS.md`](../PROGRESS.md) → Neon resource record. The GitHub `warehouse`
 environment and its six required secrets are in place. `main` protection was recorded
 as done in `H-004`, but an API check on 2026-11-08 found no protection rule; re-check
-it when you return at `G3`. `H-002` remains deferred; the Member B-E names are recorded
+it when you return after `G4`. `H-002` remains deferred; the Member B-E names are recorded
 in [docs/08_team_work_division.md](08_team_work_division.md).
 
-`WP-02`, `WP-03`, `WP-04`, and `WP-05` are authorized. `WP-02`/`WP-03` are `DONE`;
-`WP-04` and `WP-05` are owner-closable under `D-023`. Do not start a later work
-package until its gate is recorded in `../PROGRESS.md`.
+`WP-02` through `WP-05` are `DONE`. `WP-06` is `READY` under `D-024`; the human is
+hands-off until `G4`. Do not start a later work package until its gate is recorded in
+`../PROGRESS.md`.
 
-## Hands-off window: your input is zero until `G3`
+## Hands-off window: your input is zero until `G4`
 
-`WP-04` and `WP-05` are delegated under `D-023` (2026-11-08). Member B closes `WP-04`,
-Member C closes `WP-05`, and both may approve their own `warehouse` workflow runs. You
-do not approve runs, run SQL, or merge PRs for these two packages.
+`G3` was recorded on 2026-11-09 on your explicit instruction. `WP-04` and `WP-05` are
+`DONE`, and `D-024` hands `WP-06` to Member D, with Member C completing the real
+dimension members and recording `G4`.
 
-Current position: staging DDL is applied and readable, and the 15-row `00_grants.sql`
-self-check returns `true` on every row after runs
-[42474788058](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42474788058) and
-[42477720902](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42477720902).
+One finding you should know: the `WP-04` sample proof ran against
+`data/sample/tartan_trajectory_sample.csv`, a legacy synthetic demo file. It is tracked
+as `B-011`; `WP-06` closes it by loading real Tartan rows, proving accepted rows above
+zero, and reconciling tracking facts to staging. `G3` is recorded with that caveat. If
+you want the sample proof redone first, stop this window and say so.
 
-### One-time setup before you step away (5 minutes)
+### What you need to do now
 
-GitHub does not let an agent change environment protection, so do this part yourself:
-
-1. Open **Settings → Environments → `warehouse`**.
-2. Add **Hamid4325** and **HarveyWebbs** as **Required reviewers**; keep yourself.
-3. Leave **Prevent self-review** unchecked, then **Save protection rules**.
-
-After that the window runs without you.
+Nothing. The `warehouse` environment already has Hamid4325 and HarveyWebbs as required
+reviewers, and they approve the runs that Members C and D dispatch. Member D does not
+need to be a reviewer.
 
 ### What the owners do
 
-- Member B produces CI real-sample evidence and marks `WP-04` `DONE`. Brief:
-  [dev_plan/01_work_breakdown.md](../dev_plan/01_work_breakdown.md#wp-04-staging-ddl-and-loaders).
-- Member C builds the six dimensions, keys, seeds, and data dictionary, then marks
-  `WP-05` `DONE`. Brief:
-  [dev_plan/01_work_breakdown.md](../dev_plan/01_work_breakdown.md#wp-05-dimensions-keys-and-data-dictionary).
-- Peer review: Member C or D approves `WP-04`; Member D approves `WP-05`. The author
-  merges.
+- Member C first adds real `dim_vehicle` identities (and grid cells if implemented)
+  from the same real Tartan sample, then after Member D's merge dispatches
+  `wp06-facts-verify.yml` from `main` and records `G4` with the run link.
+- Member D loads real Tartan rows into staging, builds `fact_vehicle_tracking` and
+  `fact_flight_journey` with correct keys, records counts, reconciliation, idempotency,
+  and orphan checks, and marks `WP-06` `DONE`. Briefs:
+  [dev_plan/01_work_breakdown.md](../dev_plan/01_work_breakdown.md#wp-06-tracking-and-journey-facts).
+- Peer review: Member C or E approves `WP-06`; the author merges.
+- Member E stays on review duty and does not start `WP-07`, which needs your
+  thresholds (`H-013`).
 - Any human-only blocker becomes a new `H-###` row and stops that package. The window
   does not authorize secrets, Neon role/branch changes, repository settings, or
   destructive SQL.
 
 ### When you return
 
-1. Read [`../PROGRESS.md`](../PROGRESS.md): `WP-04` and `WP-05` should be `DONE` with
-   run links and counts.
-2. Rerun [`../sql/00_grants.sql`](../sql/00_grants.sql) as `neondb_owner` once; all 15
+1. Read [`../PROGRESS.md`](../PROGRESS.md): `WP-06` should be `DONE` and `G4` recorded
+   with a run link, fact counts, and reconciliation results.
+2. Confirm `B-011` is closed by real accepted staging rows and tracking reconciliation.
+3. Rerun [`../sql/00_grants.sql`](../sql/00_grants.sql) as `neondb_owner` once; all 15
    rows must be `true`.
-3. Review and record `G3`.
-4. Restore the environment: **Settings → Environments → `warehouse`** → remove
-   Hamid4325 and HarveyWebbs from Required reviewers, re-enable **Prevent self-review**,
-   **Save**.
-5. Check **Settings → Branches** for a `main` protection rule. On 2026-11-08 the API
-   reported `Branch not protected`, so re-enable it if it is still missing. This does
-   not block `WP-04`/`WP-05` and is not part of the delegated window.
+4. Approve the `WP-07` thresholds and algorithm version (`H-013`) before Member E
+   starts derived facts.
+5. Restore the environment when the last delegated window ends:
+   **Settings → Environments → `warehouse`** → remove Hamid4325 and HarveyWebbs from
+   Required reviewers, re-enable **Prevent self-review**, **Save**.
+6. Check **Settings → Branches** for a `main` protection rule. On 2026-11-08 the API
+   reported `Branch not protected`, so re-enable it if it is still missing.
 
-Remember the ownership rule this window exposed: tables created by `aerogrid_etl` can
-only be granted by `aerogrid_etl`, which is why the reader grants live in
-[`../sql/00_schemas.sql`](../sql/00_schemas.sql).
-
-Member D and E stay on review duty; they must not start `WP-06`/`WP-07` until `G3`/`G4`
-are recorded. Team read access uses the shared `aerogrid_reader` connection string;
-each member can verify it with the checks in
+Remember the ownership rule this delegation exposed: tables created by `aerogrid_etl`
+can only be granted by `aerogrid_etl`, which is why the reader grants live in
+[`../sql/00_schemas.sql`](../sql/00_schemas.sql). Team read access uses the shared
+`aerogrid_reader` connection string; each member can verify it with the checks in
 [docs/07](07_operations_access_and_security.md#member-read-access-check).
 
 To re-run the platform validation later, dispatch **Actions → Platform validation

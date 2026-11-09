@@ -4,11 +4,12 @@ Phase 2 turns the Phase 1 dimensional design into a shared, reproducible Postgre
 data warehouse loaded from real public data. This directory is the control point for
 Phase 2 documentation, planning, status, and future implementation.
 
-**Implementation status: AUTHORIZED (2026-11-04, `H-007`).** `G0`, `G1`, and `G2` are
-closed. `WP-02` (run `42276737288`, PR #3 `b6b76b9`) and `WP-03` (PR #5 `f9087f4`)
-are `DONE`, so `G2` closed on 2026-11-08. `WP-04` staging DDL is applied and readable;
-only its real-sample evidence remains. `WP-04` and `WP-05` are owner-closable under
-the delegated window `D-023`, so the human input is zero until `G3`.
+**Implementation status: AUTHORIZED (2026-11-04, `H-007`).** `G0`-`G3` are closed.
+`WP-02` (run `42276737288`, PR #3 `b6b76b9`), `WP-03` (PR #5 `f9087f4`), `WP-04` (PR
+#7), and `WP-05` (PR #8) are `DONE`. `G3` was recorded on 2026-11-09 with `B-011`
+open, so accepted real staging rows are proven by `WP-06`. `WP-06` is `READY` under
+the delegated window `D-024`: Member C seeds the real dimension members and records
+`G4`, Member D loads and evidences the facts. Human input is zero until `G4`.
 
 ## Quick links
 
@@ -88,8 +89,8 @@ Statuses use the vocabulary in [AGENTS.md](AGENTS.md). Detail is in
 | `G0` | Documentation baseline complete and links valid | `DONE` (`H-001`) |
 | `G1` | Human prerequisites and approvals | `DONE` (`H-007`; `H-002` deferred) |
 | `G2` | Platform and source readiness validated | `DONE` 2026-11-08 (`WP-02`/`WP-03`; PR #5 `f9087f4`) |
-| `G3` | Staging, dimensional schema, and keys validated | `IN_PROGRESS` (`WP-04` real-sample evidence and `WP-05` build; owners close under `D-023`) |
-| `G4` | Core tracking and journey facts loaded | `NOT_STARTED` |
+| `G3` | Staging, dimensional schema, and keys validated | `DONE` 2026-11-09 (`WP-04`/`WP-05`; `B-011` open) |
+| `G4` | Core tracking and journey facts loaded | `IN_PROGRESS` (`WP-06` under `D-024`; Member C records) |
 | `G5` | Derived facts and thresholds validated | `NOT_STARTED` |
 | `G6` | DQ, reports, views, and automation complete | `NOT_STARTED` |
 | `G7` | End-to-end run and team access demonstrated | `NOT_STARTED` |
@@ -100,9 +101,9 @@ Statuses use the vocabulary in [AGENTS.md](AGENTS.md). Detail is in
 | `WP-01` Human prerequisites and shared platform | Member A + human | `DONE` |
 | `WP-02` Platform validation and access proof | Member A | `DONE` |
 | `WP-03` Source validation and georeferencing | Member B | `DONE` |
-| `WP-04` Staging DDL and loaders | Member B | `IN_PROGRESS` (DDL applied; real-sample evidence open; owner-closable) |
-| `WP-05` Dimensions, keys, and dictionary | Member C | `READY` (owner-closable) |
-| `WP-06` Tracking and journey facts | Member D | `NOT_STARTED` |
+| `WP-04` Staging DDL and loaders | Member B | `DONE` (PR #7; sample caveat `B-011`) |
+| `WP-05` Dimensions, keys, and dictionary | Member C | `DONE` (PR #8) |
+| `WP-06` Tracking and journey facts | Member D | `READY` (owner-closable under `D-024`) |
 | `WP-07` Derived facts | Member E | `NOT_STARTED` |
 | `WP-08` Data-quality framework | Member E | `NOT_STARTED` |
 | `WP-09` PDF reports | Member E | `NOT_STARTED` |
@@ -112,18 +113,22 @@ Statuses use the vocabulary in [AGENTS.md](AGENTS.md). Detail is in
 
 ## Current blockers and next action
 
-**`WP-03` is `DONE` and `G2` is closed; `WP-04` and `WP-05` are owner-closable.**
-Platform validation passed on 2026-11-07 (22 pass, 1 warn, 0 fail) and source
-validation merged in PR #5 (`f9087f4`). `H-002` remains deferred by the human; the
-Member B-E names are recorded in [docs/08_team_work_division.md](docs/08_team_work_division.md).
-The owner-run grants (`H-011`) are applied and the 15-row self-check returns `true` on
-every row. Member B only needs the CI real-sample evidence for `WP-04`.
+**`G3` is recorded and `WP-06` is `READY`.** `WP-02`-`WP-05` are `DONE`; platform
+validation passed on 2026-11-07 (22 pass, 1 warn, 0 fail), source validation merged
+in PR #5 (`f9087f4`), and the staging and dimension packages merged in PR #7 and PR
+#8. `H-002` remains deferred by the human; the Member B-E names are recorded in
+[docs/08_team_work_division.md](docs/08_team_work_division.md). `B-011` records that
+the `WP-04` sample run used the excluded legacy demo CSV, so `WP-06` must show
+accepted real staging rows and reconcile the tracking facts to them.
 
-**Next actions:** Member B closes `WP-04` and Member C closes `WP-05` under `D-023`
-(agent briefs in [dev_plan/01_work_breakdown.md](dev_plan/01_work_breakdown.md));
-HassanNawaz14 returns at `G3` to record the gate and restore the environment.
-Human-only actions still require the human (secrets, Neon roles, repository and
-environment settings, destructive SQL, gate acceptance).
+**Next actions:** Member C seeds the real dimension members under
+`D-024`; Member D then loads and evidences `WP-06` and closes `B-011`; Member C
+dispatches the verification and records `G4`. Agent briefs are in
+[dev_plan/01_work_breakdown.md](dev_plan/01_work_breakdown.md). HassanNawaz14 returns
+after `G4` for `H-013` (WP-07 thresholds), the environment restoration, and the
+main-branch protection check. Human-only actions still require the human (secrets,
+Neon roles, repository and environment settings, destructive SQL, gate acceptance
+after `G4`).
 
 ## Directory map
 
@@ -137,15 +142,15 @@ Phase2/
 ├── docs/                     # Architecture, sources, model, ETL, DQ, manuals
 ├── dev_plan/                 # Work packages, gates, acceptance, handoffs
 ├── templates/                # Work package, handoff, validation, PR templates
-├── sql/                      # Future DDL and load scripts (empty by design)
-├── etl/                      # Future Python ETL package (empty by design)
-├── tests/                    # Future parser, SQL, and DQ tests (empty by design)
-└── reports/                  # Future generated PDF reports (empty by design)
+├── sql/                      # Schema, staging, dimension DDL, seeds, grants
+├── etl/                      # Python loaders, verifiers, and transforms
+├── tests/                    # Parser, SQL, and DQ tests
+└── reports/                  # Generated PDF reports (not built yet)
 ```
 
-The `sql/`, `etl/`, `tests/`, and `reports/` folders contain README placeholders.
-They exist to establish ownership and boundaries. They must remain free of
-implementation until the relevant work package is authorized.
+The `sql/`, `etl/`, and `tests/` folders hold only work that an authorized work
+package delivered (`WP-04` staging, `WP-05` dimensions). Later packages add their
+own files when their gate is recorded.
 
 ## Documentation rules
 

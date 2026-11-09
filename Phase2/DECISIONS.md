@@ -40,6 +40,7 @@ decision. Use the template in [templates/DECISION_RECORD.md](templates/DECISION_
 | `D-021` | Start `WP-04` before `G2` is recorded and review `WP-03`/`WP-04` together | `ACCEPTED` | Approved in session by the human, 2026-11-07 |
 | `D-022` | Keep `WP-05` not started until `WP-03` and `WP-04` are merged; record `G3` after `WP-04` and `WP-05` acceptance | `ACCEPTED` | Approved in session by the human, 2026-11-08 |
 | `D-023` | Delegate `WP-04`/`WP-05` closeout to Members B and C through `G3`: self-approved CI runs, peer review, owner-marked `DONE`; gates stay human | `ACCEPTED` | Approved in session by the human, 2026-11-08 |
+| `D-024` | Extend the delegated window through `G4`: Member D closes `WP-06`, Member C completes dimension members and records `G4`; `G3` recorded as instructed with `B-011` open | `ACCEPTED` | Approved in session by the human, 2026-11-09 |
 
 ## D-001: Neon Free PostgreSQL
 
@@ -472,6 +473,52 @@ CI-only write rule keeps one audited path into the shared warehouse.
 - Every other work package still needs human confirmation to close.
 - If a blocker needs a human-only action, the owner records `BLOCKED_ON_HUMAN`, adds a
   new `H-###` item, and stops. This window does not authorize that action.
+
+## D-024: Extended delegated window through `G4` for `WP-06`
+
+**Date:** 2026-11-09
+**Decider:** HassanNawaz14 (Member A, human owner)
+**Status:** `ACCEPTED`
+
+**Context:** `WP-04` and `WP-05` closed under `D-023`, and the human instructed the
+Member A agent to record `G3` and let Members D and C start and finish the next work
+without further human input. The `WP-04` sample proof used the legacy synthetic demo
+CSV (`B-011`), so the real accepted-row proof must come from `WP-06`'s real Tartan
+load. The dimensions currently hold only their `-1` unknown members apart from
+`dim_time` and `dim_site`, which blocks surrogate-key mapping for real tracking rows.
+
+**Decision:** Extend the delegated window through `G4`:
+
+1. Member D owns `WP-06` (tracking and journey facts). Member C completes the
+   dimension members needed for key mapping (`dim_vehicle` from real observed
+   `icao24` identities, and any real grid cells) and verifies the fact load. Member E
+   stays a reviewer and does not start `WP-07`, which needs approved thresholds.
+2. `G3` is recorded as instructed by the human on 2026-11-09, with `B-011` open: the
+   real accepted-row staging proof is folded into `WP-06`.
+3. D and C may commit, push their own package branches, open PRs, and merge after one
+   peer approval (Member C or E for `WP-06`). No agent merges another package's PR.
+4. D dispatches the `WP-06` workflow; Member C (or Member B) approves the `warehouse`
+   run because D is not an environment reviewer. All database writes stay CI-only.
+5. D marks `WP-06` `DONE` after recording counts, reconciliation, idempotency, and
+   orphan evidence. Member C then records `G4`. This is the only gate an agent may
+   record, and only for `G4` with the `WP-06` evidence present.
+6. The human returns after `G4` to review the evidence, approve the `WP-07`
+   thresholds, restore the environment reviewers, and re-enable
+   `Prevent self-review`.
+
+These stay human-only: secrets, Neon roles/branches/databases, repository and
+environment settings, destructive SQL, thresholds, and any gate other than `G4`.
+
+**Rationale:** The remaining work is well-defined, and the dimension gap is a
+mechanical prerequisite for key mapping. Delegating the closeout and `G4` keeps the
+project moving while preserving the evidence bar and the CI-only write rule.
+
+**Consequences:**
+
+- `PROGRESS.md` treats `WP-06` as owner-closable and `G4` as verifier-recordable.
+- `WP-07` and every later package still need the human (thresholds and gates).
+- `B-011` closes only when real Tartan rows are accepted in staging and reconcile to
+  the tracking facts.
 
 ## Change process
 

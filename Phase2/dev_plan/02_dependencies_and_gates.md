@@ -147,9 +147,11 @@ Evidence:
 
 ### G3: Staging and dimensional schema
 
-**Status:** IN_PROGRESS; staging DDL is applied and readable. `WP-04` needs only its
-real-sample evidence and `WP-05` is `READY`; both owners close under `D-023`, and
-HassanNawaz14 records `G3`.
+**Status:** DONE 2026-11-09, recorded on HassanNawaz14's explicit instruction.
+Staging DDL is applied and readable; the six dimensions, `-1` members, unique natural
+keys, FK targets, and reader access are verified. Caveat `B-011`: the `WP-04` sample
+used the legacy demo CSV, so real accepted-row staging proof is required in `WP-06`
+before `G4`.
 **Owner:** Member C for schema; Member B for staging
 **Reviewers:** Members A, D
 **Required WPs:** `WP-04`, `WP-05`
@@ -175,6 +177,8 @@ Evidence:
 
 ### G4: Core movement facts
 
+**Status:** IN_PROGRESS under `D-024`; Member D loads the facts and Member C verifies
+and records the gate.
 **Owner:** Member D
 **Reviewers:** Members C, E
 **Required WPs:** `WP-06`

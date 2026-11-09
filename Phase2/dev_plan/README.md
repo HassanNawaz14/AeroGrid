@@ -9,11 +9,12 @@ is the canonical plan for Members A-E and their agents. The status dashboard rem
 ## Authorization status
 
 - Phase 2 implementation is **authorized** (`H-007`, 2026-11-04).
-- `G2` is closed; the current gate is `G3`.
-- `WP-02` and `WP-03` are `DONE` (PR #3 `b6b76b9`, PR #5 `f9087f4`). `WP-04` staging
-  DDL is applied and readable, with only its real-sample evidence open; `WP-05` is
-  `READY`. Both are owner-closable under `D-023`. The `WP-04` and `WP-05` agent briefs
-  are in [`01_work_breakdown.md`](01_work_breakdown.md).
+- `G2` and `G3` are closed; the current gate is `G4`.
+- `WP-02`-`WP-05` are `DONE` (PR #3 `b6b76b9`, PR #5 `f9087f4`, PR #7, PR #8).
+  `G3` was recorded 2026-11-09 with `B-011` open (the `WP-04` sample run used the
+  excluded demo CSV). `WP-06` is `READY` under `D-024`: Member C seeds the real
+  dimension members and records `G4`, and Member D loads and evidences the facts. The
+  `WP-06` briefs are in [`01_work_breakdown.md`](01_work_breakdown.md).
 - Later work packages begin only after their gate and authorization are recorded in
   [`../PROGRESS.md`](../PROGRESS.md).
 - Do not create resources or data outside the assigned work package.
@@ -48,7 +49,7 @@ WP-00 docs baseline
   -> WP-03 source validation (G2)
   -> WP-04 staging
   -> WP-05 dimensions (G3)
-  -> WP-06 core facts
+  -> WP-06 core facts (G4)
   -> WP-07 derived facts (G5)
   -> WP-08 data quality
   -> WP-09 reports
@@ -57,10 +58,9 @@ WP-00 docs baseline
   -> WP-12 integration and release (G7)
 ```
 
-`WP-04` and `WP-03` may overlap only where the staging contract is independent of
-unresolved source questions. `WP-05` may start once the model is approved, but must
-not load facts before `WP-04` is accepted. `WP-11` can prepare documentation early but
-must not create workflows until it is authorized.
+`WP-02`-`WP-05` are complete. `WP-06` owns the core facts and starts only now that
+`G3` is recorded; `WP-07` waits for `G4` and `H-013`. `WP-11` can prepare
+documentation early but must not create workflows until it is authorized.
 
 ## Team ownership
 

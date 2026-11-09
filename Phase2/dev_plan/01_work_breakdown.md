@@ -9,8 +9,8 @@
 | `WP-02` | Platform validation and access proof | A | B + C | DONE |
 | `WP-03` | Source validation and georeferencing spike | B | D + E | DONE |
 | `WP-04` | Staging DDL and loaders | B | C + D | DONE |
-| `WP-05` | Dimensions, keys, and data dictionary | C | A + D | READY (owner-closable) |
-| `WP-06` | Tracking and journey facts | D | C + E | NOT_STARTED |
+| `WP-05` | Dimensions, keys, and data dictionary | C | A + D | DONE |
+| `WP-06` | Tracking and journey facts | D | C + E | READY (owner-closable under `D-024`) |
 | `WP-07` | Derived facts | E | C + D | NOT_STARTED |
 | `WP-08` | Data-quality framework | E | B + D | NOT_STARTED |
 | `WP-09` | PDF reports | E | B + A | NOT_STARTED |
@@ -228,8 +228,9 @@ volume using real samples before building the pipeline.
 
 ## WP-04: Staging DDL and loaders
 
-**Status:** IN_PROGRESS (Member B, Hamid4325; delegated closeout under `D-023`; only
-real-sample evidence remains)
+**Status:** DONE (Member B, Hamid4325; delegated closeout under `D-023`; PR #7
+merged; the sample run used the excluded demo CSV, tracked as `B-011` and closed by
+`WP-06`)
 **Owner:** Member B
 **Reviewers:** Members C and D
 **Prerequisites:** WP-03, G2 cleared
@@ -322,7 +323,7 @@ laptop.
 
 **Status:** DONE (Member C; delegated closeout under `D-023`; all dimension DDL,
 seeds, verifier, workflow, data dictionary, DBML, and tests implemented; Neon DB
-verifier PASS recorded 2026-11-08; `G3` stays `IN_PROGRESS` for the human)
+verifier PASS recorded 2026-11-08; PR #8 merged and `G3` recorded 2026-11-09)
 **Owner:** Member C
 **Reviewers:** Members A and D (Member D acts during the delegated window)
 **Prerequisites:** WP-02, model approved
@@ -404,7 +405,8 @@ facts, or reporting objects.
    reader-check results, one handoff row, and one change-log row. Run
    `python -m pytest -q Phase2/tests`, `git diff --check`, open the PR, get one approval
    from Member D, then merge.
-9. Mark `WP-05` `DONE` (allowed by `D-023`) and leave `G3` `IN_PROGRESS` for the human.
+9. Mark `WP-05` `DONE` (allowed by `D-023`); `G3` was then recorded `DONE` on
+   2026-11-09 on the human's explicit instruction, with `B-011` open.
 
 If a step needs a human-only action, set `BLOCKED_ON_HUMAN`, add an `H-###` row, and
 stop. Do not change repository or environment settings.
@@ -413,11 +415,12 @@ stop. Do not change repository or environment settings.
 
 ## WP-06: Tracking and journey facts
 
-**Status:** NOT_STARTED
+**Status:** READY (Member D; `G3` recorded 2026-11-09; delegated closeout under
+`D-024`; Member C completes the real dimension members first)
 **Owner:** Member D
 **Reviewers:** Members C and E
 **Prerequisites:** WP-04, WP-05
-**Gate:** G4
+**Gate:** G4 (`G3` cleared 2026-11-09)
 
 ### Objective
 
@@ -456,6 +459,88 @@ Load the two core movement facts from real tracking data with correct keys and g
 - Orphans are zero.
 - Tracking facts reconcile to accepted staging.
 - All timestamps and units are documented.
+
+### Agent brief (Member C: dimension members and `G4` recording, delegated `D-024`)
+
+Do this first; Member D's fact mapping depends on it. Goal: real dimension members for
+key mapping, then verify Member D's load and record `G4`. Do not start `WP-07`.
+
+1. Branch from `main`, for example `phase2/wp06-dimension-members`.
+2. Use the same real Tartan artifact as Member D: `kbtp/01-01-22/1.csv` from the public
+   2022 archive (`Phase2/docs/source_validation/SRC-TARTAN.md`), SHA-256
+   `86342d09e5004102d765b82d04d16b43b6f15f2e7d829bfbde7909187d08a762`. Confirm the
+   hash, upload that one file with the Neon console Object Storage browser to
+   `aerogrid-raw` at `samples/kbtp/01-01-22/1.csv`, and tell Member D the object key.
+   Never commit raw data and never load from `data/sample/` (`D-017`).
+3. Add `Phase2/sql/02_dimensions/03_seed_real.sql` (idempotent, no deletes):
+   - `dim_vehicle`: one row per distinct real `icao24` in the sample with
+     `source_system='tartan'`, `source_entity_id=icao24`, and first/last seen
+     timestamps taken from the real rows.
+   - `dim_spatial_grid`: real cells covering the sample bounding box if you implement
+     the model grid; otherwise document that facts use `-1` for grid.
+   - Do not invent weather rows; `dim_weather` stays `-1` until real METAR rows are
+     loaded. Keep every `-1` member and all natural-key uniqueness.
+4. Extend the WP-05 verifier (or add `verify_wp06_dimensions.py`) to assert: real
+   vehicle rows > 0, no duplicate natural keys, FK targets exist, and reader `SELECT`
+   is true for every `project_dw` table. Run it through the `warehouse` workflow; keep
+   writes CI-only.
+5. Record the run link and vehicle count in `Phase2/PROGRESS.md`, open the PR, get one
+   peer approval (Member D or B), and merge. Then tell Member D the dimension members
+   are live.
+6. After Member D closes `WP-06`, dispatch `wp06-facts-verify.yml` from `main` (it is
+   dispatchable once merged) and verify `G4` against Neon: fact counts, tracking
+   reconciliation to accepted staging, journey grain, duplicate and orphan checks, and
+   the idempotent rerun. Record `G4` `DONE` in `PROGRESS.md` with the run link and
+   results. This is the only gate recording allowed under `D-024`; later gates stay
+   human.
+
+### Agent brief (Member D, delegated `D-024`)
+
+Goal: close `WP-06` with real facts. Start the staging load and fact code while Member C
+lands the dimension members, but run the acceptance load only after those members
+merge.
+
+1. Branch from `main` after Member C's dimension PR, for example
+   `phase2/wp06-tracking-facts`.
+2. Source the same real object `samples/kbtp/01-01-22/1.csv` (SHA-256 above) from
+   `aerogrid-raw` through the workflow's `NEON_S3_*` secrets. Do not use the legacy
+   demo CSV or any other synthetic file.
+3. Add `Phase2/sql/03_facts/01_facts.sql` with `fact_vehicle_tracking` and
+   `fact_flight_journey` per [`docs/04_data_model.md`](../docs/04_data_model.md#fact-overview):
+   identity surrogate PKs, FKs to the six dimensions, source-scoped uniqueness, and
+   indexes on event/start/end time and the key columns. Keep it idempotent.
+4. Add `Phase2/etl/facts.py`: insert only accepted staging rows; map keys through
+   `dim_vehicle` (`source_system='tartan'`, entity `icao24`), the KBTP `dim_site`, and
+   `dim_time` from the exact `event_ts`; use `-1` for grid and weather only when no
+   real match exists. Segment journeys per vehicle by `event_ts` with a documented gap
+   split (record the gap in seconds, `segment_reason`, and `algorithm_version`) and
+   derive journey metrics from real rows only.
+5. Add `Phase2/etl/verify_wp06_facts.py` and `wp06-facts-verify.yml`
+   (`workflow_dispatch`, `environment: warehouse`, 15-minute timeout, `DATABASE_URL`
+   secret). It must apply the DDL twice, load the real sample twice, and assert:
+   accepted staging rows > 0, both facts exist, total facts >= 10,000, the rerun inserts
+   no duplicate tracking or journey rows, zero orphans, and tracking counts equal
+   accepted staging rows for the load window. Print counts only.
+   - GitHub only offers a manual dispatch for a workflow that already exists on `main`.
+     For the first runs, add a temporary `push` trigger scoped to your feature branch
+     (the pattern `WP-02` used), dispatch or push to run it, then remove the `push`
+     trigger before the PR merges. After the merge, Member C re-runs it from `main`.
+6. Persist the acceptance load so members can read the facts, and keep the rerun
+   idempotent. If you first run a rolled-back dry run, follow it with the persistent
+   load and record both.
+7. Dispatch the workflow; Member C (or B) approves the `warehouse` run because you are
+   not an environment reviewer. If real rows are still rejected, inspect `stg_reject`
+   reasons and fix the mapping; never lower the checks or drop rows silently.
+8. Record in `Phase2/PROGRESS.md`: run link, accepted staging rows, fact counts,
+   reconciliation, duplicate/orphan results, idempotency, journey grain and gap
+   parameter, and close `B-011`. Run `python -m pytest -q Phase2/tests` and
+   `git diff --check`, open the PR, get one peer approval (Member C or E), and merge.
+9. Mark `WP-06` `DONE` and ask Member C to record `G4`. Do not start `WP-07`; it needs
+   approved thresholds.
+
+If a step needs a human-only action, set `BLOCKED_ON_HUMAN`, add an `H-###` row, and
+stop. Do not change repository or environment settings, and do not run loaders from a
+laptop.
 
 ---
 
