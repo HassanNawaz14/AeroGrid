@@ -395,7 +395,7 @@ Do not store video or large payloads in rejects.
 
 | Fact | Required dimensions | Optional dimensions |
 |---|---|---|
-| `fact_vehicle_tracking` | time, site, vehicle, grid | weather (`-1`) |
+| `fact_vehicle_tracking` | time, site, vehicle | grid (`-1`), weather (`-1`) |
 | `fact_flight_journey` | vehicle, site, start time, end time | origin/destination grid |
 | `fact_close_encounter` | start time, site, grid, two vehicles | weather (`-1`) |
 | `fact_restriction_activation` | time, site, zone | none |

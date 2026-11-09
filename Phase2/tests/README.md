@@ -8,9 +8,11 @@ Current `WP-03`/`WP-04`/`WP-05`/`WP-06` unit tests run without a database or Doc
   `test_transforms.py`: source normalizers, units, rejects, and bounds.
 - `test_dimensions.py`: dimension key normalization and hourly spine counts.
 - `test_facts.py`: UTC hour bucketing, Haversine geodesic distance, key lookup
-  resolution, missing-required-dimension rejects, optional `-1` grid/weather usage,
-  deterministic journey gap segmentation (`300s`), single-point exclusion, idempotent
-  fact loads, batched staging fallback, SHA-256 fail-closed check, and preflight.
+  resolution (including padded/unpadded hex and SQL decimal fallback),
+  missing-required-dimension rejects, optional `-1` grid/weather usage, deterministic
+  journey gap segmentation (`300s`), single-point exclusion, idempotent fact loads,
+  malformed-CSV savepoint batching, PostgreSQL 65,535-parameter chunking, SHA-256
+  fail-closed check, secret redaction, preflight, and DB assertion checks.
 - `test_staging_writer.py`: reconciliation, rejects, savepoint rollback, staging
   mapping, run-log lifecycle, and manifest hashing using `tests/fakes.py`.
 - `test_loaders.py`: raw iterators, row-number provenance, logical source files,
