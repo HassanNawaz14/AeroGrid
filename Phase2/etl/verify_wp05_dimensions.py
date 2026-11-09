@@ -2,8 +2,8 @@
 
 Reads DATABASE_URL from the environment only. Never prints or logs credentials.
 Applies the dimension DDL + seed SQL in order, reruns for idempotency, and reports
-only non-secret evidence (tables, row counts, unknown members, duplicate-natural-key
-checks, FK-target checks, reader access).
+only non-secret evidence (tables, row counts, unknown members, real Tartan vehicle
+members, duplicate-natural-key checks, FK-target checks, reader access).
 
 Usage (after setting DATABASE_URL in your shell, not in repo/chat):
   python -m etl.verify_wp05_dimensions          # from Phase2 with PYTHONPATH set
@@ -25,6 +25,7 @@ SQL_FILES = [
     PHASE2 / "sql" / "00_schemas.sql",
     PHASE2 / "sql" / "02_dimensions" / "01_dimensions.sql",
     PHASE2 / "sql" / "02_dimensions" / "02_seed.sql",
+    PHASE2 / "sql" / "02_dimensions" / "03_seed_real.sql",
 ]
 
 DIMENSIONS = [
@@ -143,6 +144,24 @@ def main() -> int:
                     print(f"ERROR duplicate natural key in {dim}: {dup}")
                     return 1
             print("no duplicate natural keys in any dimension")
+
+            # Real Tartan vehicle members required by WP-06 key mapping.
+            cur.execute(
+                """
+                SELECT COUNT(*)
+                FROM project_dw.dim_vehicle
+                WHERE vehicle_key <> -1
+                  AND UPPER(source_system) IN ('TARTAN', 'SRC-TARTAN')
+                """
+            )
+            (tartan_vehicles,) = cur.fetchone()
+            if int(tartan_vehicles) < 1:
+                print(
+                    "ERROR dim_vehicle has 0 real Tartan rows; "
+                    "03_seed_real.sql did not seed the real sample"
+                )
+                return 1
+            print(f"real Tartan vehicle members={tartan_vehicles}")
 
             # FK targets exist: every dimension FK to dim_site resolves.
             for dim in ("dim_spatial_grid", "dim_weather", "dim_airspace_zone"):

@@ -12,7 +12,7 @@ package PR); `WP-11` owns the production workflow and CI checks.
 | `platform-validation.yml` | Manual dispatch | `WP-02` proof of database, raw-bucket, and read-only role access |
 | `wp04-staging-verify.yml` | Manual dispatch | `WP-04` proof of idempotent staging DDL, row counts, and an optional real-sample load/rerun inside a rolled-back transaction |
 | `wp05-dimensions-verify.yml` | Manual dispatch | `WP-05` proof of the six dimensions, `-1` unknown rows, seeds, and reader SELECT |
-| `wp06-facts-verify.yml` | Manual dispatch (temporary branch `push` while open) | `WP-06` proof of `01_facts.sql` DDL, real Tartan S3 fetch + SHA-256 check, staging-to-tracking reconciliation, journey segmentation, zero orphans, and idempotent persistence |
+| `wp06-facts-verify.yml` | Manual dispatch | `WP-06` proof of the real dimension seed + `01_facts.sql` DDL, real Tartan S3 fetch + SHA-256 check, staging-to-tracking reconciliation, journey segmentation, zero orphans, and idempotent persistence |
 
 The probe script lives in [`../scripts/platform_probe.py`](../scripts/platform_probe.py).
 It prints only non-secret evidence and redacts connection strings. The verifiers live
@@ -23,10 +23,11 @@ and [`../../Phase2/etl/verify_wp06_facts.py`](../../Phase2/etl/verify_wp06_facts
 ## `WP-06` workflow note
 
 GitHub does not let anyone manually dispatch a `workflow_dispatch` workflow until the
-file exists on the default branch. `WP-06` therefore adds a temporary branch-scoped
-`push` trigger while the package branch is open, removes it before merge, and runs the
-manual workflow from `main` afterwards. The `WP-06` verification must run in the
-protected `warehouse` environment and must leave no rows behind on failure.
+file exists on the default branch. The merged `WP-06` workflow is now manual-dispatch
+only; the temporary branch-scoped `push` trigger used during the package PR has been
+removed. Run it from `main` (or dispatch it against a branch ref) in the protected
+`warehouse` environment. The `WP-06` verification must leave no rows behind on
+failure.
 
 ## Approval during the `D-024` window
 

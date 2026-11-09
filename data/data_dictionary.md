@@ -7,9 +7,10 @@ with [`../Phase2/docs/04_data_model.md`](../Phase2/docs/04_data_model.md) and
 [`diagrams/aerogrid_schema.dbml`](diagrams/aerogrid_schema.dbml). `WP-04` staging DDL
 and loaders and `WP-05` dimensions DDL/seeds are `DONE` and applied on Neon with
 reader `SELECT` grants in place. `WP-06` core movement facts DDL/loaders (`fact_vehicle_tracking`
-and `fact_flight_journey`) are implemented on the `WP-06` branch pending Member C's
-real `dim_vehicle` completion (`03_seed_real.sql`) and CI acceptance verification.
-Derived-fact DDL remains authorized only inside `WP-07`.
+and `fact_flight_journey`) are implemented and merged. `02_dimensions/03_seed_real.sql`
+now seeds the real Tartan `dim_vehicle` members derived from the pinned sample, and live
+CI acceptance verification remains. Derived-fact DDL remains authorized only inside
+`WP-07`.
 
 Physical DDL may use equivalent PostgreSQL types, but names, grains, keys, and
 meanings must match this dictionary.
@@ -72,6 +73,10 @@ Grain: one real vehicle identity within a source system.
 | `last_seen_ts` | TIMESTAMPTZ | | yes | Last real observation |
 
 Unique: `(source_system, source_entity_id)`.
+
+Real members: `02_dimensions/03_seed_real.sql` seeds the distinct Tartan ICAO 24-bit
+identities from the pinned `samples/kbtp/01-01-22/1.csv` sample with their first/last
+observed timestamps. `vehicle_type` stays `NULL` because the source does not define it.
 
 Unknown member: `-1`, `source_system = 'UNKNOWN'`, `source_entity_id = 'UNKNOWN'`.
 

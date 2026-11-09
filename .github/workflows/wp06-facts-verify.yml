@@ -8,11 +8,6 @@ on:
         required: false
         default: false
         type: boolean
-  # Temporary branch-scoped trigger for pre-merge CI verification (`WP-06` brief);
-  # remove this push section before merging the PR into main.
-  push:
-    branches:
-      - phase2/wp06-tracking-facts
 
 permissions:
   contents: read
