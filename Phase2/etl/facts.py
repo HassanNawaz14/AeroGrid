@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import math
-from bisect import bisect_left
+from bisect import bisect_left, bisect_right
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -23,9 +23,11 @@ ALGORITHM_VERSION = "wp06-v1"
 DEFAULT_GAP_SPLIT_SEC = 300
 DEFAULT_WEATHER_WINDOW_SEC = 3600
 DEFAULT_BATCH_SIZE = 500
+PG_MAX_BIND_PARAMS = 65535
 # Mean WGS84 Earth radius (6371.0088 km) divided by international nautical mile (1.852 km).
 EARTH_RADIUS_NM = 6371.0088 / 1.852
 DEFAULT_GRID_HALF_STEP_DEG = 0.025
+HEX_UPPER_CHARS = frozenset("0123456789ABCDEF")
 
 TARTAN_SOURCE_ALIASES = frozenset({"TARTAN", "SRC-TARTAN"})
 
@@ -92,6 +94,8 @@ class DimensionLookups:
     grid_half_steps_by_site: dict[int, tuple[float, float]]
     weather_by_site: dict[int, tuple[list[datetime], list[int]]]
     has_unknown_members: dict[str, bool]
+    vehicle_unpadded_hex_fallback: bool = False
+    _grid_lats_by_site: dict[int, list[float]] = field(default_factory=dict, repr=False)
 
 
 @dataclass(frozen=True)
@@ -222,6 +226,18 @@ def _infer_vehicle_decimal_fallback(tartan_entities: Sequence[str]) -> bool:
     )
 
 
+def _infer_vehicle_unpadded_hex_fallback(
+    tartan_entities: Sequence[str], *, decimal_fallback: bool
+) -> bool:
+    """Detect dim_vehicle rows seeded via SQL to_hex() without 6-char zero padding."""
+    if decimal_fallback or not tartan_entities:
+        return False
+    return all(
+        1 <= len(ent) <= 6 and all(ch in HEX_UPPER_CHARS for ch in ent)
+        for ent in tartan_entities
+    ) and any(len(ent) < 6 for ent in tartan_entities)
+
+
 def _compute_grid_half_steps(cells: Sequence[GridCell]) -> tuple[float, float]:
     lats = sorted({cell.lat_bin for cell in cells})
     lons = sorted({cell.lon_bin for cell in cells})
@@ -303,9 +319,16 @@ def build_lookups_from_rows(
             )
         )
 
+    sorted_grid_cells: dict[int, list[GridCell]] = {}
+    grid_lats_by_site: dict[int, list[float]] = {}
+    for s_key, cells in grid_cells_by_site.items():
+        ordered = sorted(cells, key=lambda c: (c.lat_bin, c.lon_bin, c.grid_key))
+        sorted_grid_cells[s_key] = ordered
+        grid_lats_by_site[s_key] = [c.lat_bin for c in ordered]
+
     grid_half_steps_by_site: dict[int, tuple[float, float]] = {
         s_key: _compute_grid_half_steps(cells)
-        for s_key, cells in grid_cells_by_site.items()
+        for s_key, cells in sorted_grid_cells.items()
     }
 
     weather_raw: dict[int, list[tuple[datetime, int]]] = defaultdict(list)
@@ -321,15 +344,22 @@ def build_lookups_from_rows(
         pairs.sort(key=lambda item: item[0])
         weather_by_site[s_key] = ([p[0] for p in pairs], [p[1] for p in pairs])
 
+    decimal_fallback = _infer_vehicle_decimal_fallback(tartan_entities)
+    unpadded_hex_fallback = _infer_vehicle_unpadded_hex_fallback(
+        tartan_entities, decimal_fallback=decimal_fallback
+    )
+
     return DimensionLookups(
         site_by_code=site_by_code,
         time_by_hour=time_by_hour,
         vehicle_by_key=vehicle_by_key,
-        vehicle_decimal_fallback=_infer_vehicle_decimal_fallback(tartan_entities),
-        grid_cells_by_site=dict(grid_cells_by_site),
+        vehicle_decimal_fallback=decimal_fallback,
+        grid_cells_by_site=sorted_grid_cells,
         grid_half_steps_by_site=grid_half_steps_by_site,
         weather_by_site=weather_by_site,
         has_unknown_members=unknown_flags,
+        vehicle_unpadded_hex_fallback=unpadded_hex_fallback,
+        _grid_lats_by_site=grid_lats_by_site,
     )
 
 
@@ -395,12 +425,17 @@ def resolve_vehicle_key(
     found = lookups.vehicle_by_key.get((norm_sys, norm_ent))
     if found is not None:
         return found
-    if norm_sys == "TARTAN" and lookups.vehicle_decimal_fallback:
-        try:
-            decimal_id = str(int(norm_ent, 16))
-        except ValueError:
-            return None
-        return lookups.vehicle_by_key.get((norm_sys, decimal_id))
+    if norm_sys == "TARTAN":
+        if lookups.vehicle_decimal_fallback:
+            try:
+                decimal_id = str(int(norm_ent, 16))
+            except ValueError:
+                return None
+            return lookups.vehicle_by_key.get((norm_sys, decimal_id))
+        if lookups.vehicle_unpadded_hex_fallback:
+            stripped = norm_ent.lstrip("0") or "0"
+            if stripped != norm_ent:
+                return lookups.vehicle_by_key.get((norm_sys, stripped))
     return None
 
 
@@ -414,14 +449,24 @@ def resolve_grid_key(
     cells = lookups.grid_cells_by_site.get(site_key)
     if not cells or latitude is None or longitude is None:
         return -1
+    lat_f = float(latitude)
+    lon_f = float(longitude)
     half_lat, half_lon = lookups.grid_half_steps_by_site[site_key]
     tol_lat = half_lat * (1.0 + 1e-6)
     tol_lon = half_lon * (1.0 + 1e-6)
+    lats = lookups._grid_lats_by_site.get(site_key)
+    if lats is not None and len(lats) == len(cells):
+        lat_window = tol_lat * (1.0 + 1e-9)
+        lo = bisect_left(lats, lat_f - lat_window)
+        hi = bisect_right(lats, lat_f + lat_window)
+        candidates = cells[lo:hi]
+    else:
+        candidates = cells
     best_key = -1
     best_dist = float("inf")
-    for cell in cells:
-        d_lat = abs(float(latitude) - cell.lat_bin)
-        d_lon = abs(float(longitude) - cell.lon_bin)
+    for cell in candidates:
+        d_lat = abs(lat_f - cell.lat_bin)
+        d_lon = abs(lon_f - cell.lon_bin)
         if d_lat <= tol_lat and d_lon <= tol_lon:
             dist = (d_lat / half_lat) + (d_lon / half_lon)
             if dist < best_dist:
@@ -731,12 +776,14 @@ def _batch_insert_facts_returning(
     if not rows:
         return 0, 0
 
+    max_rows_per_stmt = max(1, PG_MAX_BIND_PARAMS // max(1, len(columns)))
+    effective_batch = min(batch_size, max_rows_per_stmt)
     cur = conn.cursor()
     cols_sql = ", ".join(columns)
     row_placeholder = "(" + ", ".join(["%s"] * len(columns)) + ")"
     inserted = 0
-    for start in range(0, len(rows), batch_size):
-        chunk = rows[start : start + batch_size]
+    for start in range(0, len(rows), effective_batch):
+        chunk = rows[start : start + effective_batch]
         placeholders = ", ".join([row_placeholder] * len(chunk))
         sql = (
             f"INSERT INTO {table} ({cols_sql}) VALUES {placeholders} "
@@ -813,6 +860,8 @@ def load_tartan_tracking_facts(
     algorithm_version: str = ALGORITHM_VERSION,
 ) -> FactLoadCounts:
     """Load accepted Tartan staging rows into ``project_dw.fact_vehicle_tracking``."""
+    if batch_size < 1:
+        raise ValueError("batch_size must be >= 1")
     active_lookups = lookups or load_dimension_lookups(conn)
     validate_unknown_members(active_lookups)
 
@@ -857,8 +906,9 @@ def load_tartan_tracking_facts(
         valid_rows.append(mapped)
 
     if reject_rows:
-        for start in range(0, len(reject_rows), batch_size):
-            _record_rejects_batch(conn, reject_rows[start : start + batch_size])
+        reject_batch = min(batch_size, max(1, PG_MAX_BIND_PARAMS // 6))
+        for start in range(0, len(reject_rows), reject_batch):
+            _record_rejects_batch(conn, reject_rows[start : start + reject_batch])
 
     inserted, duplicates = _batch_insert_facts_returning(
         conn,
@@ -947,6 +997,10 @@ def load_tartan_flight_journeys(
     algorithm_version: str = ALGORITHM_VERSION,
 ) -> JourneyLoadCounts:
     """Segment keyed tracking facts into ``project_dw.fact_flight_journey`` idempotently."""
+    if batch_size < 1:
+        raise ValueError("batch_size must be >= 1")
+    if gap_split_sec <= 0:
+        raise ValueError(f"gap_split_sec must be positive, got {gap_split_sec}")
     points = _fetch_tracking_points_for_journeys(
         conn, source_file=source_file, start_ts=start_ts, end_ts=end_ts
     )

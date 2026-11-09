@@ -14,6 +14,9 @@ from typing import Any, Callable, Iterable, Mapping, Sequence
 
 from etl.errors import RowRejected
 
+_PG_MAX_BIND_PARAMS = 65535
+_STG_REJECT_RECORD_ID_MAX_LEN = 160
+
 
 @dataclass
 class LoadCounts:
@@ -51,6 +54,15 @@ def _serialize_reject_payload(raw_payload: Any) -> str | None:
     return payload
 
 
+def _clean_reject_text(value: str | None, max_len: int | None = None) -> str | None:
+    if value is None:
+        return None
+    cleaned = str(value).replace("\x00", "")
+    if max_len is not None and len(cleaned) > max_len:
+        return cleaned[:max_len]
+    return cleaned
+
+
 def _record_reject(
     conn: Any,
     *,
@@ -62,6 +74,8 @@ def _record_reject(
     raw_payload: Any = None,
 ) -> None:
     payload = _serialize_reject_payload(raw_payload)
+    cleaned_sid = _clean_reject_text(source_record_id, _STG_REJECT_RECORD_ID_MAX_LEN)
+    cleaned_detail = _clean_reject_text(reason_detail)
     cur = conn.cursor()
     cur.execute(
         """
@@ -69,7 +83,7 @@ def _record_reject(
             (etl_run_id, source_system, source_record_id, reason_code, reason_detail, raw_payload)
         VALUES (%s, %s, %s, %s, %s, %s)
         """,
-        (etl_run_id, source_system, source_record_id, reason_code, reason_detail, payload),
+        (etl_run_id, source_system, cleaned_sid, reason_code, cleaned_detail, payload),
     )
 
 
@@ -79,40 +93,43 @@ def _record_rejects_batch(
 ) -> None:
     if not rejects:
         return
-    if len(rejects) == 1:
-        etl_run_id, source_system, sid, code, detail, raw_payload = rejects[0]
-        _record_reject(
-            conn,
-            etl_run_id=etl_run_id,
-            source_system=source_system,
-            source_record_id=sid,
-            reason_code=code,
-            reason_detail=detail,
-            raw_payload=raw_payload,
-        )
-        return
+    max_rows_per_stmt = max(1, _PG_MAX_BIND_PARAMS // 6)
     cur = conn.cursor()
-    placeholders = ", ".join(["(%s, %s, %s, %s, %s, %s)"] * len(rejects))
-    flat_params: list[Any] = []
-    for etl_run_id, source_system, sid, code, detail, raw_payload in rejects:
-        flat_params.extend(
-            (
-                etl_run_id,
-                source_system,
-                sid,
-                code,
-                detail,
-                _serialize_reject_payload(raw_payload),
+    for start in range(0, len(rejects), max_rows_per_stmt):
+        chunk = rejects[start : start + max_rows_per_stmt]
+        if len(chunk) == 1:
+            etl_run_id, source_system, sid, code, detail, raw_payload = chunk[0]
+            _record_reject(
+                conn,
+                etl_run_id=etl_run_id,
+                source_system=source_system,
+                source_record_id=sid,
+                reason_code=code,
+                reason_detail=detail,
+                raw_payload=raw_payload,
             )
+            continue
+        placeholders = ", ".join(["(%s, %s, %s, %s, %s, %s)"] * len(chunk))
+        flat_params: list[Any] = []
+        for etl_run_id, source_system, sid, code, detail, raw_payload in chunk:
+            flat_params.extend(
+                (
+                    etl_run_id,
+                    source_system,
+                    _clean_reject_text(sid, _STG_REJECT_RECORD_ID_MAX_LEN),
+                    code,
+                    _clean_reject_text(detail),
+                    _serialize_reject_payload(raw_payload),
+                )
+            )
+        cur.execute(
+            f"""
+            INSERT INTO project_staging.stg_reject
+                (etl_run_id, source_system, source_record_id, reason_code, reason_detail, raw_payload)
+            VALUES {placeholders}
+            """,
+            flat_params,
         )
-    cur.execute(
-        f"""
-        INSERT INTO project_staging.stg_reject
-            (etl_run_id, source_system, source_record_id, reason_code, reason_detail, raw_payload)
-        VALUES {placeholders}
-        """,
-        flat_params,
-    )
 
 
 def _fallback_source_id(
@@ -245,6 +262,8 @@ def insert_on_conflict_do_nothing(
 
         return counts
 
+    effective_batch_size = min(batch_size, max(1, _PG_MAX_BIND_PARAMS // max(1, len(columns))))
+    reject_batch_size = min(batch_size, max(1, _PG_MAX_BIND_PARAMS // 6))
     row_placeholder = f"({placeholders})"
     pending: list[tuple[str | None, Mapping[str, Any], list[Any]]] = []
     pending_rejects: list[tuple[Any, str, str | None, str, str | None, Any]] = []
@@ -298,7 +317,7 @@ def insert_on_conflict_do_nothing(
                 source_record_id=exc.source_record_id or source_record_id,
                 pending_rejects=pending_rejects,
             )
-            if len(pending_rejects) >= batch_size:
+            if len(pending_rejects) >= reject_batch_size:
                 flush_rejects()
             continue
         except Exception as exc:
@@ -309,13 +328,13 @@ def insert_on_conflict_do_nothing(
                 source_record_id=source_record_id,
                 pending_rejects=pending_rejects,
             )
-            if len(pending_rejects) >= batch_size:
+            if len(pending_rejects) >= reject_batch_size:
                 flush_rejects()
             continue
 
         values = [record.get(col) for col in columns]
         pending.append((source_record_id, raw, values))
-        if len(pending) >= batch_size:
+        if len(pending) >= effective_batch_size:
             flush_pending()
 
     flush_pending()

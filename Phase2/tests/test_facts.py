@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import os
 from datetime import datetime, timedelta, timezone
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 
@@ -12,6 +14,8 @@ from etl.facts import (
     ALGORITHM_VERSION,
     FACT_JOURNEY_COLUMNS,
     FACT_TRACKING_COLUMNS,
+    DimensionLookups,
+    GridCell,
     TrackingPoint,
     build_lookups_from_rows,
     haversine_nm,
@@ -25,8 +29,15 @@ from etl.facts import (
     utc_hour_bucket,
     validate_unknown_members,
 )
+from etl.loaders import TARTAN_COLUMNS, load_tartan
 from etl.staging_writer import insert_on_conflict_do_nothing
-from etl.verify_wp06_facts import check_preflight, verify_sha256
+from etl.verify_wp06_facts import (
+    check_preflight,
+    main as verify_main,
+    redact_secrets,
+    run_db_assertions,
+    verify_sha256,
+)
 
 
 class _InMemoryFactCursor:
@@ -38,6 +49,10 @@ class _InMemoryFactCursor:
         self._last_rows: list[tuple[Any, ...]] = []
 
     def execute(self, sql: str, params: SequenceLike = ()) -> None:
+        if len(params) > 65535:
+            raise AssertionError(
+                f"PostgreSQL 65,535 bind parameter limit exceeded: {len(params)}"
+            )
         text = " ".join(sql.split())
         self._last_rows = []
         self.rowcount = 0
@@ -67,11 +82,11 @@ class _InMemoryFactCursor:
         if "FROM project_staging.stg_adsb_position" in text:
             rows = []
             for r in self.db["stg_adsb_position"]:
-                if r[13] == "2022-REJECTED":
+                if len(r) > 15 and r[15] is not None:
                     continue
                 if "raw_file = %s" in text and params and r[13] != params[0]:
                     continue
-                rows.append(r)
+                rows.append(r[:15])
             self._last_rows = sorted(rows, key=lambda x: (x[3], x[2]))
             return
 
@@ -178,15 +193,29 @@ class _InMemoryFactConn:
 class _BatchSavepointFakeCursor:
     """Fake cursor supporting multi-row staging batch + rollback to savepoint."""
 
-    def __init__(self, *, fail_key: str | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        fail_key: str | None = None,
+        num_cols: int = 2,
+        key_col_idx: int = 0,
+    ) -> None:
         self.existing: set[str] = set()
         self.fail_key = fail_key
+        self.num_cols = num_cols
+        self.key_col_idx = key_col_idx
         self.rejects: list[tuple[Any, ...]] = []
         self.rollbacks: list[str] = []
+        self.max_params_seen = 0
         self.failed = False
         self.rowcount = 0
 
     def execute(self, sql: str, params: SequenceLike = ()) -> None:
+        self.max_params_seen = max(self.max_params_seen, len(params))
+        if len(params) > 65535:
+            raise AssertionError(
+                f"PostgreSQL 65,535 bind parameter limit exceeded: {len(params)}"
+            )
         text = " ".join(sql.split())
         if text.startswith("SAVEPOINT "):
             return
@@ -204,13 +233,12 @@ class _BatchSavepointFakeCursor:
         if self.failed:
             raise RuntimeError("transaction aborted")
         if text.startswith("INSERT INTO project_staging.stg_adsb_position"):
-            # 2 columns: (source_record_id, value)
             if self.fail_key is not None and self.fail_key in params:
                 self.failed = True
                 raise RuntimeError("forced DB error")
             inserted = 0
-            for i in range(0, len(params), 2):
-                key = str(params[i])
+            for i in range(0, len(params), self.num_cols):
+                key = str(params[i + self.key_col_idx])
                 if key not in self.existing:
                     self.existing.add(key)
                     inserted += 1
@@ -510,4 +538,296 @@ def test_verifier_sha256_fails_closed_and_preflight_requires_real_vehicles(tmp_p
     errs = check_preflight(_PreflightCursor())
     assert len(errs) == 1
     assert "03_seed_real.sql" in errs[0]
+
+
+def test_vehicle_lookup_handles_unpadded_sql_to_hex_ids():
+    lookups = _base_lookups(
+        vehicle_rows=[
+            (-1, "UNKNOWN", "UNKNOWN"),
+            (301, "TARTAN", "7b"),
+            (302, "tartan", "a037a0"),
+            (303, "TARTAN", "123"),
+        ]
+    )
+    assert lookups.vehicle_decimal_fallback is False
+    assert lookups.vehicle_unpadded_hex_fallback is True
+    assert resolve_vehicle_key(lookups, "TARTAN", "00007B") == 301
+    assert resolve_vehicle_key(lookups, "TARTAN", "A037A0") == 302
+    assert resolve_vehicle_key(lookups, "TARTAN", "000123") == 303
+    assert resolve_vehicle_key(lookups, "TARTAN", "000000") is None
+
+
+def test_grid_lookup_bisect_matches_full_scan_and_manual_lookups_fallback():
+    cells = []
+    gid = 100
+    for r in range(4):
+        for c in range(4):
+            gid += 1
+            lat = 40.70 + r * 0.05
+            lon = -80.00 + c * 0.05
+            cells.append((gid, f"KBTP_{r}_{c}", 1, lat, lon))
+
+    lookups = _base_lookups(
+        grid_rows=[(-1, "UNKNOWN", -1, None, None), *reversed(cells)]
+    )
+    # Near exact cell center (r=2, c=1 -> lat=40.80, lon=-79.95, gid=110)
+    assert resolve_grid_key(lookups, 1, 40.802, -79.948) == 110
+    # Slightly off east/north inside tolerance
+    assert resolve_grid_key(lookups, 1, 40.724, -79.976) == 101
+    # Outside grid bounds returns -1
+    assert resolve_grid_key(lookups, 1, 41.25, -79.95) == -1
+
+    # Direct DimensionLookups construction without _grid_lats_by_site also works
+    manual = DimensionLookups(
+        site_by_code=lookups.site_by_code,
+        time_by_hour=lookups.time_by_hour,
+        vehicle_by_key=lookups.vehicle_by_key,
+        vehicle_decimal_fallback=lookups.vehicle_decimal_fallback,
+        grid_cells_by_site={
+            1: [GridCell(c[0], c[1], c[2], c[3], c[4]) for c in cells]
+        },
+        grid_half_steps_by_site=lookups.grid_half_steps_by_site,
+        weather_by_site=lookups.weather_by_site,
+        has_unknown_members=lookups.has_unknown_members,
+    )
+    assert resolve_grid_key(manual, 1, 40.802, -79.948) == 110
+
+
+def test_fact_loader_ignores_rejected_staging_rows_and_validates_params():
+    t0 = datetime(2022, 1, 1, 8, 10, 0, tzinfo=timezone.utc)
+    db: dict[str, Any] = {
+        "dim_site": [(-1, "UNKNOWN"), (1, "KBTP")],
+        "dim_time": [
+            (-1, datetime(1900, 1, 1, 0, 0, tzinfo=timezone.utc)),
+            (10, datetime(2022, 1, 1, 8, 0, tzinfo=timezone.utc)),
+        ],
+        "dim_vehicle": [(-1, "UNKNOWN", "UNKNOWN"), (101, "TARTAN", "00007B")],
+        "dim_spatial_grid": [(-1, "UNKNOWN", -1, None, None)],
+        "dim_weather": [(-1, -1, datetime(1900, 1, 1, 0, 0, tzinfo=timezone.utc))],
+        "stg_adsb_position": [
+            (1, "TARTAN", "tartan:ok", t0, "00007B", 40.77, -79.95, 1500.0, "TARTAN_ALTISGNSS_FALSE", 100.0, 90.0, None, None, "samples/kbtp/01-01-22/1.csv", "ALTISGNSS_FALSE", None),
+            (2, "TARTAN", "tartan:stg-bad", t0, "00007B", 40.77, -79.95, 99999.0, "TARTAN_ALTISGNSS_FALSE", 100.0, 90.0, None, None, "samples/kbtp/01-01-22/1.csv", "ALTISGNSS_FALSE", "ALTITUDE_OUT_OF_RANGE"),
+        ],
+        "stg_reject": [],
+        "fact_vehicle_tracking": [],
+        "fact_flight_journey": [],
+    }
+    conn = _InMemoryFactConn(db)
+
+    counts = load_tartan_tracking_facts(
+        conn, etl_run_id=1, source_file="samples/kbtp/01-01-22/1.csv"
+    )
+    assert counts.rows_read == 1
+    assert counts.rows_inserted == 1
+    assert counts.rows_rejected == 0
+
+    with pytest.raises(ValueError):
+        load_tartan_tracking_facts(conn, etl_run_id=1, batch_size=0)
+    with pytest.raises(ValueError):
+        load_tartan_flight_journeys(conn, etl_run_id=1, batch_size=0)
+    with pytest.raises(ValueError):
+        load_tartan_flight_journeys(conn, etl_run_id=1, gap_split_sec=0)
+
+
+def test_segment_vehicle_journeys_exact_gap_boundary_and_null_speeds():
+    t0 = datetime(2022, 1, 1, 8, 0, 0, tzinfo=timezone.utc)
+    points = [
+        TrackingPoint(101, 1, t0, 10, 501, 40.77, -79.95, 1500.0, None, "TARTAN", "p1"),
+        TrackingPoint(101, 1, t0 + timedelta(seconds=300), 10, -1, 40.78, -79.95, 1600.0, None, "TARTAN", "p2"),
+        TrackingPoint(101, 1, t0 + timedelta(seconds=601), 10, 502, 40.80, -79.95, 1800.0, None, "TARTAN", "p3"),
+        TrackingPoint(101, 1, t0 + timedelta(seconds=661), 10, 502, 40.81, -79.95, 1900.0, None, "TARTAN", "p4"),
+    ]
+    journeys, counts = segment_vehicle_journeys(points, etl_run_id=4, gap_split_sec=300)
+
+    assert counts.segments_built == 2
+    assert counts.single_point_tracks_skipped == 0
+    assert counts.unknown_origin_grid_count == 0
+    assert counts.unknown_destination_grid_count == 1
+    assert journeys[0]["flight_duration_sec"] == 300
+    assert journeys[0]["origin_grid_key"] == 501
+    assert journeys[0]["destination_grid_key"] == -1
+    assert journeys[0]["avg_speed_kts"] is None
+    assert journeys[0]["segment_reason"] == "GAP_SPLIT(gap_sec=300)"
+    assert journeys[1]["flight_duration_sec"] == 60
+    assert journeys[1]["origin_grid_key"] == 502
+    assert journeys[1]["destination_grid_key"] == 502
+    assert journeys[1]["avg_speed_kts"] is None
+    assert journeys[1]["segment_reason"] == "FILE_BOUNDARY(gap_sec=300)"
+
+    with pytest.raises(ValueError):
+        segment_vehicle_journeys(points, etl_run_id=4, gap_split_sec=0)
+
+
+def test_load_tartan_malformed_csv_quirks_with_batched_savepoints(tmp_path):
+    csv_path = tmp_path / "1.csv"
+    csv_path.write_text(
+        "ID,Time,Date,Altitude,Speed,Heading,Lat,Lon,Age,Range,Bearing,Tail,AltisGNSS\n"
+        '123,"[8, 9, 40.645667]","[2022, 1, 1]",1200,95,270,40.777,-79.949,1.2,5.5,-45.0,N12345,False\n'
+        '123,"[8, 9, 40.645667]","[2022, 1, 1]",1200,95,270,40.777,-79.949,1.2,5.5,-45.0,N12345,False\n'
+        '10500000,"[8, 10, 5.5]","[2022, 1, 1]",1800,,,40.780,-79.945,0.5,6.0,10.0,,True\n'
+        "\n"
+        ",,,,,,,,,,,,\n"
+        '123,"[8, 11, 0]"\n'
+        'bad\x00id,"[8, 12, 0]","[2022, 1, 1]",1200,95,270,40.777,-79.949,1.2,5.5,-45.0,N999,False,EXTRA\n',
+        encoding="utf-8",
+    )
+
+    cursor = _BatchSavepointFakeCursor(num_cols=len(TARTAN_COLUMNS), key_col_idx=3)
+    conn = _BatchSavepointFakeConn(cursor)
+    long_source_file = "samples/" + ("x/" * 95) + "1.csv"
+
+    counts = load_tartan(
+        conn,
+        csv_path,
+        source_file=long_source_file,
+        etl_run_id=12,
+        source_manifest_id=9,
+        batch_size=4,
+    )
+
+    # Blank line skipped by csv.DictReader; 6 non-empty rows parsed:
+    # 2 accepted (123 + 10500000 with missing Speed/Heading/Tail),
+    # 1 duplicate (second 123 row), 3 rejected (comma-only, short row, bad\x00id + EXTRA col).
+    assert counts.rows_read == 6
+    assert counts.rows_accepted == 2
+    assert counts.rows_duplicate == 1
+    assert counts.rows_rejected == 3
+    assert counts.reconcile_ok()
+    assert len(cursor.rejects) == 3
+    assert all(
+        r[2] is None or (len(r[2]) <= 160 and "\x00" not in r[2])
+        for r in cursor.rejects
+    )
+    assert all(r[5] is None or "\x00" not in r[5] for r in cursor.rejects)
+
+
+def test_batch_chunking_respects_postgresql_65535_param_limit():
+    # Staging writer with 17 columns + oversized batch_size=10000 -> must chunk <= 3855 rows
+    stg_cursor = _BatchSavepointFakeCursor(num_cols=len(TARTAN_COLUMNS), key_col_idx=3)
+    stg_conn = _BatchSavepointFakeConn(stg_cursor)
+    base_ts = datetime(2022, 1, 1, 8, 0, 0, tzinfo=timezone.utc)
+    stg_inputs = [
+        {
+            col: (f"tartan:{i}" if col == "source_record_id" else i)
+            for col in TARTAN_COLUMNS
+        }
+        for i in range(4200)
+    ]
+    stg_counts = insert_on_conflict_do_nothing(
+        stg_conn,
+        table="project_staging.stg_adsb_position",
+        columns=TARTAN_COLUMNS,
+        rows=stg_inputs,
+        conflict_target="(source_system, source_record_id)",
+        etl_run_id=1,
+        source_system="TARTAN",
+        batch_size=10000,
+    )
+    assert stg_counts.rows_accepted == 4200
+    assert stg_cursor.max_params_seen <= 65535
+
+    # Fact tracking loader with 19 columns + batch_size=10000 -> must chunk <= 3449 rows
+    db: dict[str, Any] = {
+        "dim_site": [(-1, "UNKNOWN"), (1, "KBTP")],
+        "dim_time": [
+            (-1, datetime(1900, 1, 1, 0, 0, tzinfo=timezone.utc)),
+            (10, datetime(2022, 1, 1, 8, 0, tzinfo=timezone.utc)),
+        ],
+        "dim_vehicle": [(-1, "UNKNOWN", "UNKNOWN"), (101, "TARTAN", "00007B")],
+        "dim_spatial_grid": [(-1, "UNKNOWN", -1, None, None)],
+        "dim_weather": [(-1, -1, datetime(1900, 1, 1, 0, 0, tzinfo=timezone.utc))],
+        "stg_adsb_position": [
+            (
+                i + 1,
+                "TARTAN",
+                f"tartan:{i:05d}",
+                base_ts + timedelta(seconds=(i % 3600)),
+                "00007B",
+                40.77,
+                -79.95,
+                1500.0,
+                "TARTAN_ALTISGNSS_FALSE",
+                100.0,
+                90.0,
+                None,
+                None,
+                "samples/kbtp/01-01-22/1.csv",
+                "ALTISGNSS_FALSE",
+            )
+            for i in range(3600)
+        ],
+        "stg_reject": [],
+        "fact_vehicle_tracking": [],
+        "fact_flight_journey": [],
+    }
+    fact_conn = _InMemoryFactConn(db)
+    t_counts = load_tartan_tracking_facts(
+        fact_conn,
+        etl_run_id=1,
+        source_file="samples/kbtp/01-01-22/1.csv",
+        batch_size=10000,
+    )
+    assert t_counts.rows_inserted == 3600
+    assert t_counts.reconcile_ok()
+
+
+def test_verifier_redact_secrets_db_assertions_and_cli_guards():
+    dummy_dsn = "postgresql" + "://u:fake_pw_123@example.invalid/neondb?sslmode=require"
+    dummy_short = "postgres" + "://u2:pw2@db/x"
+    with patch.dict(
+        os.environ,
+        {
+            "DATABASE_URL": dummy_dsn,
+            "NEON_S3_SECRET_ACCESS_KEY": "s3_dummy_key_value",
+        },
+        clear=False,
+    ):
+        msg = redact_secrets(
+            f"connect error on {dummy_dsn} or {dummy_short} using s3_dummy_key_value"
+        )
+        assert "fake_pw_123" not in msg
+        assert "pw2@db" not in msg
+        assert "s3_dummy_key_value" not in msg
+        assert "***" in msg
+
+        with patch("sys.argv", ["verify_wp06_facts.py", "--batch-size", "0"]):
+            assert verify_main() == 2
+        with patch("sys.argv", ["verify_wp06_facts.py", "--gap-split-sec", "0"]):
+            assert verify_main() == 2
+
+    class _AssertionsCursor:
+        def __init__(self, *, unmatched: int = 0) -> None:
+            self._replies = [
+                [("dim_time",), ("fact_vehicle_tracking",), ("fact_flight_journey",)],
+                (169,), (5,), (50,), (1,), (1,), (1,),  # 6 dim counts
+                (20000,), (500,),  # 2 fact counts
+                [],  # no dup NK tracking
+                [],  # no dup NK journey
+                *([(0,)] * 13),  # 13 orphan checks
+                (0,),  # req tracking unknown
+                (0,),  # req journey unknown
+                (20000, 20000),  # optional unknown grid/weather
+                (20000,),  # stg accepted
+                (20000,),  # fact tracking for file
+                (unmatched,),  # unmatched staging
+                (True,),  # reader SELECT privilege
+            ]
+
+        def execute(self, sql, params=()):
+            return None
+
+        def fetchone(self):
+            val = self._replies.pop(0)
+            return val if val else None
+
+        def fetchall(self):
+            return self._replies.pop(0)
+
+    report = run_db_assertions(_AssertionsCursor(unmatched=0), source_file="samples/kbtp/01-01-22/1.csv")
+    assert report["total_facts"] == 20500
+    assert report["orphan_total"] == 0
+    assert report["reader_select_ok"] is True
+
+    with pytest.raises(AssertionError):
+        run_db_assertions(_AssertionsCursor(unmatched=3), source_file="samples/kbtp/01-01-22/1.csv")
 

@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import os
+import re
 import sys
 import tempfile
 from datetime import datetime, timezone
@@ -102,6 +103,25 @@ S3_ENV_KEYS = (
     "NEON_S3_ACCESS_KEY_ID",
     "NEON_S3_SECRET_ACCESS_KEY",
 )
+
+SECRET_ENV_KEYS = (
+    "DATABASE_URL",
+    "READONLY_DATABASE_URL",
+    "NEON_S3_ACCESS_KEY_ID",
+    "NEON_S3_SECRET_ACCESS_KEY",
+)
+
+DSN_PATTERN = re.compile(r"postgres(?:ql)?://[^\s'\"]+", re.IGNORECASE)
+
+
+def redact_secrets(value: object) -> str:
+    """Redact PostgreSQL URIs and secret env values before printing logs/errors."""
+    text = DSN_PATTERN.sub("postgresql://***", str(value))
+    for name in SECRET_ENV_KEYS:
+        secret = os.environ.get(name, "")
+        if secret and len(secret) >= 4:
+            text = text.replace(secret, "***")
+    return text
 
 
 def _parse_args() -> argparse.Namespace:
@@ -526,6 +546,12 @@ def _write_step_summary(lines: list[str]) -> None:
 
 def main() -> int:
     args = _parse_args()
+    if args.batch_size < 1:
+        print(f"ERROR --batch-size must be >= 1, got {args.batch_size}")
+        return 2
+    if args.gap_split_sec < 1:
+        print(f"ERROR --gap-split-sec must be >= 1, got {args.gap_split_sec}")
+        return 2
     url = os.environ.get("DATABASE_URL")
     if not url:
         print("DATABASE_URL is not set in this environment. Set it in your shell/CI only.")
@@ -550,12 +576,21 @@ def main() -> int:
         try:
             s3_cfg = resolve_s3_config_from_env()
         except RuntimeError as exc:
-            print(f"preflight: FAILED; {exc}")
+            print(f"preflight: FAILED; {redact_secrets(exc)}")
             return 2
     else:
         s3_cfg = None
 
-    with psycopg.connect(url, connect_timeout=15) as conn:
+    try:
+        conn_cm = psycopg.connect(url, connect_timeout=15)
+    except Exception as exc:
+        print(
+            f"ERROR warehouse connection failed: {exc.__class__.__name__}: "
+            f"{redact_secrets(exc)}"
+        )
+        return 2
+
+    with conn_cm as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT current_user, current_database(), version()")
             user, db, version = cur.fetchone()
@@ -576,7 +611,10 @@ def main() -> int:
                         cur.execute(sql)
                     except Exception as exc:
                         conn.rollback()
-                        print(f"{label}: FAILED on {path.name}: {exc.__class__.__name__}: {exc}")
+                        print(
+                            f"{label}: FAILED on {path.name}: {exc.__class__.__name__}: "
+                            f"{redact_secrets(exc)}"
+                        )
                         raise
                 conn.commit()
                 print(f"{label}: applied {len(SQL_FILES)} SQL files")
@@ -612,7 +650,7 @@ def main() -> int:
                 verified_sha = verify_sha256(sample_path, args.expected_sha256)
             except Exception as exc:
                 conn.rollback()
-                print(f"ERROR sample retrieval/verification failed: {exc}")
+                print(f"ERROR sample retrieval/verification failed: {redact_secrets(exc)}")
                 return 2
 
             print(f"sample sha256 verified={verified_sha} size_bytes={sample_path.stat().st_size}")
@@ -775,7 +813,9 @@ def main() -> int:
 
             except Exception as exc:
                 conn.rollback()
-                print(f"ERROR WP-06 verification failed (rolled back): {exc}")
+                print(
+                    f"ERROR WP-06 verification failed (rolled back): {redact_secrets(exc)}"
+                )
                 return 1
 
     print(f"counts project_dw: {report['counts']}")
