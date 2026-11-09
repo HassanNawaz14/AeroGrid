@@ -124,7 +124,9 @@ in PR #5 (`f9087f4`), and the staging and dimension packages merged in PR #7 and
 the `WP-04` sample run used the excluded legacy demo CSV, so `WP-06` must show
 accepted real staging rows and reconcile the tracking facts to them.
 
-**Next actions:** Confirm `samples/kbtp/01-01-22/1.csv` is in `aerogrid-raw`, then run
+**Next actions:** `aerogrid-raw` was confirmed empty, so the human must upload the
+extracted real sample as `samples/kbtp/01-01-22/1.csv` (`H-014`; 4,325,376 bytes,
+SHA-256 `86342d09...a762`) before the acceptance run. Then run
 `wp05-dimensions-verify.yml` to apply and validate `03_seed_real.sql`, and dispatch
 `wp06-facts-verify.yml` from `main` to prove accepted real staging rows, fact counts,
 reconciliation, idempotency, and zero orphans. Follow the `WP-06` collaborator
