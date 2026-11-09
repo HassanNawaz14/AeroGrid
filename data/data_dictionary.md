@@ -5,10 +5,11 @@
 This is the column-level logical dictionary for the Phase 2 model. It is synchronized
 with [`../Phase2/docs/04_data_model.md`](../Phase2/docs/04_data_model.md) and
 [`diagrams/aerogrid_schema.dbml`](diagrams/aerogrid_schema.dbml). `WP-04` staging DDL
-and loaders are implemented, the DDL is applied to Neon, and the reader grants are in
-place. Real-sample staging evidence is delegated to Member B under `D-023`. Dimension
-and fact DDL remains authorized only inside the owning work package (`WP-05`,
-`WP-06`/`WP-07`).
+and loaders and `WP-05` dimensions DDL/seeds are `DONE` and applied on Neon with
+reader `SELECT` grants in place. `WP-06` core movement facts DDL/loaders (`fact_vehicle_tracking`
+and `fact_flight_journey`) are implemented on the `WP-06` branch pending Member C's
+real `dim_vehicle` completion (`03_seed_real.sql`) and CI acceptance verification.
+Derived-fact DDL remains authorized only inside `WP-07`.
 
 Physical DDL may use equivalent PostgreSQL types, but names, grains, keys, and
 meanings must match this dictionary.
@@ -143,7 +144,7 @@ Grain: one real position report at one exact timestamp.
 | `weather_key` | BIGINT | FK | no | `dim_weather`; `-1` if unresolved |
 | `altitude_msl_ft` | NUMERIC(8,2) | | yes | Altitude above MSL |
 | `altitude_agl_ft` | NUMERIC(8,2) | | yes | Altitude above ground |
-| `altitude_source` | VARCHAR(16) | | yes | Source datum: MSL, AGL, barometric, GNSS |
+| `altitude_source` | VARCHAR(32) | | yes | Source datum: e.g. `TARTAN_ALTISGNSS_FALSE`, `TARTAN_ALTISGNSS_TRUE`, MSL, AGL |
 | `ground_speed_kts` | NUMERIC(7,2) | | yes | Ground speed |
 | `heading_deg` | NUMERIC(6,2) | | yes | Track/heading 0-360 |
 | `vertical_rate_fps` | NUMERIC(7,2) | | yes | Climb/descent rate |

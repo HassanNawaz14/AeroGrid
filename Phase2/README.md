@@ -7,9 +7,12 @@ Phase 2 documentation, planning, status, and future implementation.
 **Implementation status: AUTHORIZED (2026-11-04, `H-007`).** `G0`-`G3` are closed.
 `WP-02` (run `42276737288`, PR #3 `b6b76b9`), `WP-03` (PR #5 `f9087f4`), `WP-04` (PR
 #7), and `WP-05` (PR #8) are `DONE`. `G3` was recorded on 2026-11-09 with `B-011`
-open, so accepted real staging rows are proven by `WP-06`. `WP-06` is `READY` under
-the delegated window `D-024`: Member C seeds the real dimension members and records
-`G4`, Member D loads and evidences the facts. Human input is zero until `G4`.
+open, so accepted real staging rows are proven by `WP-06`. `WP-06` is `IN_PROGRESS`
+under the delegated window `D-024`: Member D implemented the fact DDL, ETL, verifier,
+workflow, and unit tests on `phase2/wp06-tracking-facts`; Member C seeds the real
+dimension members (`03_seed_real.sql`) and uploads `samples/kbtp/01-01-22/1.csv` before
+Member D runs the persistent acceptance load and Member C records `G4`. Human input is
+zero until `G4`.
 
 ## Quick links
 
@@ -103,7 +106,7 @@ Statuses use the vocabulary in [AGENTS.md](AGENTS.md). Detail is in
 | `WP-03` Source validation and georeferencing | Member B | `DONE` |
 | `WP-04` Staging DDL and loaders | Member B | `DONE` (PR #7; sample caveat `B-011`) |
 | `WP-05` Dimensions, keys, and dictionary | Member C | `DONE` (PR #8) |
-| `WP-06` Tracking and journey facts | Member D | `READY` (owner-closable under `D-024`) |
+| `WP-06` Tracking and journey facts | Member D | `IN_PROGRESS` (branch code ready; awaits Member C dims/S3; owner-closable under `D-024`) |
 | `WP-07` Derived facts | Member E | `NOT_STARTED` |
 | `WP-08` Data-quality framework | Member E | `NOT_STARTED` |
 | `WP-09` PDF reports | Member E | `NOT_STARTED` |
@@ -113,7 +116,7 @@ Statuses use the vocabulary in [AGENTS.md](AGENTS.md). Detail is in
 
 ## Current blockers and next action
 
-**`G3` is recorded and `WP-06` is `READY`.** `WP-02`-`WP-05` are `DONE`; platform
+**`G3` is recorded and `WP-06` is `IN_PROGRESS`.** `WP-02`-`WP-05` are `DONE`; platform
 validation passed on 2026-11-07 (22 pass, 1 warn, 0 fail), source validation merged
 in PR #5 (`f9087f4`), and the staging and dimension packages merged in PR #7 and PR
 #8. `H-002` remains deferred by the human; the Member B-E names are recorded in
@@ -148,9 +151,9 @@ Phase2/
 └── reports/                  # Generated PDF reports (not built yet)
 ```
 
-The `sql/`, `etl/`, and `tests/` folders hold only work that an authorized work
-package delivered (`WP-04` staging, `WP-05` dimensions). Later packages add their
-own files when their gate is recorded.
+The `sql/`, `etl/`, and `tests/` folders hold work delivered by authorized packages
+(`WP-04` staging, `WP-05` dimensions, `WP-06` core facts on feature branch). Later
+packages add their own files when their gate is recorded.
 
 ## Documentation rules
 

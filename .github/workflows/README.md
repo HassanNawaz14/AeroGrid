@@ -12,11 +12,13 @@ package PR); `WP-11` owns the production workflow and CI checks.
 | `platform-validation.yml` | Manual dispatch | `WP-02` proof of database, raw-bucket, and read-only role access |
 | `wp04-staging-verify.yml` | Manual dispatch | `WP-04` proof of idempotent staging DDL, row counts, and an optional real-sample load/rerun inside a rolled-back transaction |
 | `wp05-dimensions-verify.yml` | Manual dispatch | `WP-05` proof of the six dimensions, `-1` unknown rows, seeds, and reader SELECT |
+| `wp06-facts-verify.yml` | Manual dispatch (temporary branch `push` while open) | `WP-06` proof of `01_facts.sql` DDL, real Tartan S3 fetch + SHA-256 check, staging-to-tracking reconciliation, journey segmentation, zero orphans, and idempotent persistence |
 
 The probe script lives in [`../scripts/platform_probe.py`](../scripts/platform_probe.py).
 It prints only non-secret evidence and redacts connection strings. The verifiers live
-in [`../../Phase2/etl/verify_wp04_staging.py`](../../Phase2/etl/verify_wp04_staging.py)
-and [`../../Phase2/etl/verify_wp05_dimensions.py`](../../Phase2/etl/verify_wp05_dimensions.py).
+in [`../../Phase2/etl/verify_wp04_staging.py`](../../Phase2/etl/verify_wp04_staging.py),
+[`../../Phase2/etl/verify_wp05_dimensions.py`](../../Phase2/etl/verify_wp05_dimensions.py),
+and [`../../Phase2/etl/verify_wp06_facts.py`](../../Phase2/etl/verify_wp06_facts.py).
 
 ## `WP-06` workflow note
 
@@ -57,5 +59,4 @@ self-review* after `G4`; see
 - Keep `concurrency` and `timeout-minutes` bounded.
 - Free-tier usage only.
 - Do not create workflow YAML outside an authorized work package.
-- Keep verifier loads inside a transaction that is rolled back; CI must not leave
-  rows behind.
+- Keep non-acceptance verifier runs (`WP-04`, `--dry-run`) and failed `WP-06` runs inside transactions that roll back; `WP-06` commits persistent facts only after all assertions pass.
