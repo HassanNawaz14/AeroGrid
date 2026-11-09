@@ -1,0 +1,84 @@
+name: WP-06 tracking and journey facts verify
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Roll back data writes after verification (false persists facts)"
+        required: false
+        default: false
+        type: boolean
+  # Temporary branch-scoped trigger for pre-merge CI verification (`WP-06` brief);
+  # remove this push section before merging the PR into main.
+  push:
+    branches:
+      - phase2/wp06-tracking-facts
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wp06-facts-verify
+  cancel-in-progress: false
+
+jobs:
+  unit-tests:
+    name: Run Phase 2 unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install test dependencies
+        run: >-
+          python -m pip install --disable-pip-version-check
+          "pytest>=8,<10"
+
+      - name: Compile and run unit tests
+        run: |
+          python -m compileall -q Phase2/etl
+          python -m pytest -q Phase2/tests
+
+  verify:
+    name: Verify WP-06 tracking and journey facts
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: warehouse
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: >-
+          python -m pip install --disable-pip-version-check
+          "psycopg[binary]>=3.2,<4" "boto3>=1.35,<2" "pytest>=8,<10"
+
+      - name: Verify WP-06 facts DDL and real Tartan load
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEON_S3_ENDPOINT: ${{ secrets.NEON_S3_ENDPOINT }}
+          NEON_S3_REGION: ${{ secrets.NEON_S3_REGION }}
+          NEON_S3_BUCKET: ${{ secrets.NEON_S3_BUCKET }}
+          NEON_S3_ACCESS_KEY_ID: ${{ secrets.NEON_S3_ACCESS_KEY_ID }}
+          NEON_S3_SECRET_ACCESS_KEY: ${{ secrets.NEON_S3_SECRET_ACCESS_KEY }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            python Phase2/etl/verify_wp06_facts.py --dry-run
+          else
+            python Phase2/etl/verify_wp06_facts.py
+          fi
+
