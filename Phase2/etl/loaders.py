@@ -320,6 +320,7 @@ def _load(
     source_system: str,
     source_file: str,
     etl_run_id: Any,
+    batch_size: int = 1,
 ) -> Any:
     def normalize(raw: Mapping[str, Any]) -> Mapping[str, Any]:
         record = normalizer(raw)
@@ -336,6 +337,7 @@ def _load(
         normalizer=normalize,
         row_mapper=row_mapper,
         source_file=source_file,
+        batch_size=batch_size,
     )
 
 
@@ -346,6 +348,7 @@ def load_tartan(
     etl_run_id: Any,
     source_file: str | None = None,
     source_manifest_id: int | None = None,
+    batch_size: int = 1,
 ) -> Any:
     logical = _logical_source_file(path, source_file)
 
@@ -369,6 +372,7 @@ def load_tartan(
         source_system="TARTAN",
         source_file=logical,
         etl_run_id=etl_run_id,
+        batch_size=batch_size,
     )
 
 

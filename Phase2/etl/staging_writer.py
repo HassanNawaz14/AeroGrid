@@ -14,6 +14,9 @@ from typing import Any, Callable, Iterable, Mapping, Sequence
 
 from etl.errors import RowRejected
 
+_PG_MAX_BIND_PARAMS = 65535
+_STG_REJECT_RECORD_ID_MAX_LEN = 160
+
 
 @dataclass
 class LoadCounts:
@@ -37,6 +40,29 @@ class LoadCounts:
         }
 
 
+def _serialize_reject_payload(raw_payload: Any) -> str | None:
+    if raw_payload is None:
+        return None
+    try:
+        payload = json.dumps(raw_payload, default=str, ensure_ascii=False)
+    except Exception:
+        payload = str(raw_payload)
+    # PostgreSQL TEXT columns reject literal NUL bytes.
+    payload = payload.replace("\x00", "")
+    if len(payload) > 4000:
+        payload = payload[:4000] + "...(truncated)"
+    return payload
+
+
+def _clean_reject_text(value: str | None, max_len: int | None = None) -> str | None:
+    if value is None:
+        return None
+    cleaned = str(value).replace("\x00", "")
+    if max_len is not None and len(cleaned) > max_len:
+        return cleaned[:max_len]
+    return cleaned
+
+
 def _record_reject(
     conn: Any,
     *,
@@ -47,14 +73,9 @@ def _record_reject(
     reason_detail: str | None,
     raw_payload: Any = None,
 ) -> None:
-    payload = None
-    if raw_payload is not None:
-        try:
-            payload = json.dumps(raw_payload, default=str, ensure_ascii=False)
-            if len(payload) > 4000:
-                payload = payload[:4000] + "...(truncated)"
-        except Exception:
-            payload = str(raw_payload)[:4000]
+    payload = _serialize_reject_payload(raw_payload)
+    cleaned_sid = _clean_reject_text(source_record_id, _STG_REJECT_RECORD_ID_MAX_LEN)
+    cleaned_detail = _clean_reject_text(reason_detail)
     cur = conn.cursor()
     cur.execute(
         """
@@ -62,8 +83,53 @@ def _record_reject(
             (etl_run_id, source_system, source_record_id, reason_code, reason_detail, raw_payload)
         VALUES (%s, %s, %s, %s, %s, %s)
         """,
-        (etl_run_id, source_system, source_record_id, reason_code, reason_detail, payload),
+        (etl_run_id, source_system, cleaned_sid, reason_code, cleaned_detail, payload),
     )
+
+
+def _record_rejects_batch(
+    conn: Any,
+    rejects: Sequence[tuple[Any, str, str | None, str, str | None, Any]],
+) -> None:
+    if not rejects:
+        return
+    max_rows_per_stmt = max(1, _PG_MAX_BIND_PARAMS // 6)
+    cur = conn.cursor()
+    for start in range(0, len(rejects), max_rows_per_stmt):
+        chunk = rejects[start : start + max_rows_per_stmt]
+        if len(chunk) == 1:
+            etl_run_id, source_system, sid, code, detail, raw_payload = chunk[0]
+            _record_reject(
+                conn,
+                etl_run_id=etl_run_id,
+                source_system=source_system,
+                source_record_id=sid,
+                reason_code=code,
+                reason_detail=detail,
+                raw_payload=raw_payload,
+            )
+            continue
+        placeholders = ", ".join(["(%s, %s, %s, %s, %s, %s)"] * len(chunk))
+        flat_params: list[Any] = []
+        for etl_run_id, source_system, sid, code, detail, raw_payload in chunk:
+            flat_params.extend(
+                (
+                    etl_run_id,
+                    source_system,
+                    _clean_reject_text(sid, _STG_REJECT_RECORD_ID_MAX_LEN),
+                    code,
+                    _clean_reject_text(detail),
+                    _serialize_reject_payload(raw_payload),
+                )
+            )
+        cur.execute(
+            f"""
+            INSERT INTO project_staging.stg_reject
+                (etl_run_id, source_system, source_record_id, reason_code, reason_detail, raw_payload)
+            VALUES {placeholders}
+            """,
+            flat_params,
+        )
 
 
 def _fallback_source_id(
@@ -90,13 +156,19 @@ def insert_on_conflict_do_nothing(
     normalizer_kwargs: Mapping[str, Any] | None = None,
     row_mapper: Callable[[Mapping[str, Any]], Mapping[str, Any]] | None = None,
     source_file: str | None = None,
+    batch_size: int = 1,
 ) -> LoadCounts:
     """Normalize, map, and insert rows idempotently.
 
     Rejected rows are written to ``stg_reject``. Database errors are rolled back
     to a per-row savepoint so one bad row cannot abort the rest of the batch.
+    When ``batch_size > 1``, valid rows are sent in chunked multi-row inserts
+    with automatic fallback to per-row savepoints on a batch database error.
     Reconciliation: read = accepted + rejected + duplicate.
     """
+    if batch_size < 1:
+        raise ValueError("batch_size must be >= 1")
+
     counts = LoadCounts()
     cur = conn.cursor()
     cols_sql = ", ".join(columns)
@@ -107,26 +179,127 @@ def insert_on_conflict_do_nothing(
     )
     kwargs = dict(normalizer_kwargs or {})
 
-    def reject(
+    def record_reject_count(
         *,
         raw: Mapping[str, Any],
         reason_code: str,
         detail: str,
         source_record_id: str | None,
+        pending_rejects: list[tuple[Any, str, str | None, str, str | None, Any]] | None = None,
     ) -> None:
         counts.rows_rejected += 1
         counts.rejects_by_reason[reason_code] = (
             counts.rejects_by_reason.get(reason_code, 0) + 1
         )
+        sid = source_record_id or _fallback_source_id(raw, source_file)
+        if pending_rejects is not None:
+            pending_rejects.append(
+                (etl_run_id, source_system, sid, reason_code, detail, raw)
+            )
+            return
         _record_reject(
             conn,
             etl_run_id=etl_run_id,
             source_system=source_system,
-            source_record_id=source_record_id or _fallback_source_id(raw, source_file),
+            source_record_id=sid,
             reason_code=reason_code,
             reason_detail=detail,
             raw_payload=raw,
         )
+
+    def insert_single(
+        *,
+        source_record_id: str | None,
+        raw: Mapping[str, Any],
+        values: list[Any],
+    ) -> None:
+        cur.execute("SAVEPOINT staging_row")
+        try:
+            cur.execute(sql, values)
+            if getattr(cur, "rowcount", 1) == 0:
+                counts.rows_duplicate += 1
+            else:
+                counts.rows_accepted += 1
+        except Exception as exc:
+            cur.execute("ROLLBACK TO SAVEPOINT staging_row")
+            record_reject_count(
+                raw=raw,
+                reason_code="SCHEMA_DRIFT",
+                detail=str(exc)[:500],
+                source_record_id=source_record_id,
+            )
+        finally:
+            cur.execute("RELEASE SAVEPOINT staging_row")
+
+    if batch_size == 1:
+        for raw in rows:
+            counts.rows_read += 1
+            source_record_id = None
+            try:
+                record = normalizer(raw, **kwargs) if normalizer else dict(raw)
+                source_record_id = str(record.get("source_record_id") or "") or None
+                if row_mapper is not None:
+                    record = row_mapper(record)
+            except RowRejected as exc:
+                record_reject_count(
+                    raw=raw,
+                    reason_code=exc.reason_code,
+                    detail=exc.detail,
+                    source_record_id=exc.source_record_id or source_record_id,
+                )
+                continue
+            except Exception as exc:
+                record_reject_count(
+                    raw=raw,
+                    reason_code="SCHEMA_DRIFT",
+                    detail=str(exc)[:500],
+                    source_record_id=source_record_id,
+                )
+                continue
+
+            values = [record.get(col) for col in columns]
+            insert_single(source_record_id=source_record_id, raw=raw, values=values)
+
+        return counts
+
+    effective_batch_size = min(batch_size, max(1, _PG_MAX_BIND_PARAMS // max(1, len(columns))))
+    reject_batch_size = min(batch_size, max(1, _PG_MAX_BIND_PARAMS // 6))
+    row_placeholder = f"({placeholders})"
+    pending: list[tuple[str | None, Mapping[str, Any], list[Any]]] = []
+    pending_rejects: list[tuple[Any, str, str | None, str, str | None, Any]] = []
+
+    def flush_pending() -> None:
+        if not pending:
+            return
+        batch_sql = (
+            f"INSERT INTO {table} ({cols_sql}) VALUES "
+            f"{', '.join([row_placeholder] * len(pending))} "
+            f"ON CONFLICT {conflict_target} DO NOTHING"
+        )
+        flat_values = [val for _, _, vals in pending for val in vals]
+        cur.execute("SAVEPOINT staging_batch")
+        try:
+            cur.execute(batch_sql, flat_values)
+            inserted = int(getattr(cur, "rowcount", len(pending)))
+            if inserted < 0:
+                raise RuntimeError(f"Unexpected cursor rowcount={inserted} for batch insert")
+            cur.execute("RELEASE SAVEPOINT staging_batch")
+        except Exception:
+            cur.execute("ROLLBACK TO SAVEPOINT staging_batch")
+            cur.execute("RELEASE SAVEPOINT staging_batch")
+            for sid, item_raw, vals in pending:
+                insert_single(source_record_id=sid, raw=item_raw, values=vals)
+        else:
+            counts.rows_accepted += inserted
+            counts.rows_duplicate += len(pending) - inserted
+        finally:
+            pending.clear()
+
+    def flush_rejects() -> None:
+        if not pending_rejects:
+            return
+        _record_rejects_batch(conn, pending_rejects)
+        pending_rejects.clear()
 
     for raw in rows:
         counts.rows_read += 1
@@ -137,41 +310,35 @@ def insert_on_conflict_do_nothing(
             if row_mapper is not None:
                 record = row_mapper(record)
         except RowRejected as exc:
-            reject(
+            record_reject_count(
                 raw=raw,
                 reason_code=exc.reason_code,
                 detail=exc.detail,
                 source_record_id=exc.source_record_id or source_record_id,
+                pending_rejects=pending_rejects,
             )
+            if len(pending_rejects) >= reject_batch_size:
+                flush_rejects()
             continue
         except Exception as exc:
-            reject(
+            record_reject_count(
                 raw=raw,
                 reason_code="SCHEMA_DRIFT",
                 detail=str(exc)[:500],
                 source_record_id=source_record_id,
+                pending_rejects=pending_rejects,
             )
+            if len(pending_rejects) >= reject_batch_size:
+                flush_rejects()
             continue
 
         values = [record.get(col) for col in columns]
-        cur.execute("SAVEPOINT staging_row")
-        try:
-            cur.execute(sql, values)
-            if getattr(cur, "rowcount", 1) == 0:
-                counts.rows_duplicate += 1
-            else:
-                counts.rows_accepted += 1
-        except Exception as exc:
-            cur.execute("ROLLBACK TO SAVEPOINT staging_row")
-            reject(
-                raw=raw,
-                reason_code="SCHEMA_DRIFT",
-                detail=str(exc)[:500],
-                source_record_id=source_record_id,
-            )
-        finally:
-            cur.execute("RELEASE SAVEPOINT staging_row")
+        pending.append((source_record_id, raw, values))
+        if len(pending) >= effective_batch_size:
+            flush_pending()
 
+    flush_pending()
+    flush_rejects()
     return counts
 
 

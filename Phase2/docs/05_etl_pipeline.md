@@ -34,12 +34,16 @@ Phase2/etl/
 │   ├── dji_nominal.py
 │   ├── faa.py
 │   └── metar.py            # AWC and IEM normalizers
+├── dimensions.py           # Dimension key normalization and spine helpers (WP-05)
+├── facts.py                # Tracking key mapping & journey segmentation (WP-06)
 ├── loaders.py              # Raw iterators, staging mappings, load helpers
 ├── staging_writer.py       # Savepoints, idempotency, rejects, run log, manifest
-└── verify_wp04_staging.py  # DDL/load verification
+├── verify_wp04_staging.py  # Staging DDL/load verification
+├── verify_wp05_dimensions.py # Dimension DDL/seed verification
+└── verify_wp06_facts.py    # Real Tartan staging + core fact verification
 ```
 
-Future packages add `run.py`, `config.py`, `storage.py`, `dimensions.py`, `facts.py`,
+Future packages add `run.py`, `config.py`, `storage.py`,
 `dq.py`, `reports.py`, and `util.py`. Do not create them before their work package is
 authorized.
 
@@ -230,18 +234,24 @@ Each load:
 
 ### Tracking
 
-1. Join staging positions to site, vehicle, grid, weather, and hour.
-2. Reject rows without a required vehicle/site/time/grid match.
-3. Use `-1` for unresolved optional weather.
-4. Insert with `ON CONFLICT DO NOTHING` or an idempotent upsert on the source natural
-   key.
-5. Record inserted, duplicate, rejected, and unknown-dimension counts.
+1. Join accepted staging positions to `dim_site`, `dim_vehicle`, `dim_time` (exact UTC hour),
+   `dim_spatial_grid`, and `dim_weather`.
+2. Reject rows missing a required `dim_vehicle`, `dim_site`, or `dim_time` match into
+   `project_staging.stg_reject` (never fall back to `-1` for required dimensions).
+3. Use `-1` for optional `dim_spatial_grid` (when outside/absent real cells) and optional
+   `dim_weather` only when no real observation matches within the allowed window, and record
+   their unknown counters.
+4. Insert with `ON CONFLICT (source_system, source_record_id) DO NOTHING`.
+5. Record inserted, duplicate, rejected, and unknown-dimension counts (`ALGORITHM_VERSION = "wp06-v1"`).
 
 ### Journeys
 
-- Tartan: group by vehicle, sort by time, split on a documented gap or ground state.
+- Tartan: group by `(source_system, site_key, vehicle_key)`, sort deterministically by
+  `(event_ts, source_record_id)`, split on time gaps `> 300` seconds (`DEFAULT_GAP_SPLIT_SEC = 300`),
+  recording gap seconds in `segment_reason` and `ALGORITHM_VERSION = "wp06-v1"`.
 - UAS: use one real flight record per file/session, with a deterministic journey ID.
-- Compute duration, distance, max altitude, and average speed from real positions.
+- Compute duration, great-circle Haversine distance (`nm`), max altitude, and average valid speed
+  (`NULL` if none) from real keyed tracking rows.
 - Do not create a journey from a single isolated point.
 
 ## Stage 6: Derived facts

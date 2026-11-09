@@ -1,5 +1,5 @@
 // AeroGrid Phase 2 logical schema for dbdiagram.io
-// Status: proposed; Phase 2 implementation is not authorized.
+// Status: WP-04 staging, WP-05 dimensions, and WP-06 core facts DDL aligned.
 // Source of truth: data/data_dictionary.md and Phase2/docs/04_data_model.md
 // Staging row tables are omitted for readability; run/log/DQ metadata is shown.
 // project_reporting contains views over project_dw, not physical tables.
@@ -137,7 +137,7 @@ Table project_dw.fact_vehicle_tracking {
   weather_key bigint [not null, ref: > project_dw.dim_weather.weather_key]
   altitude_msl_ft numeric(8,2)
   altitude_agl_ft numeric(8,2)
-  altitude_source varchar(16)
+  altitude_source varchar(32)
   ground_speed_kts numeric(7,2)
   heading_deg numeric(6,2)
   vertical_rate_fps numeric(7,2)
