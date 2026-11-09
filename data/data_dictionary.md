@@ -40,19 +40,10 @@ Grain: one UTC hour.
 |---|---|---|---|---|
 | `time_key` | BIGINT identity | PK | no | Surrogate key |
 | `hour_ts` | TIMESTAMPTZ | unique | no | Start of the UTC hour |
-| `full_date` | DATE | | no | Calendar date in UTC |
-| `year` | SMALLINT | | no | Calendar year |
-| `quarter` | SMALLINT | | no | Quarter 1-4 |
-| `month` | SMALLINT | | no | Month 1-12 |
-| `month_name` | VARCHAR(20) | | no | Display month name |
-| `day_of_month` | SMALLINT | | no | Day 1-31 |
-| `day_of_week` | SMALLINT | | no | ISO day, 1=Monday, 7=Sunday |
-| `day_name` | VARCHAR(20) | | no | Display day name |
-| `hour_of_day` | SMALLINT | | no | Hour 0-23 UTC |
-| `is_weekend` | BOOLEAN | | no | Saturday or Sunday |
-| `time_of_day_band` | VARCHAR(20) | | no | Night, morning, afternoon, evening |
+| `date_utc` | DATE | | no | Calendar date in UTC |
+| `hour_utc` | SMALLINT | | no | Hour 0-23 UTC |
 
-Unknown member: `-1`, `hour_ts = 1970-01-01 00:00:00+00`.
+Unknown member: `-1`, `hour_ts = 1900-01-01 00:00:00+00`.
 
 ### `project_dw.dim_site`
 
@@ -61,22 +52,10 @@ Grain: one monitored site or analytical region.
 | Column | Logical type | Key | Null | Description |
 |---|---|---|---|---|
 | `site_key` | BIGINT identity | PK | no | Surrogate key |
-| `site_code` | VARCHAR(32) | unique | no | `KBTP`, `KAGC`, `NIGHTJAR_PA`, `DJI_CO`, `DJI_CA` |
-| `site_name` | VARCHAR(120) | | no | Human-readable site name |
-| `site_type` | VARCHAR(32) | | no | Airport, UAS test site, flight area |
-| `city` | VARCHAR(80) | | yes | City |
-| `state` | VARCHAR(40) | | yes | State/province |
-| `country` | VARCHAR(40) | | no | Country |
-| `latitude` | NUMERIC(9,6) | | no | Reference latitude |
-| `longitude` | NUMERIC(9,6) | | no | Reference longitude |
-| `bbox_min_lat` | NUMERIC(9,6) | | no | Study bounding box south edge |
-| `bbox_min_lon` | NUMERIC(9,6) | | no | Study bounding box west edge |
-| `bbox_max_lat` | NUMERIC(9,6) | | no | Study bounding box north edge |
-| `bbox_max_lon` | NUMERIC(9,6) | | no | Study bounding box east edge |
-| `source_system` | VARCHAR(32) | | no | Source that establishes the site |
-| `description` | TEXT | | yes | Scope notes |
+| `site_code` | TEXT | unique | no | `KBTP`, `KAGC`, `NIGHTJAR_PA`, `DJI_CO` |
+| `site_name` | TEXT | | yes | Human-readable site name |
 
-Unknown member: `-1`, `site_code = 'UNKNOWN'`, coordinates `0,0`.
+Unknown member: `-1`, `site_code = 'UNKNOWN'`.
 
 ### `project_dw.dim_vehicle`
 
@@ -85,16 +64,9 @@ Grain: one real vehicle identity within a source system.
 | Column | Logical type | Key | Null | Description |
 |---|---|---|---|---|
 | `vehicle_key` | BIGINT identity | PK | no | Surrogate key |
-| `source_system` | VARCHAR(32) | unique pair | no | Tartan, Nightjar, DJI, OpenSky |
-| `source_entity_id` | VARCHAR(128) | unique pair | no | Source-scoped vehicle identity |
-| `icao24` | VARCHAR(16) | | yes | ADS-B transponder address |
-| `serial_number` | VARCHAR(128) | | yes | UAS serial number |
-| `callsign` | VARCHAR(32) | | yes | Flight/operator callsign |
-| `registration_number` | VARCHAR(32) | | yes | Registration if provided |
-| `vehicle_category` | VARCHAR(32) | | no | Manned, UAS, unknown |
-| `vehicle_subcategory` | VARCHAR(48) | | yes | Fixed-wing, rotorcraft, quad, eVTOL |
-| `operator_name` | VARCHAR(120) | | yes | Operator if provided |
-| `engine_type` | VARCHAR(32) | | yes | Jet, piston, electric, unknown |
+| `source_system` | TEXT | unique pair | no | Source that establishes the vehicle |
+| `source_entity_id` | TEXT | unique pair | no | Source-scoped vehicle identity |
+| `vehicle_type` | TEXT | | yes | Vehicle category |
 | `first_seen_ts` | TIMESTAMPTZ | | yes | First real observation |
 | `last_seen_ts` | TIMESTAMPTZ | | yes | Last real observation |
 
@@ -106,24 +78,17 @@ Do not merge identities from different sources without a recorded decision.
 
 ### `project_dw.dim_spatial_grid`
 
-Grain: one horizontal cell and altitude band per site.
+Grain: one horizontal cell per site.
 
 | Column | Logical type | Key | Null | Description |
 |---|---|---|---|---|
 | `grid_key` | BIGINT identity | PK | no | Surrogate key |
-| `grid_cell_id` | VARCHAR(64) | unique | no | Stable cell/band identifier |
+| `grid_cell_id` | TEXT | unique | no | Stable cell identifier |
 | `site_key` | BIGINT | FK | no | `dim_site` |
-| `latitude_center` | NUMERIC(9,6) | | no | Cell center latitude |
-| `longitude_center` | NUMERIC(9,6) | | no | Cell center longitude |
-| `latitude_min` | NUMERIC(9,6) | | no | South edge |
-| `latitude_max` | NUMERIC(9,6) | | no | North edge |
-| `longitude_min` | NUMERIC(9,6) | | no | West edge |
-| `longitude_max` | NUMERIC(9,6) | | no | East edge |
-| `altitude_band_name` | VARCHAR(32) | | no | Display band name |
-| `altitude_min_ft` | INTEGER | | no | Lower bound in feet |
-| `altitude_max_ft` | INTEGER | | no | Upper bound in feet |
-| `cell_size_deg` | NUMERIC(8,6) | | no | Horizontal cell size |
-| `altitude_band_order` | SMALLINT | | no | Sort order |
+| `lat_bin` | DOUBLE PRECISION | | yes | Cell center latitude |
+| `lon_bin` | DOUBLE PRECISION | | yes | Cell center longitude |
+
+Unique: `grid_cell_id`.
 
 Unknown member: `-1`, `grid_cell_id = 'UNKNOWN'`.
 
@@ -134,20 +99,12 @@ Grain: one real METAR observation at one station and time.
 | Column | Logical type | Key | Null | Description |
 |---|---|---|---|---|
 | `weather_key` | BIGINT identity | PK | no | Surrogate key |
-| `station_icao` | VARCHAR(8) | unique pair | no | Station identifier |
+| `station_icao` | TEXT | unique pair | no | Station identifier |
 | `observation_ts` | TIMESTAMPTZ | unique pair | no | Observation time |
 | `site_key` | BIGINT | FK | no | Nearest/primary site; `-1` if none |
-| `raw_text` | TEXT | | yes | Original METAR text |
-| `flight_category` | VARCHAR(8) | | yes | VFR, MVFR, IFR, LIFR |
 | `temperature_c` | NUMERIC(5,2) | | yes | Temperature Celsius |
-| `dewpoint_c` | NUMERIC(5,2) | | yes | Dew point Celsius |
 | `wind_speed_kts` | NUMERIC(6,2) | | yes | Sustained wind |
-| `wind_gust_kts` | NUMERIC(6,2) | | yes | Gust speed |
-| `wind_direction_deg` | SMALLINT | | yes | Direction; null for variable |
-| `visibility_sm` | NUMERIC(6,2) | | yes | Visibility statute miles |
-| `cloud_ceiling_ft` | INTEGER | | yes | Lowest broken/overcast layer |
-| `altimeter_inhg` | NUMERIC(6,2) | | yes | Altimeter setting |
-| `source_system` | VARCHAR(16) | | no | AWC or IEM |
+| `visibility_m` | NUMERIC(9,2) | | yes | Visibility in meters |
 
 Unique: `(station_icao, observation_ts)`.
 
@@ -160,29 +117,14 @@ Grain: one source airspace/restriction feature version used in the study.
 | Column | Logical type | Key | Null | Description |
 |---|---|---|---|---|
 | `zone_key` | BIGINT identity | PK | no | Surrogate key |
-| `source_system` | VARCHAR(32) | unique pair | no | FAA UDDS or other approved source |
-| `source_object_id` | VARCHAR(128) | unique pair | no | Source feature identifier |
-| `site_key` | BIGINT | FK | no | Primary site; `-1` when not site-specific |
-| `restriction_id` | VARCHAR(64) | | yes | Published identifier |
-| `zone_name` | VARCHAR(200) | | no | Feature name |
-| `restriction_type` | VARCHAR(48) | | no | TFR, facility map, prohibited, controlled |
-| `lower_limit_ft` | INTEGER | | yes | Lower limit |
-| `upper_limit_ft` | INTEGER | | yes | Upper limit |
-| `effective_start_ts` | TIMESTAMPTZ | | yes | Start of published window |
-| `effective_end_ts` | TIMESTAMPTZ | | yes | End of published window |
-| `is_static` | BOOLEAN | | no | Standing feature versus time-bound |
-| `geometry_wkt` | TEXT | | no | WGS84 polygon/multipolygon |
-| `bbox_min_lat` | NUMERIC(9,6) | | yes | Bounding box |
-| `bbox_min_lon` | NUMERIC(9,6) | | yes | Bounding box |
-| `bbox_max_lat` | NUMERIC(9,6) | | yes | Bounding box |
-| `bbox_max_lon` | NUMERIC(9,6) | | yes | Bounding box |
-| `source_url` | TEXT | | yes | Feature/service URL |
-| `first_seen_ts` | TIMESTAMPTZ | | no | First observed in a real snapshot |
-| `last_seen_ts` | TIMESTAMPTZ | | no | Last observed in a real snapshot |
+| `source_system` | TEXT | unique pair | no | Source that establishes the zone |
+| `source_object_id` | TEXT | unique pair | no | Source-scoped zone identity |
+| `zone_name` | TEXT | | yes | Human-readable zone name |
+| `site_key` | BIGINT | FK | no | `-1` when the zone is not site-specific |
 
 Unique: `(source_system, source_object_id)`.
 
-Unknown member: `-1`, `source_system = 'UNKNOWN'`.
+Unknown member: `-1`, `source_system = 'UNKNOWN'`, `source_object_id = 'UNKNOWN'`.
 
 ## Fact tables
 
