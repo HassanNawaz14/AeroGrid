@@ -10,24 +10,24 @@ evidence exists and is reviewable.
 
 | ID | Requirement | Artifact / evidence | WP | Owner | Status |
 |---|---|---|---|---|---|
-| `D-01` | `project_staging` schema | Staging DDL and live schema inventory | `WP-04` | B | PLANNED |
-| `D-02` | `project_dw` schema | Dimension/fact DDL and live schema inventory | `WP-05`, `WP-06` | C/D | PLANNED |
+| `D-01` | `project_staging` schema | Staging DDL and live schema inventory | `WP-04` | B | DONE (`WP-04`; runs `42474788058`/`42477720902`) |
+| `D-02` | `project_dw` schema | Dimension/fact DDL and live schema inventory | `WP-05`, `WP-06` | C/D | IN_PROGRESS (dimensions + 2 core facts delivered; 3 derived facts pending `WP-07`) |
 | `D-03` | `project_reporting` schema | Reporting view DDL and view catalog | `WP-10` | E | PLANNED |
-| `D-04` | Real public data only | Source manifest, URL/license, validation records, no-synthetic audit | `WP-03`, `WP-08` | B/E | PLANNED |
-| `D-05` | Staging and cleaning | Staging loaders, rejects, cleaning counts | `WP-04` | B | PLANNED |
-| `D-06` | Dimension tables | Six dimensions with constraints and seeds | `WP-05` | C | PLANNED |
-| `D-07` | Fact tables | Five facts with documented grains | `WP-06`, `WP-07` | D/E | PLANNED |
-| `D-08` | Surrogate keys | Identity keys, `-1` unknown members, natural-key uniqueness | `WP-05` | C | PLANNED |
-| `D-09` | Fact loading by key mapping | Mapping SQL/code and reconciliation evidence | `WP-06`, `WP-07` | D/E | PLANNED |
-| `D-10` | 100+ dimension rows | Count query and report evidence | `WP-05` | C | PLANNED |
-| `D-11` | 10,000+ fact rows | Count query and report evidence | `WP-06`, `WP-07` | D/E | PLANNED |
+| `D-04` | Real public data only | Source manifest, URL/license, validation records, no-synthetic audit | `WP-03`, `WP-08` | B/E | IN_PROGRESS (source validation `DONE`; no-synthetic audit pending `WP-08`) |
+| `D-05` | Staging and cleaning | Staging loaders, rejects, cleaning counts | `WP-04` | B | DONE (`WP-04`) |
+| `D-06` | Dimension tables | Six dimensions with constraints and seeds | `WP-05` | C | DONE (`WP-05`) |
+| `D-07` | Fact tables | Five facts with documented grains | `WP-06`, `WP-07` | D/E | IN_PROGRESS (2 core facts `DONE`; 3 derived facts pending `WP-07`) |
+| `D-08` | Surrogate keys | Identity keys, `-1` unknown members, natural-key uniqueness | `WP-05` | C | DONE (`WP-05`) |
+| `D-09` | Fact loading by key mapping | Mapping SQL/code and reconciliation evidence | `WP-06`, `WP-07` | D/E | IN_PROGRESS (core facts reconciled; derived facts pending) |
+| `D-10` | 100+ dimension rows | Count query and report evidence | `WP-05` | C | DONE (169 `dim_time`, 156 real Tartan vehicles) |
+| `D-11` | 10,000+ fact rows | Count query and report evidence | `WP-06`, `WP-07` | D/E | IN_PROGRESS (core facts meet 10,000+; derived facts pending) |
 | `D-12` | Data-quality checks | Check catalog, stored `dq_result`, pass/fail evidence | `WP-08` | E | PLANNED |
 | `D-13` | Data Cleaning Report PDF | `Phase2/reports/Data_Cleaning_Report.pdf` | `WP-09` | E | PLANNED |
 | `D-14` | Data Quality Report PDF | `Phase2/reports/Data_Quality_Report.pdf` | `WP-09` | E | PLANNED |
-| `D-15` | SQL scripts | Versioned SQL in `Phase2/sql/` | `WP-04`-`WP-10` | B/C/D/E | PLANNED |
-| `D-16` | ETL scripts | Python package in `Phase2/etl/` | `WP-03`-`WP-09` | B/D/E | PLANNED |
+| `D-15` | SQL scripts | Versioned SQL in `Phase2/sql/` | `WP-04`-`WP-10` | B/C/D/E | IN_PROGRESS (staging, dimensions, and core-fact SQL delivered; derived/reporting SQL pending) |
+| `D-16` | ETL scripts | Python package in `Phase2/etl/` | `WP-03`-`WP-09` | B/D/E | IN_PROGRESS (staging, dimensions, and core-fact ETL delivered; derived/DQ/report ETL pending) |
 | `D-17` | GitHub repository link | Public repository and final commit/code link | `WP-12` | A | PLANNED |
-| `D-18` | Shared five-member read access | Read-only role proof from multiple members | `WP-02`, `WP-11` | A | PLANNED |
+| `D-18` | Shared five-member read access | Read-only role proof from multiple members | `WP-02`, `WP-11` | A | IN_PROGRESS (reader `SELECT` proof exists; five-member demonstration pending `WP-11`) |
 
 ## Operating commitments
 

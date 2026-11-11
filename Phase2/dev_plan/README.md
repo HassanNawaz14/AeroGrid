@@ -9,12 +9,12 @@ is the canonical plan for Members A-E and their agents. The status dashboard rem
 ## Authorization status
 
 - Phase 2 implementation is **authorized** (`H-007`, 2026-11-04).
-- `G2` and `G3` are closed; the current gate is `G4`.
-- `WP-02`-`WP-05` are `DONE` (PR #3 `b6b76b9`, PR #5 `f9087f4`, PR #7, PR #8).
-  `G3` was recorded 2026-11-09 with `B-011` open (the `WP-04` sample run used the
-  excluded demo CSV). `WP-06` is `READY` under `D-024`: Member C seeds the real
-  dimension members and records `G4`, and Member D loads and evidences the facts. The
-  `WP-06` briefs are in [`01_work_breakdown.md`](01_work_breakdown.md).
+- `G2`, `G3`, and `G4` are closed; the current gate is `G5`.
+- `WP-02`-`WP-06` are `DONE` (PR #3 `b6b76b9`, PR #5 `f9087f4`, PR #7, PR #8, PR
+  #12 `f29b099`). `G4` was recorded 2026-11-11 after the real Tartan WP-05/WP-06 runs
+  passed and `B-011` was resolved. `WP-07` is `BLOCKED_ON_HUMAN` on `H-013`; Member E
+  starts after the human approves the thresholds and `algorithm_version`. The `WP-07`
+  brief is in [`01_work_breakdown.md`](01_work_breakdown.md).
 - Later work packages begin only after their gate and authorization are recorded in
   [`../PROGRESS.md`](../PROGRESS.md).
 - Do not create resources or data outside the assigned work package.
@@ -58,9 +58,10 @@ WP-00 docs baseline
   -> WP-12 integration and release (G7)
 ```
 
-`WP-02`-`WP-05` are complete. `WP-06` owns the core facts and starts only now that
-`G3` is recorded; `WP-07` waits for `G4` and `H-013`. `WP-11` can prepare
-documentation early but must not create workflows until it is authorized.
+`WP-02`-`WP-06` are complete and `G4` is recorded. `WP-07` waits for `H-013`
+(thresholds and `algorithm_version`) before Member E starts; later packages wait for
+`G5` and their own authorization. `WP-11` can prepare documentation early but must
+not create workflows until it is authorized.
 
 ## Team ownership
 

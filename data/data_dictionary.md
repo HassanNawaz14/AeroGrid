@@ -6,11 +6,12 @@ This is the column-level logical dictionary for the Phase 2 model. It is synchro
 with [`../Phase2/docs/04_data_model.md`](../Phase2/docs/04_data_model.md) and
 [`diagrams/aerogrid_schema.dbml`](diagrams/aerogrid_schema.dbml). `WP-04` staging DDL
 and loaders and `WP-05` dimensions DDL/seeds are `DONE` and applied on Neon with
-reader `SELECT` grants in place. `WP-06` core movement facts DDL/loaders (`fact_vehicle_tracking`
-and `fact_flight_journey`) are implemented and merged. `02_dimensions/03_seed_real.sql`
-now seeds the real Tartan `dim_vehicle` members derived from the pinned sample, and live
-CI acceptance verification remains. Derived-fact DDL remains authorized only inside
-`WP-07`.
+reader `SELECT` grants in place. `WP-06` core movement facts DDL/loaders
+(`fact_vehicle_tracking` and `fact_flight_journey`) are `DONE` and merged in PR #12
+(`f29b099`). `02_dimensions/03_seed_real.sql` seeds the real Tartan `dim_vehicle`
+members derived from the pinned sample, and the real Tartan WP-05/WP-06 runs passed
+on 2026-11-11, resolving `B-011` and recording `G4`. Derived-fact DDL remains
+authorized only inside `WP-07`, after `H-013` approval.
 
 Physical DDL may use equivalent PostgreSQL types, but names, grains, keys, and
 meanings must match this dictionary.

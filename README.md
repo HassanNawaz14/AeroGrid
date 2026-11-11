@@ -12,8 +12,8 @@ capacity.
 | Phase 1 | Complete and frozen as the historical design baseline |
 | Phase 2 | Documentation baseline accepted (`G0`/`H-001`) |
 | Phase 2 implementation | **Authorized** 2026-11-04 (`H-007`) |
-| Current human gate | `G4 - Core movement facts` |
-| Current work packages | `WP-02`-`WP-05`, `DONE`; `WP-06` (Member D), `READY`, owner-closable under `D-024` with Member C recording `G4` |
+| Current human gate | `G5 - Derived facts and approved thresholds` |
+| Current work packages | `WP-02`-`WP-06`, `DONE`; `WP-07` (Member E), `BLOCKED_ON_HUMAN` on `H-013` |
 
 Nothing in `Phase1/` should be edited. Phase 2 work is controlled from
 [`Phase2/`](Phase2/README.md), and the current status, blockers, and human action queue
@@ -60,11 +60,11 @@ The Phase 2 course brief is
 - **Raw data stays out of Git** and in cloud object storage with a provenance manifest.
 - **No secrets in the repository.** Humans add them through GitHub/Neon UI.
 - **Phase 1 is frozen.** Do not edit its `.tex` or PDF files.
-- **Implementation is authorized by work package.** `WP-02`-`WP-05` are `DONE`
-  (PR #3 `b6b76b9`, #5 `f9087f4`, #7, #8). `G2` closed 2026-11-08 and `G3` was
-  recorded 2026-11-09 with `B-011` open, so accepted real staging rows are proven in
-  `WP-06` rather than by the excluded demo CSV. `WP-06` is `READY` under the
-  delegated window `D-024`. Later packages wait for their gate (`G4`).
+- **Implementation is authorized by work package.** `WP-02`-`WP-06` are `DONE`
+  (PR #3 `b6b76b9`, #5 `f9087f4`, #7, #8, #12 `f29b099`). `G2` closed 2026-11-08,
+  `G3` on 2026-11-09, and `G4` on 2026-11-11 after the real Tartan WP-05/WP-06 runs
+  passed and `B-011` was resolved. The `D-024` window is closed. `WP-07` is
+  `BLOCKED_ON_HUMAN` on `H-013`; later packages wait for their gate.
 
 ## Accepted Phase 2 architecture
 
@@ -158,20 +158,17 @@ AeroGrid/
 
 ## What happens next
 
-`G3` is recorded. The next actions belong to the work package owners under the
-delegated window `D-024`:
+`G4` is recorded and `WP-06` is `DONE`. The next actions are:
 
-1. Member C: seed the real dimension members (vehicles and optional grid cells) from
-   the validated Tartan sample, then verify and merge using the `WP-06` Member C brief
-   in [`Phase2/dev_plan/01_work_breakdown.md`](Phase2/dev_plan/01_work_breakdown.md).
-2. Member D: load the real Tartan tracking and journey facts, record the evidence,
-   close `B-011`, and mark `WP-06` `DONE` using the Member D brief.
-3. Member C: dispatch the WP-06 verification, record `G4`, and restore nothing else.
+1. HassanNawaz14: approve `H-013` (severe: horizontal `< 0.5 nm` and vertical
+   `< 500 ft`; proximity: horizontal `< 1.0 nm` and vertical `< 1,000 ft`; plus
+   `algorithm_version`), restore the `warehouse` environment reviewers, and confirm
+   the main-branch protection ruleset in
+   [`Phase2/docs/10_human_operating_manual.md`](Phase2/docs/10_human_operating_manual.md).
+2. Member E: start `WP-07` derived facts immediately after `H-013` is approved, using
+   the brief in
+   [`Phase2/dev_plan/01_work_breakdown.md`](Phase2/dev_plan/01_work_breakdown.md#wp-07-derived-facts).
 
-HassanNawaz14 returns after `G4` for `H-013` (approve the `WP-07` thresholds and
-algorithm version), the `warehouse` environment restoration, and the main-branch
-protection check in
-[`Phase2/docs/10_human_operating_manual.md`](Phase2/docs/10_human_operating_manual.md).
 Human-only actions still apply: secrets, Neon roles, repository and environment
-settings, destructive SQL, and gate acceptance beyond `G4`. Later work packages wait
+settings, destructive SQL, thresholds, and gate acceptance. Later work packages wait
 until their gate is recorded.

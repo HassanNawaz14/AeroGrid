@@ -1,7 +1,8 @@
 # Phase 2 ETL
 
 Current `WP-04` through `WP-06` ETL modules. `WP-06` applies the real dimension seed
-before preflight and awaits live CI acceptance.
+before preflight; the real Tartan WP-05/WP-06 runs passed on 2026-11-11 and `G4` is
+recorded.
 
 ## Modules
 

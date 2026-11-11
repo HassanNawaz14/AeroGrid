@@ -2,11 +2,13 @@
 
 ## Status
 
-This is the implementation plan plus the delivered staging and dimension packages.
-`WP-02`-`WP-05` are `DONE`: the staging DDL is applied on Neon (runs `42474788058`
-and `42477720902`, two idempotent passes) with the sample caveat `B-011`, and the six
-dimensions, seeds, and dictionary merged in PR #8. `WP-06` (real tracking and journey
-facts) is `READY` under `D-024`; later packages remain gated by `G4`.
+This is the implementation plan plus the delivered staging, dimension, and core-fact
+packages. `WP-02`-`WP-06` are `DONE`: the staging DDL is applied on Neon (runs
+`42474788058` and `42477720902`, two idempotent passes), the six dimensions, seeds,
+and dictionary merged in PR #8, and the core tracking/journey facts merged in PR #12
+(`f29b099`). The real Tartan WP-05 run `42689267328` and WP-06 run `42887782411`
+passed, resolving `B-011` and recording `G4` on 2026-11-11. Later packages remain
+gated by `G5` and `H-013`.
 
 ## Pipeline principles
 
@@ -151,12 +153,11 @@ Planned staging tables:
 normalized fields to staging columns, write rejects through per-row savepoints, and
 use `ON CONFLICT DO NOTHING` on source-scoped keys. `verify_wp04_staging.py` can load
 a real sample twice inside a rolled-back transaction to prove rejects, reconciliation,
-and idempotency. The DDL has been applied to Neon by `aerogrid_etl`. The recorded
-sample run used the excluded legacy demo CSV and accepted zero rows, which is tracked
-as `B-011`; `WP-06` must load real Tartan rows, show accepted staging rows > 0, and
-reconcile the tracking facts to them. Raw data is never stored in Git, so Member D
-supplies the object from `aerogrid-raw` through the `warehouse` workflow under
-`D-024`.
+and idempotency. The DDL has been applied to Neon by `aerogrid_etl`. The earlier
+sample run used the excluded legacy demo CSV and accepted zero rows (`B-011`, now
+resolved); `WP-06` loaded the real Tartan sample, showed accepted staging rows > 0,
+and reconciled the tracking facts to them. Raw data is never stored in Git; the
+verifier reads the object from `aerogrid-raw` through the `warehouse` workflow.
 
 ### Staging transformations
 
@@ -373,8 +374,9 @@ python -m etl.verify_wp04_staging --tartan-sample /path/to/real/1.csv
 python -m etl.verify_wp05_dimensions
 ```
 
-`WP-06` adds its own verifier and workflow in its package. Remaining planned
-interfaces (do not create or run before authorization):
+`WP-06` delivered its verifier and workflow (`verify_wp06_facts.py`,
+`wp06-facts-verify.yml`). Remaining planned interfaces (do not create or run before
+authorization):
 
 ```text
 python -m etl.run --mode initial
