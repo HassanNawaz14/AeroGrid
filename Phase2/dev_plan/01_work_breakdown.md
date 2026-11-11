@@ -10,8 +10,8 @@
 | `WP-03` | Source validation and georeferencing spike | B | D + E | DONE |
 | `WP-04` | Staging DDL and loaders | B | C + D | DONE |
 | `WP-05` | Dimensions, keys, and data dictionary | C | A + D | DONE |
-| `WP-06` | Tracking and journey facts | D | C + E | READY (owner-closable under `D-024`) |
-| `WP-07` | Derived facts | E | C + D | NOT_STARTED |
+| `WP-06` | Tracking and journey facts | D | C + E | DONE (PR #12 `f29b099`; `G4` recorded; `B-011` resolved) |
+| `WP-07` | Derived facts | E | C + D | BLOCKED_ON_HUMAN (`H-013`) |
 | `WP-08` | Data-quality framework | E | B + D | NOT_STARTED |
 | `WP-09` | PDF reports | E | B + A | NOT_STARTED |
 | `WP-10` | Reporting views and corridor metrics | E | C + D | NOT_STARTED |
@@ -415,12 +415,15 @@ stop. Do not change repository or environment settings.
 
 ## WP-06: Tracking and journey facts
 
-**Status:** READY (Member D; `G3` recorded 2026-11-09; delegated closeout under
-`D-024`; Member C completes the real dimension members first)
+**Status:** DONE 2026-11-11 (PR #12 `f29b099`; `G4` recorded; `B-011` resolved)
 **Owner:** Member D
 **Reviewers:** Members C and E
 **Prerequisites:** WP-04, WP-05
-**Gate:** G4 (`G3` cleared 2026-11-09)
+**Gate:** G4 (recorded 2026-11-11)
+
+The `WP-06` agent briefs below are historical; the package is closed. The real
+Tartan sample was loaded and WP-05 run `42689267328` and WP-06 run `42887782411`
+passed on `phase2/wp06-tracking-facts` at `ecce8ec`.
 
 ### Objective
 
@@ -546,11 +549,19 @@ laptop.
 
 ## WP-07: Derived facts
 
-**Status:** NOT_STARTED
+**Status:** BLOCKED_ON_HUMAN (`H-013`: approve the thresholds and `algorithm_version`)
 **Owner:** Member E
 **Reviewers:** Members C and D
-**Prerequisites:** WP-06, thresholds approved
+**Prerequisites:** WP-06 (DONE), `H-013` approved
 **Gate:** G5
+
+**Start condition:** `G4` is recorded. The human must approve `H-013` before any
+derived-fact code or data work starts. Candidate thresholds in
+[`../docs/04_data_model.md`](../docs/04_data_model.md): severe encounter
+horizontal `< 0.5 nm` and vertical `< 500 ft`; proximity horizontal `< 1.0 nm` and
+vertical `< 1,000 ft`. Candidate `algorithm_version`: `wp07-v1` (proposed; the human
+confirms or amends it in `H-013`). Occupancy is computed once per grid/hour from real
+airborne tracking positions, not per query.
 
 ### Objective
 

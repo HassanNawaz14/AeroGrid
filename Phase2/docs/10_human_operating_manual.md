@@ -20,10 +20,12 @@ warehouse without exposing secrets.
 - Phase 1 is complete and frozen.
 - Phase 2 documentation and planning baseline is accepted (`G0`/`H-001`).
 - Implementation is **authorized** (`H-007`, 2026-11-04).
-- `G2` and `G3` are closed; the current gate is `G4`.
-- `WP-02`-`WP-05` are `DONE` (PR #3 `b6b76b9`, PR #5 `f9087f4`, PR #7, PR #8).
-  `WP-06` is delegated to Member D under `D-024`, with Member C completing the real
-  dimension members and recording `G4`. The human is hands-off until `G4`.
+- `G2`, `G3`, and `G4` are closed; the current gate is `G5`.
+- `WP-02`-`WP-06` are `DONE` (PR #3 `b6b76b9`, PR #5 `f9087f4`, PR #7, PR #8, PR #12
+  `f29b099`). The real Tartan WP-05/WP-06 runs passed and `G4` was recorded on
+  2026-11-11; `B-011` is resolved and the `D-024` window is closed.
+- `WP-07` is `BLOCKED_ON_HUMAN` on `H-013`; approve the thresholds and
+  `algorithm_version` so Member E can start.
 
 ## The one rule for secrets
 
@@ -49,7 +51,8 @@ The canonical queue is in [`../PROGRESS.md`](../PROGRESS.md). Current status:
 | `H-010` | Confirm the FAA airspace source or approve a replacement | `DONE` 2026-11-07 via `D-020` (granular services) |
 | `H-011` | Run `Phase2/sql/00_grants.sql` as `neondb_owner` | `DONE` 2026-11-08; 15-row self-check all `true`; `WP-04` then closed under `D-023` with sample caveat `B-011` |
 | `H-012` | Confirm the `WP-05` start gate | `DONE` 2026-11-08 via `D-022` |
-| `H-013` | Approve the `WP-07` thresholds and algorithm version | `OPEN`; needed after `G4`, before Member E starts derived facts |
+| `H-013` | Approve the `WP-07` thresholds and algorithm version | `OPEN`; `G4` is recorded, so this is the only blocker before Member E starts derived facts |
+| `H-014` | Upload the pinned real Tartan sample to `aerogrid-raw` | `DONE` 2026-11-11; the WP-06 run fetched and verified `samples/kbtp/01-01-22/1.csv` |
 
 Project `AeroGrid-DW`, branch `br-royal-cherry-beij6hxw`, database `neondb`, bucket
 `aerogrid-raw`, and the storage endpoint are recorded in
@@ -60,59 +63,48 @@ on 2026-11-09; the classic branch-protection API returns 404, so use **Settings 
 Rules**, not **Settings → Branches**. `H-002` remains deferred; the Member B-E names are recorded
 in [docs/08_team_work_division.md](08_team_work_division.md).
 
-`WP-02` through `WP-05` are `DONE`. `WP-06` is `READY` under `D-024`; the human is
-hands-off until `G4`. Do not start a later work package until its gate is recorded in
+`WP-02` through `WP-06` are `DONE` and `G4` is recorded. `WP-07` is waiting on your
+approval of `H-013`. Do not start a later work package until its gate is recorded in
 `../PROGRESS.md`.
 
-## Hands-off window: your input is zero until `G4`
+## Post-`G4` return checklist
 
-`G3` was recorded on 2026-11-09 on your explicit instruction. `WP-04` and `WP-05` are
-`DONE`, and `D-024` hands `WP-06` to Member D, with Member C completing the real
-dimension members and recording `G4`.
+`G4` was recorded on 2026-11-11. `WP-04`, `WP-05`, and `WP-06` are `DONE`, the real
+Tartan sample is loaded, and both workflows passed. The `D-024` delegated window is
+closed.
 
-One finding you should know: the `WP-04` sample proof ran against
-`data/sample/tartan_trajectory_sample.csv`, a legacy synthetic demo file. It is tracked
-as `B-011`; `WP-06` closes it by loading real Tartan rows, proving accepted rows above
-zero, and reconciling tracking facts to staging. `G3` is recorded with that caveat. If
-you want the sample proof redone first, stop this window and say so.
+### What is already done
+
+- WP-05 run [42689267328](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42689267328)
+  and WP-06 run [42887782411](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42887782411)
+  `PASS` on `phase2/wp06-tracking-facts` at `ecce8ec`.
+- PR #12 merged into `main` as `f29b099`.
+- `B-011` is `RESOLVED`; `H-014` is `DONE`.
 
 ### What you need to do now
 
-Nothing. The `warehouse` environment already has Hamid4325 and HarveyWebbs as required
-reviewers, and they approve the runs that Members C and D dispatch. Member D does not
-need to be a reviewer.
-
-### What the owners do
-
-- Member C first adds real `dim_vehicle` identities (and grid cells if implemented)
-  from the same real Tartan sample, then after Member D's merge dispatches
-  `wp06-facts-verify.yml` from `main` and records `G4` with the run link.
-- Member D loads real Tartan rows into staging, builds `fact_vehicle_tracking` and
-  `fact_flight_journey` with correct keys, records counts, reconciliation, idempotency,
-  and orphan checks, and marks `WP-06` `DONE`. Briefs:
-  [dev_plan/01_work_breakdown.md](../dev_plan/01_work_breakdown.md#wp-06-tracking-and-journey-facts).
-- Peer review: Member C or E approves `WP-06`; the author merges.
-- Member E stays on review duty and does not start `WP-07`, which needs your
-  thresholds (`H-013`).
-- Any human-only blocker becomes a new `H-###` row and stops that package. The window
-  does not authorize secrets, Neon role/branch changes, repository settings, or
-  destructive SQL.
-
-### When you return
-
-1. Read [`../PROGRESS.md`](../PROGRESS.md): `WP-06` should be `DONE` and `G4` recorded
-   with a run link, fact counts, and reconciliation results.
-2. Confirm `B-011` is closed by real accepted staging rows and tracking reconciliation.
+1. Read [`../PROGRESS.md`](../PROGRESS.md): `WP-06` is `DONE`, `G4` is recorded, and
+   `WP-07` is `BLOCKED_ON_HUMAN`.
+2. Approve `H-013`: severe encounter horizontal `< 0.5 nm` and vertical `< 500 ft`;
+   proximity horizontal `< 1.0 nm` and vertical `< 1,000 ft`; plus the
+   `algorithm_version`. Member E starts `WP-07` immediately after approval.
 3. Rerun [`../sql/00_grants.sql`](../sql/00_grants.sql) as `neondb_owner` once; all 15
    rows must be `true`.
-4. Approve the `WP-07` thresholds and algorithm version (`H-013`) before Member E
-   starts derived facts.
-5. Restore the environment when the last delegated window ends:
+4. Restore the environment now that the delegated window is closed:
    **Settings → Environments → `warehouse`** → remove Hamid4325 and HarveyWebbs from
    Required reviewers, re-enable **Prevent self-review**, **Save**.
-6. Confirm the `main-protection` ruleset is still active (**Settings → Rules**): it
+5. Confirm the `main-protection` ruleset is still active (**Settings → Rules**): it
    needs one approving review and blocks force-push. The classic **Settings →
    Branches** page will still show "not protected"; that is expected.
+
+### What the owners do next
+
+- Member E implements `WP-07` derived facts only after `H-013` is approved, using the
+  brief in
+  [dev_plan/01_work_breakdown.md](../dev_plan/01_work_breakdown.md#wp-07-derived-facts).
+- Any human-only blocker becomes a new `H-###` row and stops that package. No agent
+  may approve thresholds, change Neon roles/branches, change repository settings, or
+  run destructive SQL.
 
 Remember the ownership rule this delegation exposed: tables created by `aerogrid_etl`
 can only be granted by `aerogrid_etl`, which is why the reader grants live in

@@ -4,15 +4,15 @@ Phase 2 turns the Phase 1 dimensional design into a shared, reproducible Postgre
 data warehouse loaded from real public data. This directory is the control point for
 Phase 2 documentation, planning, status, and future implementation.
 
-**Implementation status: AUTHORIZED (2026-11-04, `H-007`).** `G0`-`G3` are closed.
+**Implementation status: AUTHORIZED (2026-11-04, `H-007`).** `G0`-`G4` are closed.
 `WP-02` (run `42276737288`, PR #3 `b6b76b9`), `WP-03` (PR #5 `f9087f4`), `WP-04` (PR
-#7), and `WP-05` (PR #8) are `DONE`. `G3` was recorded on 2026-11-09 with `B-011`
-open, so accepted real staging rows are proven by `WP-06`. `WP-06` is `IN_PROGRESS`
-under the delegated window `D-024`: the fact DDL, ETL, verifier, workflow, and unit
-tests are merged, and `02_dimensions/03_seed_real.sql` now seeds the real Tartan
-`dim_vehicle` members from the pinned sample. Remaining work is the live
-`warehouse` verification that closes `B-011`/`WP-06` and records `G4`; the checklist
-is in [PROGRESS.md](PROGRESS.md). Human input is zero until `G4`.
+#7), `WP-05` (PR #8), and `WP-06` (PR #12 `f29b099`) are `DONE`. The real Tartan
+sample was loaded and both workflows passed: WP-05 run
+[42689267328](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42689267328) and
+WP-06 run [42887782411](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42887782411).
+`B-011` is resolved and `G4` was recorded on 2026-11-11; the `D-024` window is closed.
+`WP-07` (Member E) is `BLOCKED_ON_HUMAN` until the human approves `H-013`; see
+[PROGRESS.md](PROGRESS.md).
 
 ## Quick links
 
@@ -92,9 +92,9 @@ Statuses use the vocabulary in [AGENTS.md](AGENTS.md). Detail is in
 | `G0` | Documentation baseline complete and links valid | `DONE` (`H-001`) |
 | `G1` | Human prerequisites and approvals | `DONE` (`H-007`; `H-002` deferred) |
 | `G2` | Platform and source readiness validated | `DONE` 2026-11-08 (`WP-02`/`WP-03`; PR #5 `f9087f4`) |
-| `G3` | Staging, dimensional schema, and keys validated | `DONE` 2026-11-09 (`WP-04`/`WP-05`; `B-011` open) |
-| `G4` | Core tracking and journey facts loaded | `IN_PROGRESS` (`WP-06` under `D-024`; Member C records) |
-| `G5` | Derived facts and thresholds validated | `NOT_STARTED` |
+| `G3` | Staging, dimensional schema, and keys validated | `DONE` 2026-11-09 (`WP-04`/`WP-05`; `B-011` later resolved in `WP-06`) |
+| `G4` | Core tracking and journey facts loaded | `DONE` 2026-11-11 (`WP-06`; runs `42689267328`/`42887782411`; PR #12 `f29b099`; `B-011` resolved) |
+| `G5` | Derived facts and thresholds validated | `NOT_STARTED` (`WP-07`; `H-013` approval pending) |
 | `G6` | DQ, reports, views, and automation complete | `NOT_STARTED` |
 | `G7` | End-to-end run and team access demonstrated | `NOT_STARTED` |
 
@@ -106,8 +106,8 @@ Statuses use the vocabulary in [AGENTS.md](AGENTS.md). Detail is in
 | `WP-03` Source validation and georeferencing | Member B | `DONE` |
 | `WP-04` Staging DDL and loaders | Member B | `DONE` (PR #7; sample caveat `B-011`) |
 | `WP-05` Dimensions, keys, and dictionary | Member C | `DONE` (PR #8) |
-| `WP-06` Tracking and journey facts | Member D | `IN_PROGRESS` (branch code ready; awaits Member C dims/S3; owner-closable under `D-024`) |
-| `WP-07` Derived facts | Member E | `NOT_STARTED` |
+| `WP-06` Tracking and journey facts | Member D | `DONE` (PR #12 `f29b099`; `B-011` resolved; `G4` recorded) |
+| `WP-07` Derived facts | Member E | `BLOCKED_ON_HUMAN` (`H-013` thresholds/`algorithm_version`) |
 | `WP-08` Data-quality framework | Member E | `NOT_STARTED` |
 | `WP-09` PDF reports | Member E | `NOT_STARTED` |
 | `WP-10` Reporting views and corridor metrics | Member E | `NOT_STARTED` |
@@ -116,26 +116,19 @@ Statuses use the vocabulary in [AGENTS.md](AGENTS.md). Detail is in
 
 ## Current blockers and next action
 
-**`G3` is recorded and `WP-06` is `IN_PROGRESS`.** `WP-02`-`WP-05` are `DONE`; platform
+**`G4` is recorded and `WP-06` is `DONE`.** `WP-02`-`WP-06` are `DONE`; platform
 validation passed on 2026-11-07 (22 pass, 1 warn, 0 fail), source validation merged
-in PR #5 (`f9087f4`), and the staging and dimension packages merged in PR #7 and PR
-#8. `H-002` remains deferred by the human; the Member B-E names are recorded in
-[docs/08_team_work_division.md](docs/08_team_work_division.md). `B-011` records that
-the `WP-04` sample run used the excluded legacy demo CSV, so `WP-06` must show
-accepted real staging rows and reconcile the tracking facts to them.
+in PR #5 (`f9087f4`), staging and dimensions merged in PR #7 and PR #8, and the core
+facts merged in PR #12 (`f29b099`). `H-002` remains deferred by the human; the Member
+B-E names are recorded in [docs/08_team_work_division.md](docs/08_team_work_division.md).
+`B-011` is `RESOLVED` by the real Tartan WP-06 run.
 
-**Next actions:** `aerogrid-raw` was confirmed empty, so the human must upload the
-extracted real sample as `samples/kbtp/01-01-22/1.csv` (`H-014`; 4,325,376 bytes,
-SHA-256 `86342d09...a762`) before the acceptance run. Then run
-`wp05-dimensions-verify.yml` to apply and validate `03_seed_real.sql`, and dispatch
-`wp06-facts-verify.yml` from `main` to prove accepted real staging rows, fact counts,
-reconciliation, idempotency, and zero orphans. Follow the `WP-06` collaborator
-checklist in [PROGRESS.md](PROGRESS.md) to close `B-011`/`WP-06` and record `G4`.
-Agent briefs are in [dev_plan/01_work_breakdown.md](dev_plan/01_work_breakdown.md).
-HassanNawaz14 returns after `G4` for `H-013` (WP-07 thresholds), the environment
-restoration, and the main-branch protection check. Human-only actions still require
-the human (secrets, Neon roles, repository and environment settings, destructive SQL,
-gate acceptance after `G4`).
+**Next actions:** the human approves `H-013` (severe: horizontal `< 0.5 nm` and
+vertical `< 500 ft`; proximity: horizontal `< 1.0 nm` and vertical `< 1,000 ft`; plus
+`algorithm_version`). Member E then starts `WP-07` and records `G5` evidence. No
+human input is needed for the completed `WP-06` closeout. Human-only actions still
+require the human (secrets, Neon roles, repository and environment settings,
+destructive SQL, and every gate after `G4`).
 
 ## Directory map
 
@@ -156,7 +149,7 @@ Phase2/
 ```
 
 The `sql/`, `etl/`, and `tests/` folders hold work delivered by authorized packages
-(`WP-04` staging, `WP-05` dimensions, `WP-06` core facts on feature branch). Later
+(`WP-04` staging, `WP-05` dimensions, `WP-06` core facts merged on `main`). Later
 packages add their own files when their gate is recorded.
 
 ## Documentation rules

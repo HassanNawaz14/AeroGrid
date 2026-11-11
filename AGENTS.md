@@ -8,16 +8,16 @@ contract is [Phase2/AGENTS.md](Phase2/AGENTS.md). Read both before changing file
 - Phase 1 is complete and frozen as the historical design baseline.
 - Phase 2 documentation and planning baseline is accepted (`G0`/`H-001`).
 - **Phase 2 implementation is authorized** (`H-007`, 2026-11-04).
-- The current gate is `G4 - Core movement facts`, tracked in
+- The current gate is `G5 - Derived facts and approved thresholds`, tracked in
   [Phase2/PROGRESS.md](Phase2/PROGRESS.md).
-- `WP-02`, `WP-03`, `WP-04`, and `WP-05` are `DONE` (PR #3 `b6b76b9`, #5 `f9087f4`,
-  #7, #8). `G2` closed 2026-11-08; `G3` was recorded `DONE` on 2026-11-09 with
-  blocker `B-011` open (the `WP-04` sample run used the excluded legacy demo CSV, so
-  accepted real rows are proven by `WP-06` instead).
-- `WP-06` (Member D) is `READY` under the delegated window `D-024`: Member C first
-  seeds the real dimension members, then Member D loads real Tartan tracking and
-  journey facts, and Member C records `G4`. Blocker `B-011` closes inside `WP-06`.
-  The human is hands-off until `G4` is recorded; later packages wait for their gate.
+- `WP-02`, `WP-03`, `WP-04`, `WP-05`, and `WP-06` are `DONE` (PR #3 `b6b76b9`, #5
+  `f9087f4`, #7, #8, #12 `f29b099`). `G2` closed 2026-11-08; `G3` was recorded
+  `DONE` on 2026-11-09; `G4` was recorded `DONE` on 2026-11-11 after the real Tartan
+  WP-05/WP-06 runs passed and `B-011` was resolved.
+- `WP-07` (Member E) is `BLOCKED_ON_HUMAN` on `H-013`: the human must approve the
+  severe/proximity thresholds and `algorithm_version` before derived facts start.
+  The `D-024` delegated window closed when `G4` was recorded; later packages and
+  gates need the human.
 
 ## Authority and precedence
 
@@ -165,12 +165,11 @@ already checked, and the safest next step. Do not silently work around the block
 
 ## Current instruction
 
-`G2` and `G3` are closed and implementation is authorized for `WP-02` through
-`WP-05`, all of which are `DONE`. `WP-06` is `READY` inside the delegated window
-`D-024`: Member C completes the real dimension members and records `G4`, Member D
-loads and evidences the tracking and journey facts, and `WP-06` closes blocker
-`B-011`. The human is hands-off until `G4` is recorded; `H-013` (WP-07 thresholds)
-is the human's next input. Do not load the FAA `Airspace (DEMO)` layer; use the
-approved granular services (`D-020`). Work on one authorized package at a time,
-record evidence in `Phase2/PROGRESS.md`, and do not start a later package until its
-gate is recorded.
+`G2`, `G3`, and `G4` are closed and implementation is authorized for `WP-02`
+through `WP-06`, all of which are `DONE`. `WP-06` closed blocker `B-011` after the
+real Tartan sample loaded and both workflows passed; the `D-024` window is closed.
+`H-013` (WP-07 thresholds and `algorithm_version`) is the human's next input; until
+it is approved, `WP-07` is `BLOCKED_ON_HUMAN` and Member E must not start. Do not
+load the FAA `Airspace (DEMO)` layer; use the approved granular services (`D-020`).
+Work on one authorized package at a time, record evidence in `Phase2/PROGRESS.md`,
+and do not start a later package until its gate is recorded.

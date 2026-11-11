@@ -17,28 +17,22 @@ deferred by the human, so agents must not invent or reassign identities.
 
 ## Delegated closeout windows (`D-023` → `G3`, `D-024` → `G4`)
 
-`D-023` handed off `WP-04`/`WP-05` to Members B and C; both packages are `DONE` and
-`G3` was recorded on 2026-11-09. `D-024` now hands off the next step so no human input
-is needed until `G4`:
+Both delegated windows are closed. `D-023` handed off `WP-04`/`WP-05`; both packages
+are `DONE` and `G3` was recorded on 2026-11-09. `D-024` handed off `WP-06` and `G4`;
+the real Tartan WP-05/WP-06 runs passed and `G4` was recorded on 2026-11-11.
 
-- Member C completes the real `dim_vehicle` (and grid) members from observed
-  identities, then verifies the fact load and records `G4`. This is the only gate an
-  agent may record.
-- Member D loads real Tartan staging rows and builds `fact_vehicle_tracking` and
-  `fact_flight_journey`, records counts, reconciliation, idempotency, and orphan
-  evidence, and marks `WP-06` `DONE`.
-- Member C and Member B can approve the `warehouse` runs that Member D dispatches,
-  because D is not an environment reviewer. All database writes stay in CI; never run
-  loaders from a laptop.
-- PRs need one peer approval: Member C or E reviews `WP-06`. The author merges.
-- Member E stays a reviewer and must not start `WP-07`; it needs approved thresholds.
+- Member D owns `WP-06` (now `DONE`); Member C completed the real `dim_vehicle`
+  members and recorded `G4`.
+- All database writes stay in CI; never run loaders from a laptop.
+- Member E is next. `WP-07` is `BLOCKED_ON_HUMAN` until the human approves `H-013`
+  (thresholds and `algorithm_version`); Member E must not start before that.
 - Human-only actions are unchanged: secrets, Neon roles and branches, repository and
-  environment settings, destructive SQL, thresholds, and every gate except `G4`.
+  environment settings, destructive SQL, thresholds, and every gate after `G4`.
 
-The exact step-by-step briefs, including commands and required log lines, are in
-[dev_plan/01_work_breakdown.md](../dev_plan/01_work_breakdown.md) under `WP-06`. Any
-blocker that needs a human action becomes a new `H-###` row and stops the package; the
-window does not authorize it.
+The exact step-by-step briefs are in
+[dev_plan/01_work_breakdown.md](../dev_plan/01_work_breakdown.md). Any blocker that
+needs a human action becomes a new `H-###` row and stops the package; the closed
+windows do not authorize it.
 
 ## Member roles
 

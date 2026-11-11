@@ -40,7 +40,7 @@ decision. Use the template in [templates/DECISION_RECORD.md](templates/DECISION_
 | `D-021` | Start `WP-04` before `G2` is recorded and review `WP-03`/`WP-04` together | `ACCEPTED` | Approved in session by the human, 2026-11-07 |
 | `D-022` | Keep `WP-05` not started until `WP-03` and `WP-04` are merged; record `G3` after `WP-04` and `WP-05` acceptance | `ACCEPTED` | Approved in session by the human, 2026-11-08 |
 | `D-023` | Delegate `WP-04`/`WP-05` closeout to Members B and C through `G3`: self-approved CI runs, peer review, owner-marked `DONE`; gates stay human | `ACCEPTED` | Approved in session by the human, 2026-11-08 |
-| `D-024` | Extend the delegated window through `G4`: Member D closes `WP-06`, Member C completes dimension members and records `G4`; `G3` recorded as instructed with `B-011` open | `ACCEPTED` | Approved in session by the human, 2026-11-09 |
+| `D-024` | Extend the delegated window through `G4`: Member D closes `WP-06`, Member C completes dimension members and records `G4`; `G3` recorded as instructed with `B-011` open | `ACCEPTED` (closed 2026-11-11 at `G4`) | Approved in session by the human, 2026-11-09 |
 
 ## D-001: Neon Free PostgreSQL
 
@@ -519,6 +519,11 @@ project moving while preserving the evidence bar and the CI-only write rule.
 - `WP-07` and every later package still need the human (thresholds and gates).
 - `B-011` closes only when real Tartan rows are accepted in staging and reconcile to
   the tracking facts.
+
+**Closure (2026-11-11):** The window is closed. `WP-06` is `DONE` and `G4` is
+recorded after WP-05 run `42689267328` and WP-06 run `42887782411` passed on
+`phase2/wp06-tracking-facts` at `ecce8ec`; PR #12 merged as `f29b099` and `B-011` is
+resolved. `WP-07` remains `BLOCKED_ON_HUMAN` on `H-013`.
 
 ## Change process
 

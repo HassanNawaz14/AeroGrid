@@ -2,8 +2,8 @@
 
 Automation is added only by an authorized work package. `WP-02` owns the platform
 validation workflow; `WP-04` owns the staging verification workflow; `WP-05` owns the
-dimension verification workflow; `WP-06` adds the fact verification workflow (in its
-package PR); `WP-11` owns the production workflow and CI checks.
+dimension verification workflow; `WP-06` delivered the fact verification workflow;
+`WP-11` owns the production workflow and CI checks.
 
 ## Current workflows
 
@@ -29,17 +29,16 @@ removed. Run it from `main` (or dispatch it against a branch ref) in the protect
 `warehouse` environment. The `WP-06` verification must leave no rows behind on
 failure.
 
-## Approval during the `D-024` window
+## Approval after the `D-024` window
 
 These workflows run in the protected `warehouse` environment and need an approval.
-During the delegated window (`D-024`, `2026-11-09` → `G4`), Member C (`HarveyWebbs`)
-approves the dimension and fact verification runs. Member D (`ahmadazad-dev`) is not
-on the reviewer list, because the human has not changed the environment and `D-024`
-does not require it; Member C or Member B (`Hamid4325`) dispatches and approves the
-`WP-06` runs instead. Member D still owns the `WP-06` code. Writes stay CI-only and
-rollback-only. The human restores the reviewer list and re-enables *Prevent
-self-review* after `G4`; see
+The `D-024` delegated window closed when `G4` was recorded on 2026-11-11. WP-05 run
+[42689267328](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42689267328) and
+WP-06 run [42887782411](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42887782411)
+both passed; the temporary reviewer arrangement should now be restored to the normal
+protected-environment settings (*Prevent self-review* re-enabled) as described in
 [`../../Phase2/docs/10_human_operating_manual.md`](../../Phase2/docs/10_human_operating_manual.md).
+Writes stay CI-only and rollback-only.
 
 ## Planned workflows
 

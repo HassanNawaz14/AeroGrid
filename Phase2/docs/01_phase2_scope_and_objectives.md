@@ -154,8 +154,9 @@ Implementation may begin only when:
 - The assigned work package is `READY`.
 - The human explicitly authorizes the work package.
 
-`WP-02` through `WP-05` are `DONE` (PR #3 `b6b76b9`, PR #5 `f9087f4`, PR #7, PR #8).
-`G2` closed on 2026-11-08; `G3` was recorded on 2026-11-09 with `B-011` open. `WP-06`
-is `READY` under `D-024`: Member C seeds the real dimension members and records `G4`,
-and Member D loads and evidences the tracking and journey facts. Later packages start
-only after their gate is recorded in `PROGRESS.md`.
+`WP-02` through `WP-06` are `DONE` (PR #3 `b6b76b9`, PR #5 `f9087f4`, PR #7, PR #8,
+PR #12 `f29b099`). `G2` closed on 2026-11-08, `G3` on 2026-11-09, and `G4` on
+2026-11-11 after the real Tartan WP-05/WP-06 runs passed and `B-011` was resolved.
+`WP-07` is `BLOCKED_ON_HUMAN` on `H-013`; Member E starts only after the human
+approves the thresholds and `algorithm_version`. Later packages start only after
+their gate is recorded in `PROGRESS.md`.

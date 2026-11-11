@@ -196,6 +196,10 @@ storage for the selected archives and samples is about 755 MB (720 MiB), below t
 | `G6` | DQ, reports, reporting views, and automation |
 | `G7` | Final acceptance and demo |
 
+`G4` was recorded on 2026-11-11 after the real Tartan WP-05/WP-06 runs passed and
+`B-011` was resolved. `G5` is next and depends on `H-013` (thresholds and
+`algorithm_version`).
+
 ## Escalation
 
 Stop and ask the human when a risk becomes a blocker, when a mitigation would change

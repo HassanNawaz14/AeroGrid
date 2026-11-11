@@ -149,9 +149,9 @@ Evidence:
 
 **Status:** DONE 2026-11-09, recorded on HassanNawaz14's explicit instruction.
 Staging DDL is applied and readable; the six dimensions, `-1` members, unique natural
-keys, FK targets, and reader access are verified. Caveat `B-011`: the `WP-04` sample
-used the legacy demo CSV, so real accepted-row staging proof is required in `WP-06`
-before `G4`.
+keys, FK targets, and reader access are verified. Caveat `B-011` (now resolved): the
+`WP-04` sample used the legacy demo CSV, so real accepted-row staging proof came from
+`WP-06` before `G4`.
 **Owner:** Member C for schema; Member B for staging
 **Reviewers:** Members A, D
 **Required WPs:** `WP-04`, `WP-05`
@@ -177,8 +177,9 @@ Evidence:
 
 ### G4: Core movement facts
 
-**Status:** IN_PROGRESS under `D-024`; Member D loads the facts and Member C verifies
-and records the gate.
+**Status:** DONE 2026-11-11, recorded under `D-024` after WP-05 run `42689267328` and
+WP-06 run `42887782411` passed on `phase2/wp06-tracking-facts` at `ecce8ec`; PR #12
+merged as `f29b099` and `B-011` is resolved. The `D-024` window is closed.
 **Owner:** Member D
 **Reviewers:** Members C, E
 **Required WPs:** `WP-06`
@@ -204,6 +205,8 @@ Evidence:
 
 ### G5: Derived facts and thresholds
 
+**Status:** NOT_STARTED; `WP-07` is `BLOCKED_ON_HUMAN` until `H-013` approves the
+thresholds and `algorithm_version`.
 **Owner:** Member E
 **Reviewers:** Members C, D
 **Required WPs:** `WP-07`
