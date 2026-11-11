@@ -2,10 +2,10 @@
 
 Downloads real ``samples/kbtp/01-01-22/1.csv`` from the ``aerogrid-raw`` Neon Object
 Storage bucket (or uses an operator-supplied ``--tartan-sample``), verifies its exact
-SHA-256 digest before touching the warehouse, applies Phase 2 fact DDL idempotently,
-runs staging + tracking + journey loads twice to prove reconciliation and idempotency,
-checks zero FK orphans and reader SELECT privileges, and commits only when all checks
-pass (or rolls back on failure or ``--dry-run``).
+SHA-256 digest before touching the warehouse, applies the idempotent real dimension
+seed and Phase 2 fact DDL, runs staging + tracking + journey loads twice to prove
+reconciliation and idempotency, checks zero FK orphans and reader SELECT privileges,
+and commits only when all checks pass (or rolls back on failure or ``--dry-run``).
 
 Reads ``DATABASE_URL`` and ``NEON_S3_*`` strictly from environment variables. Never
 prints secrets, connection strings, or raw telemetry rows.
@@ -63,6 +63,8 @@ SQL_FILES = [
     PHASE2 / "sql" / "00_schemas.sql",
     PHASE2 / "sql" / "03_facts" / "01_facts.sql",
 ]
+
+DIMENSION_SEED_SQL = PHASE2 / "sql" / "02_dimensions" / "03_seed_real.sql"
 
 DIM_TABLES = (
     "dim_time",
@@ -308,7 +310,8 @@ def check_preflight(cur: Any) -> list[str]:
     if int(tartan_vehicles) < 1:
         errors.append(
             "project_dw.dim_vehicle has 0 real Tartan rows (only -1 unknown member); "
-            "Member C must land and apply Phase2/sql/02_dimensions/03_seed_real.sql first"
+            "apply Phase2/sql/02_dimensions/03_seed_real.sql (WP-05) before "
+            "WP-06 verification"
         )
 
     return errors
@@ -562,7 +565,7 @@ def main() -> int:
         print('psycopg is not installed. Run: python -m pip install "psycopg[binary]>=3.2,<4"')
         return 2
 
-    for path in SQL_FILES:
+    for path in (*SQL_FILES, DIMENSION_SEED_SQL):
         if not path.is_file():
             print(f"Missing SQL file: {path}")
             return 2
@@ -596,6 +599,26 @@ def main() -> int:
             user, db, version = cur.fetchone()
             version_short = (version or "").split(",")[0]
             print(f"connected user={user} db={db} server={version_short}")
+
+            cur.execute("SELECT to_regclass('project_dw.dim_vehicle') IS NOT NULL")
+            (dim_vehicle_exists,) = cur.fetchone()
+            if dim_vehicle_exists:
+                try:
+                    cur.execute(DIMENSION_SEED_SQL.read_text(encoding="utf-8"))
+                    conn.commit()
+                except Exception as exc:
+                    conn.rollback()
+                    print(
+                        f"dimension seed: FAILED on {DIMENSION_SEED_SQL.name}: "
+                        f"{exc.__class__.__name__}: {redact_secrets(exc)}"
+                    )
+                    return 2
+                print(f"dimension seed: applied {DIMENSION_SEED_SQL.name}")
+            else:
+                print(
+                    "dimension seed: skipped; project_dw.dim_vehicle is absent "
+                    "(run the WP-05 dimensions workflow first)"
+                )
 
             preflight_errors = check_preflight(cur)
             if preflight_errors:

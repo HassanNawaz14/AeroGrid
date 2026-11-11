@@ -20,7 +20,7 @@ sql/
 ├── 01_staging/
 │   ├── 01_source_manifest_run_reject_dq.sql # WP-04 manifest/run/reject/DQ tables
 │   └── 02_source_tables.sql                # WP-04 source-shaped staging tables
-├── 02_dimensions/                          # WP-05 (Member C): 01_dimensions.sql, 02_seed.sql
+├── 02_dimensions/                          # WP-05 (Member C): 01_dimensions.sql, 02_seed.sql, 03_seed_real.sql
 ├── 03_facts/                               # WP-06/WP-07 (Members D/E): 01_facts.sql (WP-06)
 ├── 04_reporting/                           # WP-10 (Member E)
 ├── 05_checks/                              # WP-08 (Member E)
@@ -41,6 +41,9 @@ sql/
   does both for all three schemas on every run.
 - Use explicit schema qualification (`project_staging.*`, etc.).
 - Seed the `-1` unknown member for every dimension (`WP-05`).
+- `02_dimensions/03_seed_real.sql` seeds real `dim_vehicle` members derived from the
+  pinned Tartan sample; it is idempotent, contains no deletes, and must never include
+  invented vehicles or weather rows.
 - Keep destructive SQL out unless a human explicitly approves it.
 - `etl_run_log` enforces `rows_read = rows_accepted + rows_rejected + rows_duplicate`;
   loaders must update run counts atomically at end-of-batch.

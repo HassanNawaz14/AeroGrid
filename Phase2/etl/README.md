@@ -1,7 +1,7 @@
 # Phase 2 ETL
 
-Current `WP-04` through `WP-06` ETL modules (`WP-06` pending Member C real
-`dim_vehicle` completion and live CI acceptance).
+Current `WP-04` through `WP-06` ETL modules. `WP-06` applies the real dimension seed
+before preflight and awaits live CI acceptance.
 
 ## Modules
 

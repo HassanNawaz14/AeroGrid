@@ -199,6 +199,12 @@ Order:
 5. `dim_weather`
 6. `dim_airspace_zone`
 
+`Phase2/sql/02_dimensions/03_seed_real.sql` seeds the real `dim_vehicle` members from
+the pinned Tartan sample (`samples/kbtp/01-01-22/1.csv`) with the first/last observed
+UTC timestamps. It is idempotent, keeps every `-1` member, and adds no invented grid or
+weather rows; until a real grid or METAR load exists, facts use `-1` for those optional
+keys.
+
 Each load:
 
 1. Upsert on the natural key.
