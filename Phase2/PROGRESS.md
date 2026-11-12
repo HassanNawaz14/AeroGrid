@@ -9,9 +9,9 @@ read it before acting. Update it at the end of every work session.
 | Phase state | `G4_DONE_WP-06_DONE_H-013_APPROVED_WP-07_READY` |
 | Implementation authorized | `YES` (`H-007`, 2026-11-04) |
 | Current gate | `G5 - Derived facts and approved thresholds` |
-| Current gate status | `READY` - `G4` is recorded; `H-013` approved; `WP-07` may start |
+| Current gate status | `IN_PROGRESS` - `G4` is recorded; `H-013` approved; `WP-07` may start |
 | Active work package | `WP-07` derived facts (Member E) |
-| Active work package status | `READY` (`H-013` approved; Member E starts derived facts) |
+| Active work package status | `IN_PROGRESS` (`H-013` approved; Member E starts derived facts) |
 | Next work package | `WP-08` data-quality framework (after `G5`) |
 | Next action owner | Member E starts `WP-07` derived facts using the approved thresholds and `algorithm_version`; records evidence for `G5` |
 
