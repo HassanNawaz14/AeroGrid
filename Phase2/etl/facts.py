@@ -17,6 +17,7 @@ from datetime import datetime, timezone
 from typing import Any, Iterable, Mapping, Sequence
 
 from etl.errors import RowRejected
+from etl.wp07_data_readiness import grid_from_real_position
 from etl.staging_writer import _record_rejects_batch
 
 ALGORITHM_VERSION = "wp06-v1"
@@ -448,6 +449,19 @@ def resolve_grid_key(
     """Resolve optional spatial cell; return -1 when outside real cells or grid empty."""
     cells = lookups.grid_cells_by_site.get(site_key)
     if not cells or latitude is None or longitude is None:
+        return -1
+    # WP-07 observed-grid members are deterministic 0.01-degree cells. Resolve
+    # their exact ID first; the legacy nearest-center fallback remains intact.
+    intended = grid_from_real_position(site_key, latitude, longitude)
+    uses_observed_scheme = False
+    for cell in cells:
+        if cell.grid_cell_id.startswith("wp07-g01:"):
+            uses_observed_scheme = True
+            if intended is not None and cell.grid_cell_id == intended.grid_cell_id:
+                return cell.grid_key
+    if uses_observed_scheme:
+        # Position is outside observed cells; never map it to the nearest
+        # different grid member when the observed-grid scheme is in use.
         return -1
     lat_f = float(latitude)
     lon_f = float(longitude)
