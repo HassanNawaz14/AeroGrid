@@ -1,0 +1,47 @@
+name: WP-07 derived facts - rollback-only verification
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wp07-derived-facts-verify
+  cancel-in-progress: false
+
+jobs:
+  unit-tests:
+    name: Phase 2 unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run tests
+        run: |
+          python -m pip install --disable-pip-version-check 'pytest>=8,<10'
+          python -m compileall -q Phase2/etl
+          python -m pytest -q Phase2/tests
+
+  verify:
+    name: Verify real Neon data, then ROLLBACK
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: warehouse
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install PostgreSQL client
+        run: python -m pip install --disable-pip-version-check 'psycopg[binary]>=3.2,<4'
+      - name: Run nonpersistent WP-07 verifier
+        working-directory: Phase2
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: python -m etl.verify_wp07_facts
