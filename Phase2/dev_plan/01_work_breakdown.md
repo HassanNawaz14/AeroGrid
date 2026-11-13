@@ -743,11 +743,30 @@ questions.
 
 ## WP-11: CI, access, and deployment
 
-**Status:** NOT_STARTED
+**Status:** READY_FOR_REVIEW
 **Owner:** Member A
 **Reviewers:** Members B and C
 **Prerequisites:** WP-01, WP-02, WP-04 through WP-10
 **Gate:** G6/G7
+
+### Implementation status (2026-11-14)
+
+Delivered on `phase2/wp11-ingestion` under `D-030`:
+
+- `Phase2/etl/run.py` — one orchestration path; `validate` fetches and parses with no
+  database connection, `apply` writes manifests, staging, rejects, dimension refresh,
+  and DQ in a single transaction and rolls back on a `CRITICAL` DQ failure.
+- `.github/workflows/wp11-ingest.yml` — `validate`/`apply` dispatch, Monday 06:00 UTC
+  schedule gated by `WP11_SCHEDULE_ENABLED` (and `WP11_SCHEDULE_APPLY_ENABLED` for
+  unattended writes), concurrency lock, 35-minute timeout, summary artifact, and a
+  manual reader-check job.
+- `Phase2/etl/fetch.py`, `Phase2/etl/config.py`,
+  `Phase2/etl/dimension_loaders.py`, and `Phase2/tests/test_wp11_run.py` (20 tests).
+- `L-010` recorded: fetched raw files are not archived to object storage.
+
+Read-only validate evidence: 23,414 rows read, 23,254 accepted, 160 rejected, no
+database access. Pending for acceptance: merge, first approved `mode=apply` run on
+`main`, member reader proof, then enable the schedule variables.
 
 ### Objective
 
@@ -762,7 +781,7 @@ Automate weekly/manual execution and enforce critical DQ without local credentia
 - Report artifacts.
 - Read-only access test.
 - Run summary.
-- Accepted-limitation regression checks (`L-001`–`L-009`) surfaced from the DQ results.
+- Accepted-limitation regression checks (`L-001`–`L-010`) surfaced in the run summary.
 - Source-coverage guards (`DQ-G-001`–`DQ-G-004`) that separate "no data loaded" from a measured zero.
 
 ### Out of scope

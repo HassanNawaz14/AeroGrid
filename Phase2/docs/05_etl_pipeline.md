@@ -13,7 +13,10 @@ packages. `WP-02`-`WP-06` are `DONE`: the staging DDL is applied on Neon (runs
 `42474788058` and `42477720902`, two idempotent passes), the six dimensions, seeds,
 and dictionary merged in PR #8, and the core tracking/journey facts merged in PR #12
 (`f29b099`). The real Tartan WP-05 run `42689267328` and WP-06 run `42887782411`
-passed, resolving `B-011` and recording `G4` on 2026-11-11. WP-07–WP-10 are deployed and merged; the requester explicitly accepted G5/G6/G7 on 2026-11-13.
+passed, resolving `B-011` and recording `G4` on 2026-11-11. WP-07–WP-10 are deployed and merged; the requester explicitly accepted G5/G6/G7 on 2026-11-13. `WP-11`
+implements the recurring ingestion job (`run.py`, `fetch.py`, `config.py`,
+`dimension_loaders.py`, workflow `wp11-ingest.yml`) under `D-030`; it is
+`READY_FOR_REVIEW` and has not yet written to the warehouse.
 
 ## Pipeline principles
 
@@ -45,14 +48,17 @@ Phase2/etl/
 ├── facts.py                # Tracking key mapping & journey segmentation (WP-06)
 ├── loaders.py              # Raw iterators, staging mappings, load helpers
 ├── staging_writer.py       # Savepoints, idempotency, rejects, run log, manifest
+├── config.py               # Source URLs, site anchors, licences, limitation list (WP-11)
+├── fetch.py                # Network clients for METAR, UAS, and FAA airspace (WP-11)
+├── dimension_loaders.py    # Dimension refresh from accepted staging rows (WP-11)
+├── run.py                  # Ingestion orchestrator: validate and apply (WP-11)
 ├── verify_wp04_staging.py  # Staging DDL/load verification
 ├── verify_wp05_dimensions.py # Dimension DDL/seed verification
 └── verify_wp06_facts.py    # Real Tartan staging + core fact verification
 ```
 
-Future packages add `run.py`, `config.py`, `storage.py`,
-`dq.py`, `reports.py`, and `util.py`. Do not create them before their work package is
-authorized.
+`util.py` and `storage.py` remain unbuilt: raw-file archival to object storage is the
+accepted gap `L-010`, not a silent omission.
 
 ## Run modes
 
@@ -62,6 +68,13 @@ authorized.
 | `weekly` | Incremental refresh | Fetch current METAR/FAA/OpenSky snapshots, load new rows, update dimensions, rebuild affected occupancy/restrictions, run DQ, publish reports |
 | `validate` | Read-only/limited check | Parse and validate sources without writing facts, or dry-run counts |
 | `reports` | Regenerate artifacts | Rebuild PDFs from stored results without reloading data |
+
+`WP-11` implements two of these as commands. `etl.run` without `--apply` is the
+`validate`/dry-run path: it fetches and parses real sources and opens no database
+connection. `etl.run --apply --confirm APPROVE_WP11_APPLY` is the `initial`/`weekly`
+write path: one transaction for manifest, staging, rejects, dimension refresh, and DQ;
+a `CRITICAL` DQ failure rolls the ingestion back and records a `FAILED` run. `reports`
+regeneration remains `etl.reports`; derived facts remain `etl.derived_facts`.
 
 Manual dispatch may also accept:
 
@@ -380,15 +393,23 @@ python -m etl.verify_wp05_dimensions
 ```
 
 `WP-06` delivered its verifier and workflow (`verify_wp06_facts.py`,
-`wp06-facts-verify.yml`). Remaining planned interfaces (do not create or run before
-authorization):
+`wp06-facts-verify.yml`). `WP-11` delivered the ingestion commands (run from
+`Phase2/`; apply runs only inside the approved `warehouse` job):
 
 ```text
-python -m etl.run --mode initial
-python -m etl.run --mode weekly
-python -m etl.run --mode validate --source tartan
-python -m etl.run --mode reports
+# Read-only: fetch and parse, no database connection
+python -m etl.run --sources weather,uas,airspace --stations KBTP,KAGC --summary-path summary.md
+
+# Apply: protected CI only, one transaction, rolls back on CRITICAL DQ
+python -m etl.run --apply --confirm APPROVE_WP11_APPLY --run-mode weekly
+
+# Bounded window (both dates required); default is the last 7 days
+python -m etl.run --start 2026-11-07 --end 2026-11-14
 ```
+
+`--apply` also requires `GITHUB_ACTIONS=true` and `WAREHOUSE_CI_APPROVED=true`; the
+workflow additionally restricts dispatch apply to `main`. Scheduled runs are inert
+until the repository variable `WP11_SCHEDULE_ENABLED=true` exists.
 
 ## Ownership
 

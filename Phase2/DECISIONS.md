@@ -629,6 +629,61 @@ OpenSky, or changing project scope. Those remain human-gated per the register ru
 `Phase2/etl/dq.py` (`DQ-G-001`–`DQ-G-004`); `Phase2/etl/reports.py` (`coverage_rows`,
 `COVERAGE_NOTE`); [PROGRESS.md](PROGRESS.md) limitation register.
 
+## D-030: WP-11 ingestion is one transactional job with a separate read-only validate mode
+
+**Date:** 2026-11-14
+
+**Decider:** HassanNawaz14 (explicit instruction to complete WP-11 as planned)
+
+**Status:** `ACCEPTED`
+
+`Phase2/etl/run.py` and `.github/workflows/wp11-ingest.yml` are the recurring
+ingestion path. They have two modes with different powers:
+
+1. **`validate`** — fetches and parses the real approved sources, computes
+   accepted/rejected counts, and refuses the run when any requested source yields no
+   accepted rows. It opens no database connection and receives no secret.
+2. **`apply`** — records one `etl_run_log` row, writes `source_manifest`, staging,
+   rejects, dimension refresh, and `dq_result` inside a **single transaction**, then
+   commits once. A `CRITICAL` DQ failure rolls back every ingestion write, then records
+   a separate `FAILED` run with the captured DQ rows so the failure is auditable.
+
+Apply also refuses an empty source **before the first write**. The persisted coverage
+DQ checks are table-wide, so historical rows would keep `DQ-G-002`–`DQ-G-004` green
+after a run that loaded nothing; the pre-write parse prevents that false PASS.
+
+Apply is constrained three ways: `--apply` requires `--confirm APPROVE_WP11_APPLY`,
+the process must see `GITHUB_ACTIONS=true` and `WAREHOUSE_CI_APPROVED=true`, and the
+workflow allows dispatch apply only on `main` inside the `warehouse` environment. No
+local run can write to the shared warehouse.
+
+The weekly Monday 06:00 UTC schedule exists in the workflow but is inert until a human
+creates the repository variable `WP11_SCHEDULE_ENABLED=true`. Scheduled runs execute
+`validate` unless a second variable, `WP11_SCHEDULE_APPLY_ENABLED=true`, is also set;
+that second variable is the standing human approval for unattended writes. This keeps
+the cadence weekly/manual per `D-018`/`D-019` and keeps the first write human-gated.
+
+Fetched raw files are transient: they are not archived to object storage, because no
+object-storage integration exists in the repo and bucket credentials are human-only.
+This gap is recorded as `L-010` rather than hidden; the run summary states it on every
+run.
+
+**Rationale:** the loaders and normalizers were already implemented and tested, but
+validation alone never fills a staging table, so the accepted limitations `L-008` and
+`L-009` could not start to close. A single-transaction apply makes a partially loaded
+week impossible, and separating validate (no secret) from apply (protected job) means
+the source contract can be checked at any time without risking the shared warehouse.
+
+**Not decided here:** adding a source, enabling OpenSky, backfilling `weather_key` onto
+existing facts, or changing thresholds. Staging coverage is not the same as closing a
+limitation: `L-001` stays `OPEN` until facts are mapped to real weather keys, and
+`L-008`/`L-009` stay `OPEN` until dependent facts are re-derived.
+
+**Evidence:** `Phase2/etl/run.py`, `Phase2/etl/fetch.py`, `Phase2/etl/config.py`,
+`Phase2/etl/dimension_loaders.py`, `.github/workflows/wp11-ingest.yml`,
+`Phase2/tests/test_wp11_run.py`; [work breakdown](dev_plan/01_work_breakdown.md#wp-11-ci-access-and-deployment);
+[PROGRESS.md](PROGRESS.md).
+
 ## Change process
 
 1. Create a decision record in [templates/DECISION_RECORD.md](templates/DECISION_RECORD.md).

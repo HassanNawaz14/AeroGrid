@@ -54,6 +54,12 @@ the next approved `mode=apply` run, which is a warehouse write.
 | `L-007` | Corridor views are screening metrics only | `vw_corridor_capacity_inputs` and `vw_candidate_corridor_cells` each return 808 rows over observed cells | Any use as a validated corridor, capacity decision, or planning input | WP-10 view verification | `OPEN` |
 | `L-008` | UAS sources are validated but never ingested | `project_staging.stg_uas_position` holds 0 rows; the Nightjar (12,448 rows) and nominal-io DJI (10,314 rows) samples were validated in tests only. No UAS vehicle, tracking, or journey fact exists | Any deliverable that reports UAS traffic, UAS-to-manned separation, or combined airspace use | `DQ-G-003` (`WARN`) | `OPEN` |
 | `L-009` | Airspace zones are never staged; OpenSky is unused | `project_staging.stg_airspace_zone` holds 0 rows although the approved granular FAA services (`D-020`) returned 12,849 national features. `project_staging.stg_opensky_state` holds 0 rows; OpenSky is optional under `D-013` and has no loader | Any deliverable that reports zone membership, zone proximity, occupancy inside a zone, or an OpenSky-derived metric | `DQ-G-004` (`WARN`) | `OPEN` |
+| `L-010` | Fetched raw files are not archived to object storage | Every `WP-11` run downloads sources into a transient runner directory. No raw object is written to `aerogrid-raw` and no manifest-linked archive exists, so the exact bytes behind a load cannot be re-read later | Any provenance audit that needs the original bytes, or a re-run that must reproduce past input without network access | None; the run summary states it on every run | `OPEN` |
+
+`L-008` and `L-009` were still 0 rows when this row set was last verified. The
+ingestion path that fills them now exists (`WP-11`, `D-030`); the tables remain empty
+until the first approved `mode=apply` run, and staging coverage alone does not close
+either entry. See [WP-11 ingestion status](#wp-11-ingestion-status-2026-11-14).
 
 ## Required work per trigger
 
@@ -112,6 +118,14 @@ Stage the approved granular FAA features (`D-020`) into `stg_airspace_zone`, loa
 OpenSky requires a separate human decision: it is optional under `D-013`, currently
 has no loader, and its provenance and licence must be reviewed before use.
 
+### `L-010` Raw archive
+
+Persist each fetched source file to the private `aerogrid-raw` bucket and link it from
+`source_manifest` before the transaction commits. Until that exists, provenance rests
+on the recorded URL, fetch timestamp, and SHA-256 in `source_manifest`, which proves
+what was read but cannot reproduce the bytes. Do not commit raw files to Git as a
+substitute; that is prohibited by the repository rules.
+
 ## Coverage completion plan
 
 This table answers "when is each staging table filled, and with how much data".
@@ -124,10 +138,10 @@ planning figures, not accepted-row counts.
 | Staging table | Filled by | Package | Expected volume (initial load) | Current state | Blocking precondition |
 |---|---|---|---|---|---|
 | `stg_adsb_position` | Tartan KBTP loader (running today) | `WP-06` (done) | ~609,000 rows for one week (~122–305 MB) | 27,479 accepted rows for 2022-01-01 | None |
-| `stg_weather_metar` | AWC/IEM METAR loader | `WP-11` ingestion | under 1,000 rows for the initial study dates (<0.5 MB) | 0 rows | Wire `load_awc`/`load_iem` into the scheduled job; closes `L-001` |
-| `stg_uas_position` | Nightjar and nominal-io DJI loaders | `WP-11` ingestion | 22,762 rows (Nightjar 12,448 + DJI 10,314) | 0 rows | Wire `load_nightjar`/`load_nominal`; closes `L-008` |
-| `stg_airspace_zone` | FAA granular airspace loader | `WP-11` ingestion | under 1,000 filtered study-site features (<1 MB) | 0 rows | Wire `load_faa` with `D-020` services; closes `L-009` |
-| `stg_restriction_snapshot` | FAA TFR snapshot loader | `WP-11` ingestion, `WP-12` audit | unknown; 0 until a real historical snapshot is found | 0 rows | Needs a real historical snapshot covering the flight window; `L-005` may stay `OPEN` |
+| `stg_weather_metar` | AWC/IEM METAR loader | `WP-11` ingestion (wired 2026-11-14) | under 1,000 rows for the initial study dates (<0.5 MB) | 0 rows; validate mode parsed 400 real rows on 2026-11-14 | First approved `mode=apply` run; `L-001` additionally needs `weather_key` backfill |
+| `stg_uas_position` | Nightjar and nominal-io DJI loaders | `WP-11` ingestion (wired 2026-11-14) | 22,762 rows (Nightjar 12,448 + DJI 10,314) | 0 rows; validate mode read all 22,762 and accepted 22,602 | First approved `mode=apply` run; `L-008` additionally needs dependent facts |
+| `stg_airspace_zone` | FAA granular airspace loader | `WP-11` ingestion (wired 2026-11-14) | under 1,000 filtered study-site features (<1 MB) | 0 rows; validate mode accepted 252 features in the study boxes | First approved `mode=apply` run; `L-009` additionally needs dependent facts |
+| `stg_restriction_snapshot` | FAA TFR snapshot loader | `WP-11` ingestion, `WP-12` audit | unknown; 0 until a real historical snapshot is found | 0 rows; no loader | Needs a real historical snapshot covering the flight window; `L-005` may stay `OPEN` |
 | `stg_reject` | All loaders (rejection ledger) | `WP-06`, `WP-11` | grows with every load | 418 stored events across runs | `L-006` reporting rule |
 | `stg_opensky_state` | No loader exists | Not planned | 0 | 0 rows | Requires a new human decision; optional under `D-013` |
 
@@ -154,9 +168,46 @@ read approved source -> validate -> write staging (stg_*) and rejects
 -> run DQ -> write run summary -> build both PDFs as artifacts
 ```
 
-The loaders and normalizers already exist and are unit-tested; the missing piece is
-the job that calls them and records `etl_run_log`, `source_manifest`, and
-`dq_result` rows.
+The loaders and normalizers already exist and are unit-tested. `WP-11` adds the job
+that calls them and records `etl_run_log`, `source_manifest`, and `dq_result` rows:
+`Phase2/etl/run.py` under `.github/workflows/wp11-ingest.yml` (`D-030`).
+
+### WP-11 ingestion status (2026-11-14)
+
+The pipeline is implemented but **has not written to the shared warehouse yet**. It
+has two modes:
+
+- `validate` — fetch and parse real sources, no database access, no secret. Refuses
+  the run if a requested source yields zero accepted rows.
+- `apply` — one transaction for `source_manifest`, staging, rejects, dimension
+  refresh, and DQ. Requires the protected `warehouse` job, `main`, a typed
+  confirmation, and the `WAREHOUSE_CI_APPROVED` marker. A `CRITICAL` DQ failure rolls
+  back the ingestion and records a separate `FAILED` run with the captured DQ rows.
+  Apply also refuses an empty source before the first write, because the persisted
+  coverage checks are table-wide and historical rows would otherwise keep them green.
+
+Read-only validate run, 2026-11-14, window 2026-11-07 to 2026-11-14, stations
+`KBTP`,`KAGC`:
+
+| Source file | Rows read | Accepted | Rejected | Reject reason |
+|---|---:|---:|---:|---|
+| `weather:awc_KBTP_KAGC_*.json` | 400 | 400 | 0 | - |
+| `uas:nightjar_20260804.csv` | 12,448 | 12,447 | 1 | `INVALID_TIMESTAMP` (epoch-zero row) |
+| `uas:nominal_colorado.csv` | 2,781 | 2,622 | 159 | `ZERO_COORDINATE` |
+| `uas:nominal_palos_verdes.csv` | 4,260 | 4,260 | 0 | - |
+| `uas:nominal_offshore_sf.csv` | 3,273 | 3,273 | 0 | - |
+| `airspace:faa_Class_Airspace.geojson` | 82 | 82 | 0 | - |
+| `airspace:faa_Special_Use_Airspace.geojson` | 0 | 0 | 0 | service answered; no feature intersects the five study boxes (1,545 nationally) |
+| `airspace:faa_Route_Airspace.geojson` | 170 | 170 | 0 | - |
+| **TOTAL** | **23,414** | **23,254** | **160** | |
+
+These are parsed counts from a read-only run, not staging rows. What remains is:
+merge the workflow, dispatch the first `mode=apply` run from `main`, confirm the DQ
+suite records `DQ-G-002`–`DQ-G-004` as `PASS` while `L-001`, `L-008`, and `L-009`
+stay `OPEN`, then enable the Monday 06:00 UTC schedule. The schedule stays inert until
+a human creates `WP11_SCHEDULE_ENABLED=true`; unattended writes additionally require
+`WP11_SCHEDULE_APPLY_ENABLED=true`. Both are repository variables, not secrets, and
+are human-only actions.
 
 ### Why the volumes are this size
 
@@ -201,3 +252,4 @@ evidence that these limitations are resolved.
 |---|---|---|
 | `2026-11-13` | Created the register from the G5–G7 accepted limitations; verified current values against live warehouse runs `43471609483` and `43471616729`. | `D-028` |
 | `2026-11-13` | Added `L-008` (UAS never ingested) and `L-009` (airspace never staged, OpenSky unused); added the coverage completion plan with expected volumes, the ingestion sequence, and the documented reason for each volume limit; added the `DQ-G-001`–`DQ-G-004` coverage guards. | `D-029` |
+| `2026-11-14` | Added `L-010` (fetched raw files are not archived); recorded the WP-11 validate/apply pipeline and its read-only validate counts; noted that staging coverage does not close `L-001`, `L-008`, or `L-009`. | `D-030` |

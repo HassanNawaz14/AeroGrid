@@ -11,15 +11,15 @@ read it before acting. Update it at the end of every work session.
 
 | Field | Value |
 |---|---|
-| Last updated | `2026-11-13` |
-| Phase state | `G5_G6_G7_ADMIN_ACCEPTED_WP07_WP10_DEPLOYED` |
+| Last updated | `2026-11-14` |
+| Phase state | `G5_G6_G7_ADMIN_ACCEPTED_WP07_WP10_DEPLOYED_WP11_IMPLEMENTED` |
 | Implementation authorized | `YES` (`H-007`, 2026-11-04) |
 | Current gate | `G7` accepted administratively; independent technical proof follow-up |
 | Current gate status | `DONE` by requester-admin declaration; end-to-end/second-reader proof not independently supplied |
-| Active work package | WP-07–WP-10 delivered (Member E); release evidence follow-up with Member A/team |
-| Active work package status | `DONE` — requester-admin acceptance 2026-11-13 |
-| Next work package | WP-11 and WP-12 independent end-to-end / automation evidence follow-up |
-| Next action owner | Member A/team: archive G7 replay, independent reader proof, automation/run link evidence |
+| Active work package | `WP-11` CI, access, and deployment (Member A) |
+| Active work package status | `READY_FOR_REVIEW` — ingestion job, workflow, and tests delivered; first approved apply run and reader proof pending |
+| Next work package | `WP-12` integration, acceptance, and release |
+| Next action owner | Human: peer-review the WP-11 PR, dispatch the first `mode=apply` run from `main`, then enable the schedule variables |
 
 ## Status vocabulary
 
@@ -73,7 +73,7 @@ Gate definitions are canonical in
 | `WP-08` | Data-quality framework | Member E | `WP-04` to `WP-07` | `DONE` (requester-admin accepted 2026-11-13) | Run 7 persisted 32 DQ checks: 29 PASS, 3 WARN, 0 FAIL. |
 | `WP-09` | PDF reports | Member E | `WP-08` | `DONE` (requester-admin accepted 2026-11-13) | Both improved source-linked PDFs on main after PR #20. |
 | `WP-10` | Reporting views and corridor metrics | Member E | `WP-06`, `WP-07` | `DONE` (requester-admin accepted 2026-11-13) | Ten project_reporting views confirmed in Neon; CI run #2 passed. |
-| `WP-11` | CI, access, and deployment | HassanNawaz14 | `WP-02`, `WP-04` to `WP-10` | `NOT_STARTED` | Wait for work packages |
+| `WP-11` | CI, access, and deployment | HassanNawaz14 | `WP-02`, `WP-04` to `WP-10` | `READY_FOR_REVIEW` | Implemented on `phase2/wp11-ingestion` under `D-030`: `etl/run.py` orchestrates fetch -> manifest -> staging -> dimension refresh -> DQ in one transaction; `wp11-ingest.yml` provides read-only `validate` and protected `apply` modes, a Monday 06:00 UTC schedule gated by `WP11_SCHEDULE_ENABLED`, and a manual reader-check job; the run summary reports every `L-001`–`L-010` entry with its linked DQ status and per-source coverage. Live validate 2026-11-14: 23,414 read / 23,254 accepted / 160 rejected, no database access. Checks: `pytest` 20 WP-11 tests pass; full local suite 127 passed with 2 environmental `reportlab` failures that pass in CI. Remaining acceptance evidence: merge, first approved `mode=apply` run on `main`, reader proof for Members B–E, then enable the schedule (`H-015`–`H-017`). |
 | `WP-12` | Integration, acceptance, and release | HassanNawaz14 + all | `WP-11` | `NOT_STARTED` | Final gate |
 
 ## Human action queue
@@ -94,6 +94,9 @@ Gate definitions are canonical in
 | `H-012` | Confirm the authoritative start gate for `WP-05` | `PROGRESS.md` and `dev_plan/01_work_breakdown.md` said `WP-05` waits for `G3`, but `dev_plan/02_dependencies_and_gates.md` said `G2`; `G3` itself requires `WP-05`, so the records could not all be correct. Starting Member C work without a decision would violate the gate rules. | Human decided on 2026-11-08: do not start `WP-05` until `WP-03` and `WP-04` are merged; `D-022` records the rule and `G3` remains the acceptance gate after both packages. | `DONE` |
 | `H-013` | Approve the `WP-07` derived-fact thresholds and the `algorithm_version` value | `WP-07` cannot start without an approved close-encounter horizontal/vertical threshold, occupancy rule, and algorithm version; inventing them would be a business decision. | `G4` is recorded. Approved thresholds: severe horizontal < 0.5 nm and vertical < 500 ft; proximity horizontal < 1.0 nm and vertical < 1,000 ft (per `docs/04_data_model.md`). Approved `algorithm_version`: `wp07-v1` (per `dev_plan/01_work_breakdown.md`). No secret or console action is required. | `DONE` 2026-11-11; unblocks `WP-07` (Member E) |
 | `H-014` | Upload the pinned real Tartan sample to `aerogrid-raw` | The bucket was confirmed empty on 2026-11-10, so `WP-06` cannot fetch `samples/kbtp/01-01-22/1.csv`; the seed fix alone is not sufficient for the acceptance run. | In the Neon Console, select the branch used by the `warehouse` secrets, open **Object storage** -> `aerogrid-raw`, and upload the extracted CSV as `samples/kbtp/01-01-22/1.csv` (4,325,376 bytes; SHA-256 `86342d09e5004102d765b82d04d16b43b6f15f2e7d829bfbde7909187d08a762`). Upload the extracted CSV, not the `2022.zip` archive. Neon CLI equivalent: `neon buckets object put aerogrid-raw/samples/kbtp/01-01-22/1.csv --file <local 1.csv> --content-type text/csv`. | `DONE` 2026-11-11; the WP-06 run fetched and verified the object |
+| `H-015` | Review and merge the WP-11 ingestion PR, then dispatch the first approved apply run | The apply mode only runs on `main` inside the protected `warehouse` environment; no agent may write to the shared warehouse | After the WP-11 PR approval/merge: Actions -> **WP-11 Ingestion** -> Run workflow -> `mode=apply`, `confirm=APPROVE_WP11_APPLY`, sources `weather,uas,airspace`, stations `KBTP,KAGC`; record the run link and the per-source counts from the summary artifact. | `OPEN` |
+| `H-016` | Create the repository variables that enable the weekly schedule | The `schedule` block is inert until a human enables it; unattended writes require a second explicit approval | GitHub repo Settings -> Secrets and variables -> Actions -> Variables: add `WP11_SCHEDULE_ENABLED=true` after the first apply run passes. Add `WP11_SCHEDULE_APPLY_ENABLED=true` only if unattended weekly writes are approved; without it, scheduled runs execute read-only `validate`. | `OPEN` |
+| `H-017` | Members B–E run the read-only access check | `WP-11` acceptance and the G7 caveat both require member-read proof; `H-009` proved the role, not each member's own credentials | Each member sets their private read-only connection string in `READONLY_DATABASE_URL` and runs `python .github/scripts/platform_probe.py --mode reader` from the repo root (installs `psycopg[binary]` and `boto3` only in their own environment). Report pass/fail and the SQLSTATE of the rejected write per member. Never post the connection string in chat, a PR, or a workflow file. | `OPEN` |
 
 `H-002` remains `BLOCKED` until Members B-E choose roles and provide real names.
 `H-008` is resolved by `D-017`; the legacy samples are retained as demo-only artifacts
@@ -122,12 +125,14 @@ report.
 | `L-007` | Corridor views are screening only | 808 rows in each corridor view | Any use as a validated corridor or capacity input | `OPEN` |
 | `L-008` | UAS sources validated but never ingested | `stg_uas_position` 0 rows; Nightjar 12,448 and DJI 10,314 samples only tested | Any UAS traffic, UAS-to-manned separation, or combined airspace metric | `OPEN` |
 | `L-009` | Airspace zones never staged; OpenSky unused | `stg_airspace_zone` 0 rows despite 12,849 approved FAA features; no OpenSky loader | Any zone membership/proximity metric, or any OpenSky-derived metric | `OPEN` |
+| `L-010` | Fetched raw files are not archived to object storage | Every WP-11 run downloads to a transient runner directory; no raw object in `aerogrid-raw`, no manifest-linked archive | Any provenance audit needing the original bytes, or an offline re-run reproduction | `OPEN` |
 
 The live DQ `WARN`s map exactly to this register: `L-001` (`DQ-C-003`), `L-002`
 (`DQ-C-008`), `L-005` (`DQ-T-003`), `L-001` (`DQ-G-002`), `L-008` (`DQ-G-003`), and
 `L-009` (`DQ-G-004`). `DQ-G-001` is the opposite guard: a primary source with zero
 accepted rows becomes a `CRITICAL` failure, so an empty load can never be reported as
-a measured zero. The "when is each table actually filled, and with how much data"
+a measured zero. `L-010` has no DQ check; every WP-11 run summary states that fetched
+raw files are transient. The "when is each table actually filled, and with how much data"
 plan is the coverage completion plan in
 [`docs/13_accepted_data_limitations.md`](docs/13_accepted_data_limitations.md#coverage-completion-plan):
 five staging tables will fill through `WP-11`, restrictions stay conditional on a
@@ -158,6 +163,41 @@ that weather, UAS, and airspace are not yet ingested rather than measured as zer
 The persisted audit run (`etl_run_id=7`) still holds the original 32 results; the
 four coverage checks are recorded in `dq_result` only by the next approved
 `mode=apply` run, which is a warehouse write and was not performed here.
+
+## 2026-11-14 WP-11 ingestion implementation
+
+`WP-11` adds the recurring ingestion path under `D-030`. No warehouse write was
+performed; the only live evidence is a read-only `validate` run.
+
+| Element | Delivered |
+|---|---|
+| Orchestrator | `Phase2/etl/run.py` — fetch, per-file manifest with SHA-256, staging with rejects, dimension refresh, DQ, run summary; `validate` opens no database connection |
+| Source clients | `Phase2/etl/fetch.py` — IEM/AWC METAR, Nightjar, three nominal-io DJI flights, three approved FAA airspace services with pagination |
+| Config | `Phase2/etl/config.py` — source URLs, site anchors, stations, licences, `LIMITATIONS` (`L-001`–`L-010`), 7-day default window |
+| Dimension refresh | `Phase2/etl/dimension_loaders.py` — `dim_time`, `dim_vehicle`, `dim_weather`, `dim_airspace_zone` from accepted staging rows only |
+| Workflow | `.github/workflows/wp11-ingest.yml` — `validate`/`apply` dispatch, Monday 06:00 UTC schedule gated by `WP11_SCHEDULE_ENABLED`, manual reader-check job, summary artifact |
+| Tests | `Phase2/tests/test_wp11_run.py` — 20 tests: parsers, windows, apply guard, pagination, preview totals, dimension SQL, both summary modes, apply path |
+| Safety | `--apply` requires `--confirm APPROVE_WP11_APPLY` plus `GITHUB_ACTIONS=true` and `WAREHOUSE_CI_APPROVED=true`; dispatch apply only on `main`; one transaction; `CRITICAL` DQ rolls back ingestion and records a separate `FAILED` run |
+
+Read-only validate run, 2026-11-14, default window 2026-11-07..2026-11-14,
+stations `KBTP`,`KAGC`: **23,414 rows read, 23,254 accepted, 160 rejected**
+(`INVALID_TIMESTAMP=1`, `ZERO_COORDINATE=159`). Per source: METAR 400/400; Nightjar
+12,448/12,447; Colorado 2,781/2,622; Palos Verdes 4,260/4,260; Offshore 3,273/3,273;
+Class airspace 82/82; Special Use 0/0 (service answered; no feature intersects the
+five documented study boxes, 1,545 nationally); Route airspace 170/170. A first
+combined attempt failed once with a transient upstream API error and the immediate
+retry passed; the workflow fails loudly rather than loading a partial source set.
+
+The same validate run prints the accepted-limitation table for `L-001`–`L-010` with
+`not evaluated` for checks that require warehouse data, and states that a `PASS`
+proves staging coverage only. None of this closes `L-001`, `L-008`, or `L-009`: the
+weather keys on existing facts are not backfilled and no UAS/restriction fact loader
+exists.
+
+Local checks: `python -m pytest -q Phase2/tests/test_wp11_run.py` → 19 passed; full
+suite → 127 passed, 2 failed (`reportlab` not installed locally; CI installs it);
+`python -m compileall -q Phase2/etl Phase2/tests` OK; `git diff --check` clean; YAML
+parsed.
 
 ## G1 execution checklist
 
@@ -378,6 +418,7 @@ closed. The closeout used the real Tartan sample, not the excluded demo CSV:
 | `2026-11-13` | Member A | Team / `WP-11` | Limitation register + live verification | Synced local `main` to `f0c2e51`; created the canonical accepted-limitation register `L-001`–`L-007` with implementation triggers; ran the read-only warehouse verifiers. DQ `PASS` (29/3/0), WP-10 `PASS` (10 views), WP-07 verification blocked by CI dependency defect `B-012`. Documentation only; no warehouse writes. | `Phase2/docs/13_accepted_data_limitations.md`, `Phase2/docs/00_documentation_map.md`, `Phase2/DECISIONS.md`, `Phase2/PROGRESS.md`, `Phase2/README.md`, `Phase2/dev_plan/01_work_breakdown.md` | WP-08 run `43471609483` `PASS`; WP-10 run `43471616729` `PASS`; WP-07 run `43471623351` `FAIL` (CI dependency); relative links checked; `git diff --check` | Member A adds `reportlab` to the WP-07 unit-test install, re-runs the rollback verifier (`B-012`), then starts `WP-11` |
 | `2026-11-13` | Member A | Team / `WP-11` | `B-012` closeout | Fixed the WP-07 verifier's missing `reportlab` dependency (`bcf6777`), pushed `docs/wp11-accepted-limitation-register`, and re-dispatched: run `43473293723` `PASS` with 105 unit tests, all 7 integrity checks 0, second derivation pass inserting 0 rows, and an explicit rollback. No warehouse writes. | `.github/workflows/wp07-derived-facts-verify.yml`, `Phase2/PROGRESS.md`, `Phase2/README.md` | WP-07 run `43473293723` `PASS`; YAML parse; `git diff --check` | Start `WP-11`: weekly/manual orchestration, reader-access proof, and limitation lines in the run summary |
 | `2026-11-13` | Member A | Team / `WP-11` | Coverage guards and `L-008`/`L-009` | Added `DQ-G-001`–`DQ-G-004` so an approved source with no accepted rows is reported as missing coverage instead of a measured zero; added the per-source coverage table to both PDFs; recorded `L-008` (UAS never ingested) and `L-009` (airspace never staged, OpenSky unused) with a coverage completion plan; decision `D-029`. Read-only runs only. | `Phase2/etl/dq.py`, `Phase2/etl/reports.py`, `Phase2/tests/test_dq.py`, `Phase2/tests/test_report_improvements.py`, `Phase2/docs/13_accepted_data_limitations.md`, `Phase2/DECISIONS.md`, `Phase2/dev_plan/01_work_breakdown.md`, `Phase2/PROGRESS.md` | WP-08 run `43478821521` `PASS` (109 tests, 30 PASS / 6 WARN / 0 FAIL of 36); WP-09 run `43478947023` `PASS` with the coverage table in both PDFs; `python -m compileall`; `git diff --check`; local pytest 107 passed, 2 skipped-by-missing-`reportlab` failures that pass in CI | `WP-11`: wire the existing loaders into the scheduled ingestion job so weather, UAS, and airspace staging stop being empty |
+| `2026-11-14` | Member A | Reviewers B–E / Human | `WP-11` ingestion pipeline | Implemented the ingestion path under `D-030` on `phase2/wp11-ingestion`: fetch clients, source config, dimension refresh from accepted staging rows, transactional orchestrator with validate/apply split, and the `wp11-ingest.yml` workflow (dispatch, gated Monday schedule, manual reader-check, summary artifact). Recorded `L-010` (raw files not archived) and the read-only validate evidence (23,414 read / 23,254 accepted / 160 rejected). No warehouse write. | `Phase2/etl/run.py`, `Phase2/etl/fetch.py`, `Phase2/etl/config.py`, `Phase2/etl/dimension_loaders.py`, `Phase2/etl/loaders.py`, `Phase2/tests/test_wp11_run.py`, `.github/workflows/wp11-ingest.yml`, `Phase2/DECISIONS.md`, `Phase2/docs/13_accepted_data_limitations.md`, `Phase2/docs/05_etl_pipeline.md`, `Phase2/dev_plan/01_work_breakdown.md`, `Phase2/PROGRESS.md` | WP-11 tests 20 passed; full local suite 127 passed, 2 environmental `reportlab` failures; `compileall` OK; `git diff --check`; YAML parse; read-only validate run | Human: review/merge the WP-11 PR, dispatch the first `mode=apply` run (`H-015`), then create the schedule variables (`H-016`); Members B–E run the reader check (`H-017`) |
 
 ## Change log
 
@@ -423,6 +464,7 @@ closed. The closeout used the real Tartan sample, not the excluded demo CSV:
 | `2026-11-13` | Created the accepted-limitation register `L-001`–`L-007` with implementation triggers and audit hooks, verified the live warehouse read-only (DQ and WP-10 `PASS`), and opened `B-012` for the WP-07 verifier's missing `reportlab` dependency | Member A | `D-028`, `L-001`–`L-007`, `B-012` |
 | `2026-11-13` | Fixed the WP-07 verifier dependency and recorded the passing rollback run `43473293723`: idempotent re-derivation, 7/7 integrity checks 0, 105 unit tests; `B-012` `RESOLVED` | Member A | `B-012`, `WP-07` |
 | `2026-11-13` | Added source-coverage guards `DQ-G-001`–`DQ-G-004`, a coverage table in both PDFs, and register entries `L-008`/`L-009` with a coverage completion plan; read-only WP-08 run `43478821521` (36 checks, 30 PASS / 6 WARN / 0 FAIL) and WP-09 run `43478947023` both `PASS` | Member A | `D-029`, `L-008`, `L-009`, `WP-08`, `WP-09` |
+| `2026-11-14` | Implemented the WP-11 ingestion job and workflow with a validate/apply split, transactional apply and rollback-on-`CRITICAL`, gated weekly schedule, and per-source coverage plus `L-001`–`L-010` lines in the run summary; recorded `L-010`; live validate 23,414 read / 23,254 accepted / 160 rejected with no database access | Member A | `D-030`, `L-010`, `WP-11` |
 
 ## Update protocol
 
@@ -442,8 +484,8 @@ When updating this file:
 |---|---|
 | Authorized by | `HassanNawaz14` |
 | Authorization date | `2026-11-04` |
-| Authorized scope | Phase 2 implementation under gated work packages; `WP-02`-`WP-06` accepted; `D-024` closed when `G4` was recorded |
-| Next gate to clear | `G5` (`H-013` approved; `WP-07` may start; later gates stay human) |
+| Authorized scope | Phase 2 implementation under gated work packages; `WP-02`–`WP-10` accepted (`D-023`/`D-024` windows closed); `WP-11` implementation authorized 2026-11-14 (`D-030`) |
+| Next gate to clear | None open for coding; `WP-11` acceptance and `WP-12` release evidence remain with the human (`H-015`–`H-017`) |
 
 ### Package acceptance
 
