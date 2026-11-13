@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 import etl.fetch as fetch_module
-from etl.config import LIMITATIONS
+from etl.config import LIMITATIONS, SOURCE_LICENSES
 from etl.dimension_loaders import airspace_sql, refresh_dimensions, weather_sql
 from etl.fetch import FetchedFile, arcgis_query_url, fetch_airspace_layer, iem_metar_url
 from etl.run import (
@@ -17,6 +17,7 @@ from etl.run import (
     _persist_results,
     apply_files,
     check_apply_guard,
+    check_licenses,
     check_preview_totals,
     parse_sources,
     parse_stations,
@@ -455,6 +456,19 @@ def test_run_validate_end_to_end_without_database(tmp_path):
     assert "**VALIDATED**" in text
     assert "weather:iem_KBTP_2026-11-01_2026-11-02.csv" in text
     assert "airspace:faa_Class_Airspace.geojson" in text
+
+
+def test_every_fetched_system_has_a_recorded_license():
+    systems = {"IEM", "AWC", "Nightjar", "Nominal-DJI", "FAA-Airspace"}
+    assert systems <= set(SOURCE_LICENSES)
+
+
+def test_check_licenses_rejects_an_unrecorded_system(tmp_path):
+    f = FetchedFile("weather", "AWC", tmp_path / "a.json", "https://example/a")
+    check_licenses([f])
+    unknown = FetchedFile("weather", "Unknown", tmp_path / "b.json", "https://x/b")
+    with pytest.raises(ValueError, match="No licence recorded"):
+        check_licenses([f, unknown])
 
 
 def test_run_validate_fails_when_a_source_has_no_accepted_rows(tmp_path):

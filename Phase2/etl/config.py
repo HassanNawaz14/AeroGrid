@@ -65,6 +65,10 @@ SOURCE_LICENSES = {
         "Public domain (Iowa Environmental Mesonet); NWS ASOS/AWOS observations",
         "Iowa Environmental Mesonet, Iowa State University",
     ),
+    "AWC": (
+        "U.S. government open data (NOAA/NWS)",
+        "NOAA/NWS Aviation Weather Center",
+    ),
     "Nightjar": (
         "CC BY 4.0",
         "Nightjar flight telemetry dataset (joshruby), Hugging Face",
