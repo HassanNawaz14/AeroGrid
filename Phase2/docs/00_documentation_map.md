@@ -1,7 +1,7 @@
 # Phase 2 Documentation Map
 
 <!-- AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
-**Current administrator-declared acceptance (2026-11-13):** The requester states they hold project-administrator authority and explicitly accepts G5, G6, and G7. This documents their decision, **not** independent confirmation of a full G7 end-to-end replay, all five members testing reader access, or finished WP-11/WP-12 technical evidence. Those proof items remain listed separately in the [Final gate record](FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md)..
+**Current administrator-declared acceptance (2026-11-13):** The requester states they hold project-administrator authority and explicitly accepts G5, G6, and G7. This documents their decision, **not** independent confirmation of a full G7 end-to-end replay, all five members testing reader access, or finished WP-11/WP-12 technical evidence. Those proof items remain listed separately in the [Final gate record](FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md).
 
 **Member E deployment facts:** WP-07 through WP-10 are merged: 27,479 source-linked tracking facts, 178 journeys, 3,658 real 2D grid cells, 1,754 occupancy facts; 32 persisted DQ results (29 PASS, 3 WARN, 0 FAIL); 10 reporting views; both improved PDFs. The deployed encounter and restriction fact counts are zero, with documented coverage and algorithm limitations.
 <!-- /AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
@@ -55,6 +55,8 @@ the human action protocol in [AGENTS.md](../AGENTS.md).
 | Human actions and verification | [10_human_operating_manual.md](10_human_operating_manual.md) | [PROGRESS.md](../PROGRESS.md) |
 | Risks and validation spikes | [11_risks_and_validation.md](11_risks_and_validation.md) | Source doc |
 | Accepted data limitations and their implementation triggers | [13_accepted_data_limitations.md](13_accepted_data_limitations.md) | [PROGRESS.md](../PROGRESS.md) register, [final gate record](FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md) |
+| Release evidence, rubric audit, limitation audit | [WP12_RELEASE_EVIDENCE_2026-11-14.md](WP12_RELEASE_EVIDENCE_2026-11-14.md) | [13_accepted_data_limitations.md](13_accepted_data_limitations.md) |
+| Demo run sheet | [14_demo_script.md](14_demo_script.md) | [10_human_operating_manual.md](10_human_operating_manual.md) |
 | Terms | [12_glossary.md](12_glossary.md) | - |
 
 ## Audience split
@@ -87,6 +89,8 @@ the human action protocol in [AGENTS.md](../AGENTS.md).
 - [Operations, access, and security](07_operations_access_and_security.md)
 - [Risks and validation](11_risks_and_validation.md)
 - [Accepted data limitations](13_accepted_data_limitations.md)
+- [Release evidence (WP-12)](WP12_RELEASE_EVIDENCE_2026-11-14.md)
+- [Demo script](14_demo_script.md)
 - [Glossary](12_glossary.md)
 
 ### People and operations
@@ -104,18 +108,18 @@ the human action protocol in [AGENTS.md](../AGENTS.md).
 - [Acceptance and definition of done](../dev_plan/04_acceptance_and_definition_of_done.md)
 - [Handoff and review protocol](../dev_plan/05_handoff_and_review_protocol.md)
 
-## Planned implementation paths
+## Implemented paths
 
-These paths do not contain implementation yet. They are reserved so that agents do
-not invent competing structures.
+These paths now contain the Phase 2 implementation. Keep them stable so agents do not
+invent competing structures.
 
-| Path | Future content | Owner |
+| Path | Content | Owner |
 |---|---|---|
 | `Phase2/sql/` | Schema, constraints, indexes, seed, dimension and fact loads | Member C / D |
 | `Phase2/etl/` | Python source clients, staging, dimensions, facts, DQ, reports | Members B/D/E |
 | `Phase2/tests/` | Parser fixtures, unit tests, SQL assertions, DQ tests | All owners |
 | `Phase2/reports/` | Generated Data Cleaning and Data Quality PDFs | Member E |
-| `.github/workflows/` | `warehouse.yml`, `ci.yml` | Member A |
+| `.github/workflows/` | `ci.yml`, `wp11-ingest.yml`, and the per-package verify workflows | Member A |
 | Neon object storage | Raw archives and source snapshots | Member A / B |
 
 ## Updating documentation

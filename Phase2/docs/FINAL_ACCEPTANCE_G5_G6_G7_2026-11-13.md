@@ -34,19 +34,25 @@
 
 ## Independent technical evidence still to capture
 
+**Update 2026-11-14:** the rows below were re-checked during `WP-12`; see the
+[release evidence record](WP12_RELEASE_EVIDENCE_2026-11-14.md) for run IDs, queries, and
+observed values.
+
 | Item | Current evidence status | Follow-up |
 |---|---|---|
-| A clean *whole-pipeline* end-to-end replay | **Not independently supplied** | Member A captures a full ingestion → derived load → DQ → views → PDF Actions run, exact URL/run IDs and reconciled outputs |
-| Read-only access from all five team members | **Not independently supplied** | Member A obtains at least one second-member reader-role test and evidence for all ten reporting views; test denied writes separately |
-| WP-11 weekly/manual orchestrated CI | Individual workflows succeeded; complete orchestration **not established here** | Check scheduled/manual workflows, secrets, runner protection, runtime and artifact publication; record actual run evidence |
-| G5 fine-grained persisted post-load audit | Grid and occupancy counts verified; duplicate/reader-permission result tabs not all shown | Preserve query output for duplicate keys = 0, ETL SUCCESS log and reader SELECT permissions |
-| G6 risk / warning mitigation | Three warnings correctly stored | Retain transparent warnings and approved source-coverage policy; do not turn missing data into a PASS |
+| A clean *whole-pipeline* end-to-end replay | **Started, not finished.** The approved apply run [43502710978](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43502710978) performed ingestion → staging → dimensions → DQ in one transaction; the read-only verifiers then reproduced DQ, views, and PDFs. A second authorized apply run is still outstanding | Human dispatches one confirmatory `mode=apply` run on the release commit; expected 0 duplicates and 0 new dimensions |
+| Read-only access from all five team members | **Still open (`H-017`).** The role-level reader job passed and denied writes with `42501`; no second member has run the probe yet | Members B–E run `python .github/scripts/platform_probe.py --mode reader` as their first action |
+| WP-11 weekly/manual orchestrated CI | **Established.** `validate` and `apply` modes, typed confirmation, protected `warehouse` environment, reader-check job, and summary artifact are implemented; apply succeeded | Confirm the first scheduled run on 2026-11-16 and add repository-level schedule variables if it is skipped |
+| G5 fine-grained persisted post-load audit | **Improved.** Duplicate-key checks `DQ-U-001`–`DQ-U-004` are 0 and reader grants are verified; the full post-load audit tab set is still not shown as one artifact | Keep run 43508430448 output with the release record |
+| G6 risk / warning mitigation | **Retained.** Four warnings are stored as warnings (`DQ-C-003`, `DQ-C-008`, `DQ-A-008`, `DQ-T-003`); missing coverage is not converted into a PASS | Re-read the limitation audit before any claim that depends on the missing data |
 
 **Administrative acceptance remains recorded as requested**; outstanding evidence is a technical follow-up, not a fabricated completion claim.
 
 ## Related documents
 
 - [Canonical status board](../PROGRESS.md)
+- [WP-12 release evidence (2026-11-14)](WP12_RELEASE_EVIDENCE_2026-11-14.md)
+- [Demo script](14_demo_script.md)
 - [Decision log D-025 through D-027](../DECISIONS.md)
 - [Member E implementation handoff](MemberE_Implementation_Evidence_2026-11-13.md)
 - [Work package plan](../dev_plan/01_work_breakdown.md)

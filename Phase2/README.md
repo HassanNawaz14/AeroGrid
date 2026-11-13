@@ -1,7 +1,7 @@
 # AeroGrid Phase 2 - Physical Data Warehouse and ETL
 
 <!-- AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
-**Current administrator-declared acceptance (2026-11-13):** The requester states they hold project-administrator authority and explicitly accepts G5, G6, and G7. This documents their decision, **not** independent confirmation of a full G7 end-to-end replay, all five members testing reader access, or finished WP-11/WP-12 technical evidence. Those proof items remain listed separately in the [Final gate record](docs/FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md)..
+**Current administrator-declared acceptance (2026-11-13):** The requester states they hold project-administrator authority and explicitly accepts G5, G6, and G7. This documents their decision, **not** independent confirmation of a full G7 end-to-end replay, all five members testing reader access, or finished WP-11/WP-12 technical evidence. Those proof items remain listed separately in the [Final gate record](docs/FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md).
 
 **Member E deployment facts:** WP-07 through WP-10 are merged: 27,479 source-linked tracking facts, 178 journeys, 3,658 real 2D grid cells, 1,754 occupancy facts; 32 persisted DQ results (29 PASS, 3 WARN, 0 FAIL); 10 reporting views; both improved PDFs. The deployed encounter and restriction fact counts are zero, with documented coverage and algorithm limitations.
 <!-- /AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
@@ -10,7 +10,7 @@ Phase 2 turns the Phase 1 dimensional design into a shared, reproducible Postgre
 data warehouse loaded from real public data. This directory is the control point for
 Phase 2 documentation, planning, status, and future implementation.
 
-**Current status (2026-11-14):** WP-07 through WP-10 have been merged and deployed. The requester, who states they hold project-administrator authority, explicitly accepted G5/G6/G7. The first approved WP-11 apply run ([43502710978](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43502710978)) wrote 23,254 staging rows, 8 manifests, and 820 dimension rows with 36 DQ results (32 PASS / 4 WARN / 0 FAIL); its reader proof job passed. The weekly schedule switch and per-member reader checks (`H-016`, `H-017`) and the WP-12 release closeout remain.
+**Current status (2026-11-14):** WP-07 through WP-10 have been merged and deployed. The requester, who states they hold project-administrator authority, explicitly accepted G5/G6/G7. The first approved WP-11 apply run ([43502710978](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43502710978)) wrote 23,254 staging rows, 8 manifests, and 820 dimension rows with 36 DQ results (32 PASS / 4 WARN / 0 FAIL); its reader proof job passed. `WP-12` is `READY_FOR_REVIEW`: the [release evidence record](docs/WP12_RELEASE_EVIDENCE_2026-11-14.md) maps every rubric item, re-verifies DQ and the 10 views, audits links/secrets/limitations, and the [demo script](docs/14_demo_script.md) is ready. Remaining: per-member reader checks (`H-017`), one confirmatory apply run, the 2026-11-16 schedule check (`H-016`), and human release acceptance.
 
 ## Quick links
 
@@ -21,6 +21,8 @@ Phase 2 documentation, planning, status, and future implementation.
 | Status and blockers | [PROGRESS.md](PROGRESS.md) |
 | Work packages | [dev_plan/01_work_breakdown.md](dev_plan/01_work_breakdown.md) |
 | Accepted data limitations | [docs/13_accepted_data_limitations.md](docs/13_accepted_data_limitations.md) |
+| Release evidence (WP-12) | [docs/WP12_RELEASE_EVIDENCE_2026-11-14.md](docs/WP12_RELEASE_EVIDENCE_2026-11-14.md) |
+| Demo script | [docs/14_demo_script.md](docs/14_demo_script.md) |
 | Team division | [docs/08_team_work_division.md](docs/08_team_work_division.md) |
 | Decisions | [DECISIONS.md](DECISIONS.md) |
 | Full documentation map | [docs/00_documentation_map.md](docs/00_documentation_map.md) |
