@@ -19,6 +19,7 @@ from etl.run import (
     check_apply_guard,
     check_licenses,
     check_preview_totals,
+    main,
     parse_sources,
     parse_stations,
     preview_file,
@@ -276,7 +277,9 @@ def test_dimension_sql_maps_documented_stations_and_anchors():
     weather = weather_sql()
     assert "WHEN 'KBTP' THEN 'KBTP'" in weather
     assert "WHEN 'KAVP' THEN 'NIGHTJAR_PA'" in weather
-    assert "visibility_sm * 1609.344" in weather
+    # PostgreSQL has no round(double precision, integer); the metres conversion
+    # must be cast to numeric before rounding or the apply transaction fails.
+    assert "ROUND((w.visibility_sm * 1609.344)::numeric, 2)" in weather
 
     airspace = airspace_sql()
     for site in ("KBTP", "NIGHTJAR_PA", "DJI_CO"):
@@ -355,6 +358,25 @@ def test_render_summary_apply_shows_dq_and_limitation_check_status():
     assert "DQ-G-002" in text
     assert "PASS=1 WARN=0 FAIL=0 SKIP=0" in text
     assert "| L-008 |" in text or "L-008" in text
+
+
+def test_main_writes_a_failure_summary_when_the_run_raises(tmp_path, monkeypatch):
+    def boom(args):
+        raise RuntimeError("round(double precision, integer) does not exist")
+
+    monkeypatch.setattr("etl.run.run", boom)
+    summary = tmp_path / "wp11-summary.md"
+
+    code = main(
+        ["--sources", "weather", "--stations", "KBTP", "--summary-path", str(summary)]
+    )
+
+    assert code == 1
+    text = summary.read_text(encoding="utf-8")
+    assert "WP-11 ingestion failed" in text
+    assert "Mode: validate" in text
+    assert "RuntimeError" in text
+    assert "round(double precision, integer) does not exist" in text
 
 
 def test_apply_files_records_manifest_and_loads_iem_rows(tmp_path, monkeypatch):

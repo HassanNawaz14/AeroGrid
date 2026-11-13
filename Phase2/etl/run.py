@@ -600,13 +600,29 @@ def _fetched_rows(files: Iterable[FetchedFile]) -> list[dict[str, Any]]:
 def _finish(report: dict[str, Any], args: argparse.Namespace, exit_code: int) -> int:
     text = render_summary(report)
     print(text)
+    _emit(text, args)
+    return exit_code
+
+
+def _emit(text: str, args: argparse.Namespace) -> None:
     if args.summary_path:
         Path(args.summary_path).write_text(text, encoding="utf-8")
     step_summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if step_summary:
         with open(step_summary, "a", encoding="utf-8") as handle:
             handle.write(text + "\n")
-    return exit_code
+
+
+def _failure_summary(args: argparse.Namespace, exc: BaseException) -> str:
+    return (
+        "# WP-11 ingestion failed\n\n"
+        f"- Mode: {'apply' if args.apply else 'validate'}\n"
+        f"- Sources: {args.sources}\n"
+        f"- Stations: {args.stations}\n"
+        f"- Error: {type(exc).__name__}: {_safe_message(exc)}\n\n"
+        "Nothing partial was kept: an apply transaction is rolled back as a whole,"
+        " and validate never writes to the warehouse.\n"
+    )
 
 
 def run(
@@ -770,6 +786,10 @@ def main(argv: list[str] | None = None) -> int:
         return run(args)
     except Exception as exc:
         print(f"WP-11 FAILED: {type(exc).__name__}: {_safe_message(exc)}")
+        try:
+            _emit(_failure_summary(args, exc), args)
+        except OSError:
+            pass
         return 1
 
 
