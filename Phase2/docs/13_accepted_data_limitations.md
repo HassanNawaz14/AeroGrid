@@ -47,6 +47,8 @@ State verified against the live warehouse on 2026-11-13 by WP-08 run `4347160948
 | `L-005` | No historical restriction snapshot | 0 restriction activation facts; the FAA inspection in November 2026 found 0 features in the KBTP study box; no 2022 TFR archive is stored | Any restriction-compliance metric or temporal restriction analysis | `DQ-T-003` (`WARN`), `DQ-B-003`, `DQ-R-006` | `OPEN` |
 | `L-006` | Reject ledger spans multiple ETL runs | 418 stored rejection events (416 `INVALID_VEHICLE_ID`, 2 `INVALID_TIMESTAMP`); they are not one run's yield | Any single-run yield, quality, or rejection-rate metric | `DQ-R-001` | `OPEN` |
 | `L-007` | Corridor views are screening metrics only | `vw_corridor_capacity_inputs` and `vw_candidate_corridor_cells` each return 808 rows over observed cells | Any use as a validated corridor, capacity decision, or planning input | WP-10 view verification | `OPEN` |
+| `L-008` | UAS sources are validated but never ingested | `project_staging.stg_uas_position` holds 0 rows; the Nightjar (12,448 rows) and nominal-io DJI (10,314 rows) samples were validated in tests only. No UAS vehicle, tracking, or journey fact exists | Any deliverable that reports UAS traffic, UAS-to-manned separation, or combined airspace use | `DQ-G-003` (`WARN`) | `OPEN` |
+| `L-009` | Airspace zones are never staged; OpenSky is unused | `project_staging.stg_airspace_zone` holds 0 rows although the approved granular FAA services (`D-020`) returned 12,849 national features. `project_staging.stg_opensky_state` holds 0 rows; OpenSky is optional under `D-013` and has no loader | Any deliverable that reports zone membership, zone proximity, occupancy inside a zone, or an OpenSky-derived metric | `DQ-G-004` (`WARN`) | `OPEN` |
 
 ## Required work per trigger
 
@@ -90,6 +92,42 @@ Report rejects per `etl_run_id` using `project_staging.etl_run_log`. Never add
 Either approve the corridor methodology and label the views accordingly, or keep the
 "preliminary screening" label in every report and dashboard that uses them.
 
+### `L-008` UAS ingestion
+
+Call the existing `load_nightjar` and `load_nominal` loaders from the scheduled
+ingestion path instead of from tests, stage the real rows, populate `dim_vehicle`
+members for the UAS types, and re-derive the dependent facts. This is an
+implementation step, not a source change: the sources are already approved under
+`D-011`.
+
+### `L-009` Airspace and OpenSky coverage
+
+Stage the approved granular FAA features (`D-020`) into `stg_airspace_zone`, load
+`dim_airspace_zone`, then re-derive occupancy and restriction facts. Enabling
+OpenSky requires a separate human decision: it is optional under `D-013`, currently
+has no loader, and its provenance and licence must be reviewed before use.
+
+## Coverage completion plan
+
+This table answers "when is each staging table filled". "Filled" means the source's
+real rows are accepted into staging by the scheduled ingestion job, not that a
+sample was validated in a test.
+
+| Staging table | Filled by | Package | Current state | Blocking precondition |
+|---|---|---|---|---|
+| `stg_adsb_position` | Tartan KBTP loader (running today) | `WP-06` (done) | 27,479 accepted rows for 2022-01-01 | None |
+| `stg_weather_metar` | AWC/IEM METAR loader | `WP-11` ingestion | 0 rows | Wire `load_awc`/`load_iem` into the scheduled job; closes `L-001` |
+| `stg_uas_position` | Nightjar and nominal-io DJI loaders | `WP-11` ingestion | 0 rows | Wire `load_nightjar`/`load_nominal`; closes `L-008` |
+| `stg_airspace_zone` | FAA granular airspace loader | `WP-11` ingestion | 0 rows | Wire `load_faa` with `D-020` services; closes `L-009` |
+| `stg_restriction_snapshot` | FAA TFR snapshot loader | `WP-11` ingestion, `WP-12` audit | 0 rows | Needs a real historical snapshot covering the flight window; `L-005` may stay `OPEN` |
+| `stg_reject` | All loaders (rejection ledger) | `WP-06`, `WP-11` | 418 stored events across runs | `L-006` reporting rule |
+| `stg_opensky_state` | No loader exists | Not planned | 0 rows | Requires a new human decision; optional under `D-013` |
+
+`WP-11` is the package that turns validation into recurring ingestion. Until its
+ingestion workflow runs, every empty row above is missing coverage, not measured
+zero. The coverage DQ checks (`DQ-G-001`–`DQ-G-004`) and the coverage section in
+both PDFs make that distinction explicit on every run.
+
 ## Current DQ warnings map exactly to this register
 
 | DQ check | Register entry | Observed | Required treatment |
@@ -97,15 +135,21 @@ Either approve the corridor methodology and label the views accordingly, or keep
 | `DQ-C-003` | `L-001` | 27,479 | Keep `WARN`; disclose in reports |
 | `DQ-C-008` | `L-002` | 27,479 | Keep `WARN`; preserve `NULL` source field |
 | `DQ-T-003` | `L-005` | 1 | Keep `WARN`; indicator of missing source, not a missing flight |
+| `DQ-G-002` | `L-001` | 1 | Keep `WARN`; 0 accepted METAR rows |
+| `DQ-G-003` | `L-008` | 1 | Keep `WARN`; 0 accepted UAS rows |
+| `DQ-G-004` | `L-009` | 1 | Keep `WARN`; 0 accepted airspace-zone rows |
+
+`DQ-G-001` (`CRITICAL`) is the opposite guard: if the primary source ever produces
+zero accepted rows, the run fails instead of reporting zero events.
 
 There are no other open DQ warnings. `0` critical failures is a pass condition, not
-evidence that these three limitations are resolved.
+evidence that these limitations are resolved.
 
 ## Audit hooks
 
 | Package | Obligation |
 |---|---|
-| `WP-11` | Run the DQ suite on the weekly/manual cadence and fail only on `FAIL`; publish the three `WARN` counts and their `L-###` mapping in the run summary. |
+| `WP-11` | Run the DQ suite on the weekly/manual cadence and fail only on `FAIL`; publish the `WARN` counts and their `L-###` mapping in the run summary, including the source-coverage rows (`DQ-G-002`–`DQ-G-004`). |
 | `WP-12` | Report every `OPEN` row with its observed value, trigger status, and owner. A limitation may be closed only with linked evidence and a `PROGRESS.md` entry. |
 
 ## Change history
@@ -113,3 +157,4 @@ evidence that these three limitations are resolved.
 | Date | Change | Reference |
 |---|---|---|
 | `2026-11-13` | Created the register from the G5–G7 accepted limitations; verified current values against live warehouse runs `43471609483` and `43471616729`. | `D-028` |
+| `2026-11-13` | Added `L-008` (UAS never ingested) and `L-009` (airspace never staged, OpenSky unused); added the coverage completion plan and the `DQ-G-001`–`DQ-G-004` coverage guards. | `D-029` |

@@ -762,7 +762,8 @@ Automate weekly/manual execution and enforce critical DQ without local credentia
 - Report artifacts.
 - Read-only access test.
 - Run summary.
-- Accepted-limitation regression checks (`L-001`–`L-007`) surfaced from the DQ results.
+- Accepted-limitation regression checks (`L-001`–`L-009`) surfaced from the DQ results.
+- Source-coverage guards (`DQ-G-001`–`DQ-G-004`) that separate "no data loaded" from a measured zero.
 
 ### Out of scope
 
@@ -790,6 +791,7 @@ Automate weekly/manual execution and enforce critical DQ without local credentia
 - Read-only role cannot write.
 - Run summary has counts.
 - Run summary reports each open `L-###` limitation with its linked DQ status.
+- Run summary reports per-source coverage, marking any approved source with zero accepted rows as "no data loaded".
 
 ---
 

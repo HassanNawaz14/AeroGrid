@@ -52,6 +52,7 @@ decision. Use the template in [templates/DECISION_RECORD.md](templates/DECISION_
 | `D-026` | G6 DQ, reports and views acceptance | `ACCEPTED` (requester declaration) | 2026-11-13, requester states project-admin authority |
 | `D-027` | G7 administrative acceptance | `ACCEPTED` (requester declaration) | 2026-11-13, requester states project-admin authority |
 | `D-028` | Track accepted data limitations as a register with explicit implementation triggers | `ACCEPTED` | Directed by HassanNawaz14, 2026-11-13 |
+| `D-029` | Report empty sources as "no data loaded" (coverage guards `DQ-G-001`–`DQ-G-004`), never as measured zero | `ACCEPTED` | Directed by HassanNawaz14, 2026-11-13 |
 ## D-001: Neon Free PostgreSQL
 
 **Status:** `ACCEPTED`
@@ -588,6 +589,43 @@ silent masking a review failure.
 **Evidence:** Live verification 2026-11-13, WP-08 run `43471609483` (29 PASS, 3 WARN,
 0 FAIL) and WP-10 run `43471616729` (10 views); [register](docs/13_accepted_data_limitations.md);
 [PROGRESS.md](PROGRESS.md) verification section.
+
+## D-029: Empty sources are reported as missing coverage, not as zero events
+
+**Date:** 2026-11-13
+
+**Decider:** HassanNawaz14
+
+**Status:** `ACCEPTED`
+
+An approved source that produced **no accepted staging rows** must be reported as
+"no data loaded", never as a measured zero. Two mechanisms enforce this:
+
+1. **Coverage DQ checks.** `DQ-G-001` (`CRITICAL`) fails the run when the primary
+   Tartan source has zero accepted rows. `DQ-G-002`, `DQ-G-003`, and `DQ-G-004`
+   (`WARNING`) flag the empty METAR/ASOS, UAS, and FAA airspace sources.
+2. **Coverage reporting.** Both PDFs carry a per-source table with an explicit
+   `LOADED` / `NO DATA LOADED` status and a note that "no data loaded" is a coverage
+   gap, not proof of a zero-activity world.
+
+Two limitations are recorded for sources that were validated but never wired into
+ingestion: `L-008` (Nightjar / nominal-io DJI) and `L-009` (FAA granular airspace
+services and the optional OpenSky path). The register also carries the coverage
+completion plan that says which package fills each staging table.
+
+**Rationale:** `vw_daily_encounter_hotspots` and `vw_restriction_traffic_impact`
+return 0 rows because the underlying sources were never ingested. Without an explicit
+coverage signal, a reader could conclude that the airspace had no encounters and no
+restrictions, which is a false safety claim. Severity stays `WARNING` for optional or
+not-yet-wired sources and `CRITICAL` only for the primary source whose absence
+invalidates the whole load.
+
+**Not decided here:** adding a source, starting UAS/airspace ingestion, enabling
+OpenSky, or changing project scope. Those remain human-gated per the register rules.
+
+**Evidence:** [register](docs/13_accepted_data_limitations.md);
+`Phase2/etl/dq.py` (`DQ-G-001`–`DQ-G-004`); `Phase2/etl/reports.py` (`coverage_rows`,
+`COVERAGE_NOTE`); [PROGRESS.md](PROGRESS.md) limitation register.
 
 ## Change process
 

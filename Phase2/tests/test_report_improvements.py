@@ -2,8 +2,19 @@
 from datetime import datetime, timezone
 
 from etl.reports import (
-    TABLES, build_reports, reconciliation_rows, warning_rows, snapshot,
+    TABLES, build_reports, coverage_rows, reconciliation_rows, warning_rows, snapshot,
 )
+
+
+def test_coverage_rows_mark_unloaded_sources_instead_of_zero():
+    rows = coverage_rows([
+        ('Tartan ADS-B (KBTP)', 'stg_adsb_position', 27479),
+        ('AWC/IEM METAR', 'stg_weather_metar', 0),
+    ])
+    assert rows[1][3] == 'LOADED'
+    assert rows[2][3] == 'NO DATA LOADED'
+    assert rows[2][2] == 0
+    assert coverage_rows([])[1][0] == 'UNAVAILABLE'
 
 
 def test_run_reconciliation_is_not_aggregate_staging_plus_rejects():
@@ -74,6 +85,8 @@ def test_reports_generate_with_additional_source_run_and_warning_evidence(tmp_pa
         'run': (7, 'validate', datetime.now(timezone.utc),'SUCCESS','wp08-v1',0,0,0,0,0),
         'source_runs': [(3,'initial','wp06-v1',100,95,5,0)],
         'staging_status': (95,0),
+        'coverage': [('Tartan ADS-B (KBTP)','stg_adsb_position',95),
+                     ('AWC/IEM METAR','stg_weather_metar',0)],
         'dq_run': 7,
         'dq': [('DQ-T-003','Snapshots','WARNING','WARN','1','0','Missing source')],
         'rejects': [('TARTAN','INVALID_ID',5)],

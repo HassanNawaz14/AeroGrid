@@ -120,9 +120,16 @@ report.
 | `L-005` | No historical restriction snapshot | 0 activation facts; 2026 FAA check found 0 KBTP features | Any restriction-compliance metric | `OPEN` |
 | `L-006` | Reject ledger spans ETL runs | 418 events (416 invalid ID, 2 invalid timestamp) | Any single-run yield or rejection metric | `OPEN` |
 | `L-007` | Corridor views are screening only | 808 rows in each corridor view | Any use as a validated corridor or capacity input | `OPEN` |
+| `L-008` | UAS sources validated but never ingested | `stg_uas_position` 0 rows; Nightjar 12,448 and DJI 10,314 samples only tested | Any UAS traffic, UAS-to-manned separation, or combined airspace metric | `OPEN` |
+| `L-009` | Airspace zones never staged; OpenSky unused | `stg_airspace_zone` 0 rows despite 12,849 approved FAA features; no OpenSky loader | Any zone membership/proximity metric, or any OpenSky-derived metric | `OPEN` |
 
-The three live DQ `WARN`s map exactly to `L-001` (`DQ-C-003`), `L-002` (`DQ-C-008`),
-and `L-005` (`DQ-T-003`). There are no other warnings.
+The live DQ `WARN`s map exactly to this register: `L-001` (`DQ-C-003`), `L-002`
+(`DQ-C-008`), `L-005` (`DQ-T-003`), `L-001` (`DQ-G-002`), `L-008` (`DQ-G-003`), and
+`L-009` (`DQ-G-004`). `DQ-G-001` is the opposite guard: a primary source with zero
+accepted rows becomes a `CRITICAL` failure, so an empty load can never be reported as
+a measured zero. The "when is each table actually filled" plan is the coverage
+completion plan in
+[`docs/13_accepted_data_limitations.md`](docs/13_accepted_data_limitations.md#coverage-completion-plan).
 
 ## 2026-11-13 live warehouse verification
 
