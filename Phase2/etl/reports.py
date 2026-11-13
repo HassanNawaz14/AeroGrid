@@ -46,9 +46,22 @@ def snapshot(conn) -> dict[str, Any]:
                rows_accepted,rows_rejected,rows_duplicate,critical_dq_failures
         FROM project_staging.etl_run_log ORDER BY etl_run_id DESC LIMIT 1
     ''')
+    # The latest overall ETL run may be a DQ validation run with zero source rows.
+    # Keep source-run evidence separate: never add unrelated table totals together.
+    source_runs = query(conn, '''
+        SELECT etl_run_id,run_mode,code_version,rows_read,rows_accepted,
+               rows_rejected,rows_duplicate
+        FROM project_staging.etl_run_log
+        WHERE rows_read > 0 ORDER BY etl_run_id DESC LIMIT 12
+    ''')
+    staging_status = query(conn, '''
+        SELECT COUNT(*) FILTER (WHERE reject_reason IS NULL),
+               COUNT(*) FILTER (WHERE reject_reason IS NOT NULL)
+        FROM project_staging.stg_adsb_position
+    ''')[0]
     latest_dq = query(conn, 'SELECT MAX(etl_run_id) FROM project_staging.dq_result')[0][0]
     dq = (query(conn, '''
-        SELECT check_id,check_name,severity,status,observed_value,expected_value
+        SELECT check_id,check_name,severity,status,observed_value,expected_value,details
         FROM project_staging.dq_result WHERE etl_run_id=%s ORDER BY check_id
     ''', (latest_dq,)) if latest_dq is not None else [])
     rejects = query(conn, '''
@@ -62,6 +75,7 @@ def snapshot(conn) -> dict[str, Any]:
     ''')
     storage = int(query(conn, 'SELECT pg_database_size(current_database())')[0][0])
     return {'counts':counts,'run':run[0] if run else None,'dq_run':latest_dq,
+            'source_runs':source_runs,'staging_status':staging_status,
             'dq':dq,'rejects':rejects,'manifests':manifests,'database_bytes':storage,
             'generated_utc':datetime.now(timezone.utc).isoformat()}
 
@@ -72,6 +86,8 @@ def _styles():
     a=getSampleStyleSheet()
     a.add(ParagraphStyle(name='AGSubtitle',parent=a['BodyText'],fontSize=9,leading=13,spaceAfter=12,textColor=colors.HexColor('#555555')))
     a.add(ParagraphStyle(name='AGFoot',parent=a['BodyText'],fontSize=8,leading=11))
+    a.add(ParagraphStyle(name='AGSection',parent=a['Heading2'],
+                         spaceBefore=12,spaceAfter=6,keepWithNext=True))
     return a
 
 
@@ -92,29 +108,70 @@ def _tbl(rows: list[tuple|list], widths: list[int] | None = None):
     t=Table([[_text(c) for c in row] for row in rows],
             colWidths=widths or [519/len(rows[0])]*len(rows[0]),
             hAlign='LEFT',repeatRows=1)
+    # Compact long tables so final-page evidence is not stranded on its own page.
+    pad = 4 if len(rows) > 15 else 6
     t.setStyle(TableStyle([
         ('BACKGROUND',(0,0),(-1,0),colors.HexColor('#eaeef1')),
         ('GRID',(0,0),(-1,-1),0.3,colors.HexColor('#cccccc')),
         ('VALIGN',(0,0),(-1,-1),'TOP'),
-        ('BOTTOMPADDING',(0,0),(-1,-1),6),('TOPPADDING',(0,0),(-1,-1),6),
+        ('ROWBACKGROUNDS',(0,1),(-1,-1),[colors.white,colors.HexColor('#f7f9fa')]),
+        ('BOTTOMPADDING',(0,0),(-1,-1),pad),('TOPPADDING',(0,0),(-1,-1),pad),
     ]))
     return [t]
 
 
 def _report(path: Path,title: str,sections: list[tuple[str,str|list[list|tuple]]],data:dict[str,Any]) -> None:
-    from reportlab.platypus import SimpleDocTemplate,Paragraph,Spacer,KeepTogether
+    from reportlab.platypus import SimpleDocTemplate,Paragraph
     from reportlab.lib.pagesizes import A4
     s=_styles()
     doc=SimpleDocTemplate(str(path),pagesize=A4,rightMargin=38,leftMargin=38,topMargin=42,bottomMargin=44)
     story=[Paragraph(escape(title),s['Title']),
            Paragraph('AeroGrid | Source: live Neon warehouse | UTC: '+escape(data['generated_utc']),s['AGSubtitle'])]
     for head,body in sections:
-        story.append(Spacer(1,10))
-        story.append(Paragraph(escape(head),s['Heading2']))
+        # Long tables must be allowed to split across pages; keeping an entire
+        # 32-row DQ catalog with its heading creates a nearly blank page.
+        section_style = s['Heading2'] if isinstance(body, list) and len(body) > 15 else s['AGSection']
+        story.append(Paragraph(escape(head),section_style))
         if isinstance(body,str):story.append(Paragraph(escape(body).replace('\n','<br/>'),s['BodyText']))
         else:story.extend(_tbl(body))
     doc.build(story)
 
+
+
+# All narrative rows below are derived from persisted source evidence, not
+# from adding independently scoped staging, rejects and warehouse totals.
+def reconciliation_rows(source_runs: list[tuple]) -> list[tuple]:
+    rows = [('ETL run', 'Mode', 'Read', 'Accepted', 'Rejected', 'Duplicates', 'Balanced?')]
+    for r in source_runs:
+        run_id, mode, _version, read, accepted, rejected, duplicates = r
+        total = int(accepted) + int(rejected) + int(duplicates)
+        rows.append((run_id, mode, read, accepted, rejected, duplicates,
+                     'YES' if int(read) == total else 'NO'))
+    if len(rows) == 1:
+        rows.append(('NO ROW-COUNT RUN', 'Unavailable', '-', '-', '-', '-', 'N/A'))
+    return rows
+
+
+def warning_rows(dq: list[tuple]) -> list[tuple]:
+    explanations = {
+        'DQ-C-003': ('Unknown weather-key assignments; no matched real METAR '
+                     'weather observation is linked to these tracking facts.'),
+        'DQ-C-008': ('Source on_ground is NULL; WP-07 airborne eligibility is '
+                     'inferred and does not replace the observed field.'),
+        'DQ-T-003': ('One warning indicator for missing real restriction snapshots; '
+                     'this is NOT one missing flight or one restriction event.'),
+    }
+    rows = [('Check', 'Observed', 'Meaning / source limitation')]
+    for r in dq:
+        if r[3] != 'WARN':
+            continue
+        check, name, _severity, _status, observed = r[:5]
+        stored_detail = r[6] if len(r) > 6 else None
+        meaning = explanations.get(check) or stored_detail or name
+        rows.append((check, observed, meaning))
+    if len(rows) == 1:
+        rows.append(('NONE', '0', 'No warning results in the selected stored DQ run.'))
+    return rows
 
 def build_reports(data: dict[str, Any], dest: Path) -> tuple[Path,Path]:
     dest.mkdir(parents=True,exist_ok=True)
@@ -122,27 +179,54 @@ def build_reports(data: dict[str, Any], dest: Path) -> tuple[Path,Path]:
     run_info=(f'Latest ETL run ID: {run[0]}, mode={run[1]}, started={run[2]}, '
               f'status={run[3]}, version={run[4]}' if run else 'NO ETL RUN FOUND')
     s=data['counts']; tracked=s['project_dw.fact_vehicle_tracking']; staged=s['project_staging.stg_adsb_position']
-    accepted_rows=staged # a total (includes rejected), not accepted count
+    # Accepted staging rows are counted from reject_reason, not inferred from
+    # stored rejects that may refer to distinct runs or source scopes.
+    status=data.get('staging_status')
+    accepted_staging = int(status[0]) if status is not None else None
+    rejected_staging = int(status[1]) if status is not None else None
     source_rows=[('Source','License','Fetched UTC','Bytes','SHA-256')]
     for m in data['manifests']:
-        source_rows.append((m[0],m[2],m[4],m[6],m[7]))
+        source_rows.append((m[0],m[2],m[4],m[6],str(m[7])[:16] + '…'))
     if len(source_rows)==1:source_rows.append(('NO MANIFESTS','Unavailable','—','—','—'))
-    source_details = '\n'.join(f'Source {i+1}: {m[0]} | URL: {m[1]} | Attribution: {m[3]} | Object key: {m[8]}' for i,m in enumerate(data['manifests'])) or 'No source manifest details stored.'
+    source_details = '\n'.join(
+        f'Source {i+1}: {m[0]} | URL: {m[1]} | Attribution: {m[3]} | '
+        f'Full SHA-256: {m[7]} | Object key: {m[8]}'
+        for i,m in enumerate(data['manifests'])
+    ) or 'No source manifest details stored.'
     rejects=[('Source','Reason','Count')]+list(data['rejects'])
     if len(rejects)==1:rejects.append(('No stored rejects','—',0))
     cleaning=[
         ('Run details',run_info),
         ('Staging and warehouse counts',[
             ('Component','Stored records'),('Staging ADS-B positions (all statuses)',staged),
+            ('Accepted staging positions (reject_reason IS NULL)',
+             accepted_staging if accepted_staging is not None else 'Not measured'),
+            ('Rejected staging positions (reject_reason set)',
+             rejected_staging if rejected_staging is not None else 'Not measured'),
             ('Warehouse tracking facts',tracked),
             ('Stored rejection records',s['project_staging.stg_reject']),
             ('Staged FAA airspace features',s['project_staging.stg_airspace_zone']),
             ('Staged FAA restriction snapshots',s['project_staging.stg_restriction_snapshot'])]),
+        ('ETL run-level reconciliation (latest 12 nonzero runs)',
+         reconciliation_rows(data.get('source_runs', []))),
+        ('Reconciliation scope',
+         'For each ETL run shown: read = accepted + rejected + duplicates. '
+         'These are per-run ledger counts, not a global total. The 418 stored '
+         'stg_reject rows may span different runs or batches; do NOT add them '
+         'to 27,479 staged positions to claim a source input total. '
+         'Warehouse tracking rows represent accepted source-linked facts.'),
         ('Source inventory and provenance (latest 25)',source_rows),
         ('Source URLs and attribution',source_details),
         ('Rejected records by source and rule',rejects),
-        ('Cleaning methods','Source normalizers validate timestamps, position units, identifiers, and coordinates. Accepted records enter staging; rejected records retain an auditable reason. Staging rows include all statuses, so staging totals must not be called accepted totals. Source-specific duplicate handling is recorded by ETL run.'),
-        ('Limitations and provenance','January 2022 KBTP Tartan positions are historical, while current FAA TFR snapshots are from 2026. Do not join present restrictions to historical flights. Unknown on_ground values remain NULL; airborne eligibility is inferred in WP07-AIR-01. The spatial grid is 2D (0.01-degree), not an altitude-band grid.'),
+        ('Cleaning methods','Source normalizers validate timestamps, position units, identifiers, and coordinates. Source rows are tracked using staging reject_reason, rejection records and ETL run logs. Accepted staging counts come from reject_reason IS NULL, while separate rejected records may be recorded in stg_reject. Never assume their totals share the same source-run scope. Source-specific duplicates are recorded by ETL run.'),
+        ('Limitations and provenance',
+         'January 2022 KBTP Tartan positions are historical. A live FAA TFR '
+         'service was checked in November 2026; it returned zero features '
+         'in the selected study box at that time. No FAA restriction snapshots '
+         'are stored in the warehouse for this sample. Do not join current '
+         'restrictions to historical flights. Original on_ground values remain '
+         'NULL; airborne eligibility is inferred under WP07-AIR-01. '
+         'The physical spatial grid is 2D (0.01 degree), not an altitude-band grid.'),
         ('Data authenticity','Production evidence is based on source-linked real rows, not synthetic demonstration records. Zero-source coverage is reported as zero, not imputed.'),
         ('Reproduction','Run WP-04 staging checks, WP-06 core fact reconciliation and WP-07 derived facts verifier through protected warehouse CI. Regenerate this PDF using python -m etl.reports with the read-only Neon connection in CI.')]
     p1=dest/'Data_Cleaning_Report.pdf';_report(p1,'Data Cleaning Report',cleaning,data)
@@ -157,7 +241,13 @@ def build_reports(data: dict[str, Any], dest: Path) -> tuple[Path,Path]:
                           f'critical FAIL checks: {critical}; warning checks: {warns}. '
                           +('No stored DQ evidence is available; report is NOT an acceptance proof.' if not dq else 'Refer to each check below.')),
         ('Check catalog results',dq_rows),
+        ('Open DQ warnings explained', warning_rows(dq)),
         ('Real warehouse row counts',counts),
+        ('Unknown dimension members',
+         'Dimension totals include the mandatory -1 unknown member. '
+         'For example, a one-row dim_weather does NOT imply one measured '
+         'weather observation, and a one-row dim_airspace_zone does NOT '
+         'imply one real FAA restriction.'),
         ('Capacity',f'Actual PostgreSQL database size: {data["database_bytes"]:,} bytes. Object-storage usage is not available from the PostgreSQL connection; do not equate manifest bytes with current bucket usage.'),
         ('Encounter and restriction limitations','The WP07-v1 encounter algorithm requires identical timestamps. Near-time diagnostics were separate analytical SQL, not the production algorithm. No historical 2022 TFRs are inferred from 2026 FAA services. Zero derived rows may be legitimate source coverage, not evidence of a missing SQL table.'),
         ('Decision rule','Any stored CRITICAL FAIL blocks trusted publication even if this PDF can be generated. A green unit-test run alone does not establish data quality.'),
