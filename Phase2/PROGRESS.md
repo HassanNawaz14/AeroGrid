@@ -1,19 +1,25 @@
 # Phase 2 Progress and Handoff Board
 
+<!-- AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
+**Current administrator-declared acceptance (2026-11-13):** The requester states they hold project-administrator authority and explicitly accepts G5, G6, and G7. This documents their decision, **not** independent confirmation of a full G7 end-to-end replay, all five members testing reader access, or finished WP-11/WP-12 technical evidence. Those proof items remain listed separately in the [Final gate record](docs/FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md)..
+
+**Member E deployment facts:** WP-07 through WP-10 are merged: 27,479 source-linked tracking facts, 178 journeys, 3,658 real 2D grid cells, 1,754 occupancy facts; 32 persisted DQ results (29 PASS, 3 WARN, 0 FAIL); 10 reporting views; both improved PDFs. The deployed encounter and restriction fact counts are zero, with documented coverage and algorithm limitations.
+<!-- /AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
+
 This is the canonical status board for AeroGrid Phase 2. Every agent and human must
 read it before acting. Update it at the end of every work session.
 
 | Field | Value |
 |---|---|
-| Last updated | `2026-11-11` |
-| Phase state | `G4_DONE_WP-06_DONE_H-013_APPROVED_WP-07_READY` |
+| Last updated | `2026-11-13` |
+| Phase state | `G5_G6_G7_ADMIN_ACCEPTED_WP07_WP10_DEPLOYED` |
 | Implementation authorized | `YES` (`H-007`, 2026-11-04) |
-| Current gate | `G5 - Derived facts and approved thresholds` |
-| Current gate status | `IN_PROGRESS` - `G4` is recorded; `H-013` approved; `WP-07` may start |
-| Active work package | `WP-07` derived facts (Member E) |
-| Active work package status | `IN_PROGRESS` (`H-013` approved; Member E starts derived facts) |
-| Next work package | `WP-08` data-quality framework (after `G5`) |
-| Next action owner | Member E starts `WP-07` derived facts using the approved thresholds and `algorithm_version`; records evidence for `G5` |
+| Current gate | `G7` accepted administratively; independent technical proof follow-up |
+| Current gate status | `DONE` by requester-admin declaration; end-to-end/second-reader proof not independently supplied |
+| Active work package | WP-07–WP-10 delivered (Member E); release evidence follow-up with Member A/team |
+| Active work package status | `DONE` — requester-admin acceptance 2026-11-13 |
+| Next work package | WP-11 and WP-12 independent end-to-end / automation evidence follow-up |
+| Next action owner | Member A/team: archive G7 replay, independent reader proof, automation/run link evidence |
 
 ## Status vocabulary
 
@@ -46,9 +52,9 @@ Gate definitions are canonical in
 | `G2` | Platform access and source validation spikes pass | `DONE` 2026-11-08 (`WP-02` and `WP-03` accepted; PR #5 merged as `f9087f4`) | HassanNawaz14 / Member B |
 | `G3` | Staging, physical schema, constraints, indexes, keys, and seeds validated | `DONE` 2026-11-09 (recorded on `HassanNawaz14`'s explicit instruction; dimensions verified on Neon; real accepted-row staging proof under `B-011`) | HassanNawaz14 (delegated recording) |
 | `G4` | Core tracking and journey facts loaded and reconciled | `DONE` 2026-11-11 (`WP-05` run `42689267328` and `WP-06` run `42887782411` `PASS`; PR #12 merged as `f29b099`; `B-011` resolved) | Member D; Member C recorded |
-| `G5` | Derived facts and approved thresholds validated | `READY` (`WP-07`; `H-013` approved) | Member E |
-| `G6` | DQ, reports, reporting views, and automation validated | `NOT_STARTED` | Member E / HassanNawaz14 |
-| `G7` | A clean end-to-end run and team read access are demonstrated | `NOT_STARTED` | HassanNawaz14 |
+| `G5` | Derived facts and approved thresholds validated | `DONE` (requester-admin declaration, 2026-11-13; proof caveats disclosed) | Member E |
+| `G6` | DQ, reports, reporting views, and automation validated | `DONE` (requester-admin declaration, 2026-11-13; proof caveats disclosed) | Member E / HassanNawaz14 |
+| `G7` | A clean end-to-end run and team read access are demonstrated | `DONE` (requester-admin declaration, 2026-11-13; proof caveats disclosed) | HassanNawaz14 |
 
 `G0`-`G4` are closed. `G0` was accepted via `H-001`; `G1` was closed and implementation authorized via `H-007` on 2026-11-04; `G2` was accepted by HassanNawaz14 on 2026-11-08 after `WP-03` review and PR #5 merge; `G3` was recorded on 2026-11-09 on HassanNawaz14's explicit instruction, with `B-011` open for the real staging load; `G4` was recorded on 2026-11-11 after the real Tartan `WP-05`/`WP-06` runs passed and `B-011` was resolved. `H-013` is approved (severe: horizontal `< 0.5 nm` / vertical `< 500 ft`; proximity: horizontal `< 1.0 nm` / vertical `< 1,000 ft`; `algorithm_version` `wp07-v1`). The next gate is `G5`; `WP-07` may now start.
 
@@ -63,10 +69,10 @@ Gate definitions are canonical in
 | `WP-04` | Staging DDL and loaders | Member B (Hamid4325) | `WP-03` | `DONE` | DDL applied and readable (runs `42474788058`, `42477720902`; 15/15 self-check). Sample evidence recorded 2026-11-08 (4 read, 0 accepted, 4 rejected `INVALID_VEHICLE_ID`; idempotent; rolled back) used the legacy demo CSV, so accepted-row proof moves to `WP-06` under `B-011`. |
 | `WP-05` | Dimensions, keys, and dictionary | Member C | `WP-02`, model approval | `DONE` | `D-022` start condition met. All deliverables implemented on branch `phase2/wp05-dimensions`: six dimension DDL (`01_dimensions.sql`) with identity surrogate keys, natural-key uniqueness, `-1` unknown members, `dim_site` FKs, idempotent; `02_seed.sql` derived `dim_time` hourly spine 2022-01-01..2022-01-07 (168 real-derived rows, ≥100 floor; site codes KBTP/KAGC/NIGHTJAR_PA/DJI_CO from WP-03; unresolved DJI site → `-1`); verifier (`verify_wp05_dimensions.py`) applied DDL+seed twice idempotently, asserts six tables, `-1` row each, no duplicate natural keys, FK targets exist, reader SELECT = true; workflow `wp05-dimensions-verify.yml` (15-min warehouse env, DATABASE_URL secret); `etl/dimensions.py` + `tests/test_dimensions.py`; data dictionary and DBML synchronized to DDL. Neon verifier PASS 2026-11-08: connected `aerogrid_etl` → `neondb` PG 18.6; six tables present; dim_time=169/dim_site=5/others=1 with `-1` row each; no duplicate natural keys; all dim_site FK targets exist; reader SELECT true. `WP-05` `DONE` under `D-023`; `G3` stays `IN_PROGRESS` for HassanNawaz14 to record. Artifacts: `Phase2/sql/02_dimensions/*`, `Phase2/etl/verify_wp05_dimensions.py`, `Phase2/etl/dimensions.py`, `.github/workflows/wp05-dimensions-verify.yml`, `Phase2/tests/test_dimensions.py`, `data/data_dictionary.md`, `data/diagrams/aerogrid_schema.dbml`, `Phase2/PROGRESS.md`. Checks: pytest 43 passed; compileall OK; git diff --check clean; Neon verifier PASS. Next: `G3` remains `IN_PROGRESS` (human records after WP-05); WP-06 waits for G3. |
 | `WP-06` | Tracking and journey facts | Member D | `WP-04`, `WP-05` | `DONE` | Accepted 2026-11-11 under `D-024` after the real Tartan sample was uploaded and both workflows passed: WP-05 run [42689267328](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42689267328) and WP-06 run [42887782411](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42887782411) `PASS` on `phase2/wp06-tracking-facts` at `ecce8ec`; PR #12 merged as `f29b099`. The seed supplies 156 real Tartan `dim_vehicle` members; the verifier asserts accepted staging rows `> 0`, `fact_vehicle_tracking`/`fact_flight_journey` totals `>= 10,000`, 1-to-1 staging-to-tracking reconciliation, zero new inserts on Pass 2, zero FK orphans, and reader `SELECT = true`. `B-011` resolved; `G4` recorded. Exact staging/tracking/journey counts are in the run summary. |
-| `WP-07` | Derived facts | Member E | `WP-06` | `READY` | `G4` is recorded and `H-013` is approved: severe horizontal `< 0.5 nm` / vertical `< 500 ft`; proximity horizontal `< 1.0 nm` / vertical `< 1,000 ft`; `algorithm_version` `wp07-v1`. Member E starts derived facts. |
-| `WP-08` | Data-quality framework | Member E | `WP-04` to `WP-07` | `NOT_STARTED` | Wait for derived facts |
-| `WP-09` | PDF reports | Member E | `WP-08` | `NOT_STARTED` | Wait for DQ results |
-| `WP-10` | Reporting views and corridor metrics | Member E | `WP-06`, `WP-07` | `NOT_STARTED` | Wait for core/derived facts |
+| `WP-07` | Derived facts | Member E | `WP-06` | `DONE` (requester-admin accepted 2026-11-13) | Persisted via protected CI; 27,479 mapped, 3,658 real 2D cells, 1,754 occupancy; source limitations documented. |
+| `WP-08` | Data-quality framework | Member E | `WP-04` to `WP-07` | `DONE` (requester-admin accepted 2026-11-13) | Run 7 persisted 32 DQ checks: 29 PASS, 3 WARN, 0 FAIL. |
+| `WP-09` | PDF reports | Member E | `WP-08` | `DONE` (requester-admin accepted 2026-11-13) | Both improved source-linked PDFs on main after PR #20. |
+| `WP-10` | Reporting views and corridor metrics | Member E | `WP-06`, `WP-07` | `DONE` (requester-admin accepted 2026-11-13) | Ten project_reporting views confirmed in Neon; CI run #2 passed. |
 | `WP-11` | CI, access, and deployment | HassanNawaz14 | `WP-02`, `WP-04` to `WP-10` | `NOT_STARTED` | Wait for work packages |
 | `WP-12` | Integration, acceptance, and release | HassanNawaz14 + all | `WP-11` | `NOT_STARTED` | Final gate |
 
@@ -391,3 +397,16 @@ When updating this file:
 | `G2` | `HassanNawaz14` | `2026-11-08` | `WP-02` access proof (run `42276737288`) and `WP-03` source validation merged in PR #5. A later privilege gap is tracked separately as `H-011`/`B-009` and does not reopen `G2`. |
 | `G3` | `HassanNawaz14` (recorded by the Member A agent on explicit instruction) | `2026-11-09` | `WP-04` DDL runs `42474788058`/`42477720902`, `WP-05` Neon verifier PASS (six dimensions, `-1` members, unique natural keys, FK targets, reader SELECT), 169 `dim_time` rows, dictionary/DBML synced. Caveat `B-011`: the `WP-04` sample came from the legacy demo CSV, so real accepted-row proof is required in `WP-06` before `G4`. |
 | `G4` | Member C (recorded under `D-024`) | `2026-11-11` | Real Tartan sample loaded; WP-05 run [42689267328](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42689267328) and WP-06 run [42887782411](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42887782411) `PASS`; PR #12 merged as `f29b099`; `B-011` resolved. |
+
+
+## 2026-11-13 Member E completion and admin gate decision
+
+The current requester, stating they hold project-administrator authority, has expressly accepted **G5, G6 and G7**, including the documented method and source limitations. This is an **administrative decision**, not an invented independent execution result. WP-07–WP-10 are accepted as complete. WP-11/WP-12 and missing independent reader/end-to-end evidence stay visible as technical follow-up. See [gate sign-off record](docs/FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md).
+
+| Package | Admin acceptance | Deployed evidence |
+|---|---|---|
+| WP-07 | DONE | Persisted 27,479 mapped tracking records, 3,658 real 2D grid cells, 1,754 occupancy records; documented zero encounters/restrictions |
+| WP-08 | DONE | Audit run 7, 32 checks: 29 PASS, 3 WARN, 0 FAIL |
+| WP-09 | DONE | Both improved PDFs on main |
+| WP-10 | DONE | Ten real reporting views in Neon |
+| G5 / G6 / G7 | DONE by requester-admin declaration | Independent G7 replay, second-member reader proof and WP-11 automation not independently observed; follow-up explicitly documented |

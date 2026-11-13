@@ -1,5 +1,11 @@
 # Team Work Division
 
+<!-- AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
+**Current administrator-declared acceptance (2026-11-13):** The requester states they hold project-administrator authority and explicitly accepts G5, G6, and G7. This documents their decision, **not** independent confirmation of a full G7 end-to-end replay, all five members testing reader access, or finished WP-11/WP-12 technical evidence. Those proof items remain listed separately in the [Final gate record](FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md)..
+
+**Member E deployment facts:** WP-07 through WP-10 are merged: 27,479 source-linked tracking facts, 178 journeys, 3,658 real 2D grid cells, 1,754 occupancy facts; 32 persisted DQ results (29 PASS, 3 WARN, 0 FAIL); 10 reporting views; both improved PDFs. The deployed encounter and restriction fact counts are zero, with documented coverage and algorithm limitations.
+<!-- /AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
+
 ## Purpose
 
 Phase 2 is split by warehouse layer so all five members have independent, reviewable
@@ -24,8 +30,7 @@ the real Tartan WP-05/WP-06 runs passed and `G4` was recorded on 2026-11-11.
 - Member D owns `WP-06` (now `DONE`); Member C completed the real `dim_vehicle`
   members and recorded `G4`.
 - All database writes stay in CI; never run loaders from a laptop.
-- Member E is next. `WP-07` is `BLOCKED_ON_HUMAN` until the human approves `H-013`
-  (thresholds and `algorithm_version`); Member E must not start before that.
+- Member E completed WP-07 through WP-10; the requester explicitly accepted G5/G6/G7 as a self-reported project administrator on 2026-11-13. H-013 is resolved.
 - Human-only actions are unchanged: secrets, Neon roles and branches, repository and
   environment settings, destructive SQL, thresholds, and every gate after `G4`.
 

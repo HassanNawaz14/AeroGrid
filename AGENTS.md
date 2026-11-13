@@ -1,23 +1,20 @@
 # AGENTS.md - AeroGrid repository instructions
 
+<!-- AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
+**Current administrator-declared acceptance (2026-11-13):** The requester states they hold project-administrator authority and explicitly accepts G5, G6, and G7. This documents their decision, **not** independent confirmation of a full G7 end-to-end replay, all five members testing reader access, or finished WP-11/WP-12 technical evidence. Those proof items remain listed separately in the [Final gate record](Phase2/docs/FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md)..
+
+**Member E deployment facts:** WP-07 through WP-10 are merged: 27,479 source-linked tracking facts, 178 journeys, 3,658 real 2D grid cells, 1,754 occupancy facts; 32 persisted DQ results (29 PASS, 3 WARN, 0 FAIL); 10 reporting views; both improved PDFs. The deployed encounter and restriction fact counts are zero, with documented coverage and algorithm limitations.
+<!-- /AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
+
 This file is the repository-wide contract for coding agents. The phase-specific
 contract is [Phase2/AGENTS.md](Phase2/AGENTS.md). Read both before changing files.
 
 ## Current state
 
-- Phase 1 is complete and frozen as the historical design baseline.
-- Phase 2 documentation and planning baseline is accepted (`G0`/`H-001`).
-- **Phase 2 implementation is authorized** (`H-007`, 2026-11-04).
-- The current gate is `G5 - Derived facts and approved thresholds`, tracked in
-  [Phase2/PROGRESS.md](Phase2/PROGRESS.md).
-- `WP-02`, `WP-03`, `WP-04`, `WP-05`, and `WP-06` are `DONE` (PR #3 `b6b76b9`, #5
-  `f9087f4`, #7, #8, #12 `f29b099`). `G2` closed 2026-11-08; `G3` was recorded
-  `DONE` on 2026-11-09; `G4` was recorded `DONE` on 2026-11-11 after the real Tartan
-  WP-05/WP-06 runs passed and `B-011` was resolved.
-- `WP-07` (Member E) is `BLOCKED_ON_HUMAN` on `H-013`: the human must approve the
-  severe/proximity thresholds and `algorithm_version` before derived facts start.
-  The `D-024` delegated window closed when `G4` was recorded; later packages and
-  gates need the human.
+- Phase 1 is frozen; Phase 2 implementation was authorized under H-007.
+- G0–G4 are historically accepted. The requester states project-administrator authority and explicitly accepted G5, G6 and G7 on 2026-11-13.
+- Member E WP-07–WP-10 have been merged, persisted and accepted; H-013 was already approved for `wp07-v1` and is no longer a start blocker.
+- The final release record distinguishes administrative sign-off from unverified independent G7 run or reader-access checks. Preserve CI protection and no-synthetic-production requirements.
 
 ## Authority and precedence
 
@@ -165,11 +162,5 @@ already checked, and the safest next step. Do not silently work around the block
 
 ## Current instruction
 
-`G2`, `G3`, and `G4` are closed and implementation is authorized for `WP-02`
-through `WP-06`, all of which are `DONE`. `WP-06` closed blocker `B-011` after the
-real Tartan sample loaded and both workflows passed; the `D-024` window is closed.
-`H-013` (WP-07 thresholds and `algorithm_version`) is the human's next input; until
-it is approved, `WP-07` is `BLOCKED_ON_HUMAN` and Member E must not start. Do not
-load the FAA `Airspace (DEMO)` layer; use the approved granular services (`D-020`).
-Work on one authorized package at a time, record evidence in `Phase2/PROGRESS.md`,
-and do not start a later package until its gate is recorded.
+WP-07–WP-10 have been merged and accepted by requester-admin declaration. Use the current `Phase2/PROGRESS.md`, `Phase2/DECISIONS.md` and the final gate record rather than earlier historical status paragraphs. Member A/team retain independent WP-11/12 integration and reader-access proof follow-up; do not fabricate technical evidence. Phase 1 stays frozen.
+
