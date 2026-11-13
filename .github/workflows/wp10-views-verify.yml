@@ -1,0 +1,42 @@
+name: WP-10 Reporting Views (verify or persist)
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Verify with rollback first, then apply after review'
+        type: choice
+        default: verify
+        required: true
+        options:
+          - verify
+          - apply
+      confirm:
+        description: 'If apply selected, type APPROVE_WP10_VIEWS'
+        type: string
+        required: false
+permissions:
+  contents: read
+concurrency:
+  group: wp10-reporting-schema
+  cancel-in-progress: false
+jobs:
+  views:
+    if: ${{ inputs.mode == 'verify' || (inputs.mode == 'apply' && inputs.confirm == 'APPROVE_WP10_VIEWS' && github.ref == 'refs/heads/main') }}
+    runs-on: ubuntu-latest
+    environment: warehouse
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --disable-pip-version-check 'pytest>=8,<10' 'psycopg[binary]>=3.2,<4' 'reportlab>=4,<5'
+      - run: python -m pytest -q Phase2/tests
+      - name: Verify views with rollback or persist
+        working-directory: Phase2
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          WAREHOUSE_CI_APPROVED: 'true'
+          MODE: ${{ inputs.mode }}
+        run: |
+          if [ "$MODE" = "apply" ]; then python -m etl.verify_wp10_views --apply; else python -m etl.verify_wp10_views; fi
