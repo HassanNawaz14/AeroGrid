@@ -124,6 +124,7 @@ not substitute for each member's own credentials.
 | Secret scan | 0 matches for connection strings with embedded credentials, private keys, GitHub/OpenAI/AWS token patterns in tracked text files |
 | Raw data | No raw archives, database dumps, or `.csv` source files tracked; only the documented offline demo files under [`data/sample/`](../../data/sample/) (`D-017`) |
 | PDFs | Both are generated artifacts committed intentionally as release deliverables |
+| Whitespace check | `git diff --check -- '*.md'` is clean. The unfiltered command flags trailing spaces inside the PDF byte stream because the repository sets no binary attribute for `*.pdf`; add `*.pdf binary` to `.gitattributes` if a clean unfiltered check is required. This is audit noise, not a document defect |
 
 ## 6. Accepted-limitation audit
 
@@ -162,9 +163,11 @@ so this audit is reproducible from CI output.
 
 - A **second** authorized `apply` run on the release commit has not been dispatched, so
   "a fresh authorized run reproduces the result" is demonstrated only by the first apply
-  run plus the idempotency design and verifiers. A re-run should record 0 new dimensions
-  and 0 duplicates. Human dispatch is required.
-- The first scheduled run (Monday 2026-11-16 06:00 UTC) has not happened yet.
+  run plus the idempotency design and verifiers. Human dispatch is required (`H-018`).
+  On a re-run, expect 0 duplicate rows for the static UAS and airspace files and 0
+  critical failures; weather rows can legitimately differ if the rolling 7-day window
+  moved, so the check is reconciliation and zero failures, not identical totals.
+- The first scheduled run (Monday 2026-11-16 06:00 UTC) has not happened yet (`H-019`).
 
 ## 8. WP-10 view reconciliation (run 43508438840)
 
@@ -197,18 +200,21 @@ Zero-row views are the documented `L-004`/`L-005` limitations, not defects.
 | Every open `L-###` reported with observed value, trigger, owner | Met (section 6) |
 | Human accepts the release | **Pending** |
 
-**Next actions**
+**Next actions** (stable IDs; the same list is at the top of [PROGRESS.md](../PROGRESS.md#next-session-open-gaps-start-here))
 
-1. Human: review this branch, merge it, and dispatch one more `mode=apply` run on the
-   merged `main` to close the reproducibility item (expected: 0 duplicate and 0 new
-   dimension rows).
-2. Members B–E: run the reader probe as their first action (`H-017`).
-3. Human: confirm the scheduled run on 2026-11-16; add repository-level schedule
-   variables if the job is skipped (`H-016` caveat).
-4. Human: record release acceptance in [PROGRESS.md](../PROGRESS.md) to clear `G7`.
+1. `H-018` — Human: after this branch merges, dispatch one `mode=apply` run on `main` and
+   record the run URL, `etl_run_id`, reconciliation, and any duplicate count.
+2. `H-017` — Members B–E: run the reader probe as their first action and report pass/fail
+   plus each rejected write's SQLSTATE.
+3. `H-019` — Human: confirm the scheduled run on 2026-11-16; if no `schedule` run appears,
+   add repository-level schedule variables (the `H-016` values are environment-scoped).
+4. `B-016` — Human: decide on the `payloads/` snippet directory so link audits stop
+   reporting 16 false breaks.
+5. Human: record release acceptance in [PROGRESS.md](../PROGRESS.md) to clear `G7`.
 
 ## Change history
 
 | Date | Change |
 |---|---|
 | `2026-11-14` | Created from WP-12 verification runs 43508430448, 43508438840, 43508445375 and apply run 43502710978; regenerated release PDFs; audited rubric, limitations, access, links, and secrets. |
+| `2026-11-14` | Converted the open items into stable IDs (`H-018` confirmatory apply, `H-019` scheduled-run check, `B-016` `payloads/` link noise) with expected results and failure handling, and documented the PDF whitespace-check noise. |
