@@ -51,6 +51,7 @@ decision. Use the template in [templates/DECISION_RECORD.md](templates/DECISION_
 | `D-025` | G5 derived-fact acceptance | `ACCEPTED` (requester declaration) | 2026-11-13, requester states project-admin authority |
 | `D-026` | G6 DQ, reports and views acceptance | `ACCEPTED` (requester declaration) | 2026-11-13, requester states project-admin authority |
 | `D-027` | G7 administrative acceptance | `ACCEPTED` (requester declaration) | 2026-11-13, requester states project-admin authority |
+| `D-028` | Track accepted data limitations as a register with explicit implementation triggers | `ACCEPTED` | Directed by HassanNawaz14, 2026-11-13 |
 ## D-001: Neon Free PostgreSQL
 
 **Status:** `ACCEPTED`
@@ -563,6 +564,30 @@ Accept 32 stored DQ checks (29 PASS, 3 WARN, 0 FAIL), both improved PDFs and ten
 The requester explicitly directs that G7 be recorded accepted. No independent clean end-to-end replay or full multi-member read test was supplied to this package; do not imply otherwise.
 
 **Evidence:** [Member E evidence](docs/MemberE_Implementation_Evidence_2026-11-13.md); [final acceptance and caveats](docs/FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md).
+
+## D-028: Accepted limitations are tracked with implementation triggers
+
+**Date:** 2026-11-13
+
+**Decider:** HassanNawaz14
+
+**Status:** `ACCEPTED`
+
+Accepted data limitations are recorded in one canonical register,
+[`docs/13_accepted_data_limitations.md`](docs/13_accepted_data_limitations.md), with a
+stable `L-###` ID, the observed warehouse state, the condition that requires
+implementation, the required work, and the linked DQ check. `WP-11` must surface the
+linked DQ results and `WP-12` must report every open entry; neither package may close
+an entry by changing DQ severity or by omitting it from a report.
+
+**Rationale:** G5–G7 acceptance covered the limitations administratively. Without a
+register they would survive only as prose in the gate record, with no trigger and no
+audit owner. This makes each one implementable when its trigger occurs and makes
+silent masking a review failure.
+
+**Evidence:** Live verification 2026-11-13, WP-08 run `43471609483` (29 PASS, 3 WARN,
+0 FAIL) and WP-10 run `43471616729` (10 views); [register](docs/13_accepted_data_limitations.md);
+[PROGRESS.md](PROGRESS.md) verification section.
 
 ## Change process
 
