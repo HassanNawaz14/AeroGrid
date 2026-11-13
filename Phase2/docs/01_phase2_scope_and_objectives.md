@@ -1,7 +1,7 @@
 # Phase 2 Scope and Objectives
 
 <!-- AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
-**Current administrator-declared acceptance (2026-11-13):** The requester states they hold project-administrator authority and explicitly accepts G5, G6, and G7. This documents their decision, **not** independent confirmation of a full G7 end-to-end replay, all five members testing reader access, or finished WP-11/WP-12 technical evidence. Those proof items remain listed separately in the [Final gate record](FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md)..
+**Current administrator-declared acceptance (2026-11-13):** The requester states they hold project-administrator authority and explicitly accepts G5, G6, and G7. This documents their decision, **not** independent confirmation of a full G7 end-to-end replay, all five members testing reader access, or finished WP-11/WP-12 technical evidence. Those proof items remain listed separately in the [Final gate record](FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md).
 
 **Member E deployment facts:** WP-07 through WP-10 are merged: 27,479 source-linked tracking facts, 178 journeys, 3,658 real 2D grid cells, 1,754 occupancy facts; 32 persisted DQ results (29 PASS, 3 WARN, 0 FAIL); 10 reporting views; both improved PDFs. The deployed encounter and restriction fact counts are zero, with documented coverage and algorithm limitations.
 <!-- /AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
@@ -160,9 +160,8 @@ Implementation may begin only when:
 - The assigned work package is `READY`.
 - The human explicitly authorizes the work package.
 
-`WP-02` through `WP-06` are `DONE` (PR #3 `b6b76b9`, PR #5 `f9087f4`, PR #7, PR #8,
-PR #12 `f29b099`). `G2` closed on 2026-11-08, `G3` on 2026-11-09, and `G4` on
-2026-11-11 after the real Tartan WP-05/WP-06 runs passed and `B-011` was resolved.
-`WP-07` is `BLOCKED_ON_HUMAN` on `H-013`; Member E starts only after the human
-approves the thresholds and `algorithm_version`. Later packages start only after
-their gate is recorded in `PROGRESS.md`.
+`WP-02` through `WP-11` are `DONE`. `G2` closed on 2026-11-08, `G3` on 2026-11-09, `G4` on
+2026-11-11, and `WP-11` was accepted under `D-031` on 2026-11-14 after apply run
+43502710978. `WP-12` (integration, acceptance, and release) is `READY_FOR_REVIEW` with
+evidence in [WP12_RELEASE_EVIDENCE_2026-11-14.md](WP12_RELEASE_EVIDENCE_2026-11-14.md);
+human release acceptance and the per-member reader probe (`H-017`) remain.

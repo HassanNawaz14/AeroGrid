@@ -1,7 +1,7 @@
 # Phase 2 Progress and Handoff Board
 
 <!-- AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
-**Current administrator-declared acceptance (2026-11-13):** The requester states they hold project-administrator authority and explicitly accepts G5, G6, and G7. This documents their decision, **not** independent confirmation of a full G7 end-to-end replay, all five members testing reader access, or finished WP-11/WP-12 technical evidence. Those proof items remain listed separately in the [Final gate record](docs/FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md)..
+**Current administrator-declared acceptance (2026-11-13):** The requester states they hold project-administrator authority and explicitly accepts G5, G6, and G7. This documents their decision, **not** independent confirmation of a full G7 end-to-end replay, all five members testing reader access, or finished WP-11/WP-12 technical evidence. Those proof items remain listed separately in the [Final gate record](docs/FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md).
 
 **Member E deployment facts:** WP-07 through WP-10 are merged: 27,479 source-linked tracking facts, 178 journeys, 3,658 real 2D grid cells, 1,754 occupancy facts; 32 persisted DQ results (29 PASS, 3 WARN, 0 FAIL); 10 reporting views; both improved PDFs. The deployed encounter and restriction fact counts are zero, with documented coverage and algorithm limitations.
 <!-- /AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
@@ -12,14 +12,14 @@ read it before acting. Update it at the end of every work session.
 | Field | Value |
 |---|---|
 | Last updated | `2026-11-14` |
-| Phase state | `G5_G6_G7_ADMIN_ACCEPTED_WP07_WP10_DEPLOYED_WP11_IMPLEMENTED` |
+| Phase state | `G5_G6_G7_ADMIN_ACCEPTED_WP07_WP10_DEPLOYED_WP11_DONE_WP12_IN_REVIEW` |
 | Implementation authorized | `YES` (`H-007`, 2026-11-04) |
 | Current gate | `G7` accepted administratively; independent technical proof follow-up |
-| Current gate status | `DONE` by requester-admin declaration; end-to-end/second-reader proof not independently supplied |
-| Active work package | `WP-11` CI, access, and deployment (Member A) |
-| Active work package status | `READY_FOR_REVIEW` — ingestion job, workflow, and tests delivered; first approved apply run and reader proof pending |
-| Next work package | `WP-12` integration, acceptance, and release |
-| Next action owner | Human: peer-review the WP-11 PR, dispatch the first `mode=apply` run from `main`, then enable the schedule variables |
+| Current gate status | `DONE` by requester-admin declaration; release acceptance and second-reader proof remain follow-up |
+| Active work package | `WP-12` integration, acceptance, and release (Member A) |
+| Active work package status | `READY_FOR_REVIEW` — release evidence, demo script, final PDFs, and audits delivered |
+| Next work package | None; `WP-12` closes the plan |
+| Next action owner | Human: review/merge the WP-12 branch, dispatch one confirmatory `mode=apply` run, confirm the 2026-11-16 schedule, and record release acceptance |
 
 ## Status vocabulary
 
@@ -74,7 +74,7 @@ Gate definitions are canonical in
 | `WP-09` | PDF reports | Member E | `WP-08` | `DONE` (requester-admin accepted 2026-11-13) | Both improved source-linked PDFs on main after PR #20. |
 | `WP-10` | Reporting views and corridor metrics | Member E | `WP-06`, `WP-07` | `DONE` (requester-admin accepted 2026-11-13) | Ten project_reporting views confirmed in Neon; CI run #2 passed. |
 | `WP-11` | CI, access, and deployment | HassanNawaz14 | `WP-02`, `WP-04` to `WP-10` | `DONE` (requester-admin accepted 2026-11-14, `D-031`) | Implemented on `phase2/wp11-ingestion` under `D-030`: `etl/run.py` orchestrates fetch -> manifest -> staging -> dimension refresh -> DQ in one transaction; `wp11-ingest.yml` provides read-only `validate` and protected `apply` modes, a Monday 06:00 UTC schedule gated by `WP11_SCHEDULE_ENABLED`, a manual reader-check job, and `ci.yml` unit tests on pull requests; the run summary reports every `L-001`–`L-010` entry with its linked DQ status and per-source coverage. First approved apply run [43502710978](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43502710978) `SUCCESS` on `165d59d`: `etl_run_id=11`, 23,414 read / 23,254 accepted / 160 rejected / 0 duplicate, 8 manifests, `dim_weather` 400, `dim_airspace_zone` 252, `dim_time` 166, `dim_vehicle` 2, DQ 32 PASS / 4 WARN / 0 FAIL, reader proof `PASS`. Checks: `pytest` 27 WP-11 tests pass; full local suite 136 passed. Three earlier `mode=apply` dispatches failed and rolled back with no persisted rows (`B-013`, `B-014`, `B-015`); all three fixes carry regression tests. Documented follow-up: per-member reader proof (`H-017`) and verification of the first scheduled run on 2026-11-16. |
-| `WP-12` | Integration, acceptance, and release | HassanNawaz14 + all | `WP-11` | `READY` | Final gate: re-run the verification workflows against the newly loaded data, reconcile reports, and update the final acceptance record |
+| `WP-12` | Integration, acceptance, and release | HassanNawaz14 + all | `WP-11` | `READY_FOR_REVIEW` | Release evidence at [docs/WP12_RELEASE_EVIDENCE_2026-11-14.md](docs/WP12_RELEASE_EVIDENCE_2026-11-14.md): rubric audit (all course requirements mapped), report audit from WP-09 run 43508445375, DQ re-verified by run 43508430448 (36 checks: 32 PASS / 4 WARN / 0 FAIL), views by run 43508438840 (10 views), documentation audit (386 relative links, 0 broken after URL-decoding; 2 links fixed), secret/raw-data scan clean, and a limitation audit with observed values, triggers, and owners for `L-001`–`L-010`. Demo run sheet at [docs/14_demo_script.md](docs/14_demo_script.md). Open: `H-017` per-member reader proof, one confirmatory `mode=apply` run, the 2026-11-16 schedule check, and human release acceptance. | Final gate: human merges the release branch, dispatches one confirmatory `mode=apply` run on `main`, and records release acceptance to clear `G7` |
 
 ## Human action queue
 
@@ -492,6 +492,7 @@ closed. The closeout used the real Tartan sample, not the excluded demo CSV:
 | `2026-11-14` | Fixed the second apply-run failure (`round(double precision, integer)`): cast the visibility conversion to `numeric`, write a failure summary so the artifact exists, and pin both with regression tests; `132 passed`, `compileall` clean; no warehouse write occurred. Merged as PR #26 (`90778f6`); the apply re-dispatch remains a human action | Member A | `B-014`, `WP-11`, `H-015` |
 | `2026-11-14` | Fixed the transient fetch failure with bounded retry/backoff and a source-naming error (PR #27, `165d59d`), then recorded the first approved apply run [43502710978](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43502710978): `SUCCESS`, `etl_run_id=11`, 23,254 accepted / 160 rejected / 0 duplicate, 8 manifests, 820 dimension rows, DQ 32 PASS / 4 WARN / 0 FAIL, reader proof `PASS`; `H-015` closed | Member A | `B-015`, `H-015`, `WP-11` |
 | `2026-11-14` | Requester accepted `WP-11` (`D-031`) and set both schedule variables; documented the per-member reader probe as the mandatory first action for Members B-E and marked `WP-12` `READY` | Member A | `D-031`, `H-016`, `H-017`, `WP-11`, `WP-12` |
+| `2026-11-14` | Executed `WP-12` read-only: re-verified DQ (run 43508430448), the 10 reporting views (run 43508438840), and both PDFs (run 43508445375) against `main`; wrote the release evidence record and demo script; regenerated the committed PDFs; fixed two broken relative links; audited links, secrets, raw data, and all ten accepted limitations. No warehouse write. | Member A | `WP-12`, `L-001`–`L-010`, `H-017` |
 
 ## Update protocol
 
@@ -512,7 +513,7 @@ When updating this file:
 | Authorized by | `HassanNawaz14` |
 | Authorization date | `2026-11-04` |
 | Authorized scope | Phase 2 implementation under gated work packages; `WP-02`–`WP-10` accepted (`D-023`/`D-024` windows closed); `WP-11` implementation authorized 2026-11-14 (`D-030`) |
-| Next gate to clear | `WP-11` is accepted (`D-031`). Remaining: verify the first scheduled run (2026-11-16), collect per-member reader proof (`H-017`), and execute `WP-12` release closeout |
+| Next gate to clear | `WP-12` is `READY_FOR_REVIEW`: human merges the release branch, dispatches one confirmatory `mode=apply` run, verifies the 2026-11-16 scheduled run, collects per-member reader proof (`H-017`), and records release acceptance |
 
 ### Package acceptance
 
