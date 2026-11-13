@@ -1,5 +1,11 @@
 # Phase 2 Development Plan
 
+<!-- AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
+**Current administrator-declared acceptance (2026-11-13):** The requester states they hold project-administrator authority and explicitly accepts G5, G6, and G7. This documents their decision, **not** independent confirmation of a full G7 end-to-end replay, all five members testing reader access, or finished WP-11/WP-12 technical evidence. Those proof items remain listed separately in the [Final gate record](../docs/FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md)..
+
+**Member E deployment facts:** WP-07 through WP-10 are merged: 27,479 source-linked tracking facts, 178 journeys, 3,658 real 2D grid cells, 1,754 occupancy facts; 32 persisted DQ results (29 PASS, 3 WARN, 0 FAIL); 10 reporting views; both improved PDFs. The deployed encounter and restriction fact counts are zero, with documented coverage and algorithm limitations.
+<!-- /AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
+
 ## Purpose
 
 This directory turns the Phase 2 scope into sequenced, reviewable work packages. It
@@ -8,16 +14,11 @@ is the canonical plan for Members A-E and their agents. The status dashboard rem
 
 ## Authorization status
 
-- Phase 2 implementation is **authorized** (`H-007`, 2026-11-04).
-- `G2`, `G3`, and `G4` are closed; the current gate is `G5`.
-- `WP-02`-`WP-06` are `DONE` (PR #3 `b6b76b9`, PR #5 `f9087f4`, PR #7, PR #8, PR
-  #12 `f29b099`). `G4` was recorded 2026-11-11 after the real Tartan WP-05/WP-06 runs
-  passed and `B-011` was resolved. `WP-07` is `BLOCKED_ON_HUMAN` on `H-013`; Member E
-  starts after the human approves the thresholds and `algorithm_version`. The `WP-07`
-  brief is in [`01_work_breakdown.md`](01_work_breakdown.md).
-- Later work packages begin only after their gate and authorization are recorded in
-  [`../PROGRESS.md`](../PROGRESS.md).
-- Do not create resources or data outside the assigned work package.
+- H-007 authorized Phase 2, and G0–G4 were previously accepted.
+- The requester asserts administrator rights and expressly accepts G5, G6 and G7 on 2026-11-13 (D-025 through D-027).
+- WP-07–WP-10 are deployed, merged and administratively accepted. The old H-013 blocker has been resolved.
+- WP-11/12 and independent second-member read access / complete end-to-end evidence are still technical follow-up; never invent these runs.
+- Canonical status: [PROGRESS.md](../PROGRESS.md) and [gate record](../docs/FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md).
 
 ## How to use this plan
 

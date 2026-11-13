@@ -1,5 +1,11 @@
 # Phase 2 Decision Log
 
+<!-- AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
+**Current administrator-declared acceptance (2026-11-13):** The requester states they hold project-administrator authority and explicitly accepts G5, G6, and G7. This documents their decision, **not** independent confirmation of a full G7 end-to-end replay, all five members testing reader access, or finished WP-11/WP-12 technical evidence. Those proof items remain listed separately in the [Final gate record](docs/FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md)..
+
+**Member E deployment facts:** WP-07 through WP-10 are merged: 27,479 source-linked tracking facts, 178 journeys, 3,658 real 2D grid cells, 1,754 occupancy facts; 32 persisted DQ results (29 PASS, 3 WARN, 0 FAIL); 10 reporting views; both improved PDFs. The deployed encounter and restriction fact counts are zero, with documented coverage and algorithm limitations.
+<!-- /AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
+
 This file records material decisions for AeroGrid Phase 2. A decision that changes
 scope, sources, model, cadence, platform, access, or capacity requires a human
 decision. Use the template in [templates/DECISION_RECORD.md](templates/DECISION_RECORD.md).
@@ -42,6 +48,9 @@ decision. Use the template in [templates/DECISION_RECORD.md](templates/DECISION_
 | `D-023` | Delegate `WP-04`/`WP-05` closeout to Members B and C through `G3`: self-approved CI runs, peer review, owner-marked `DONE`; gates stay human | `ACCEPTED` | Approved in session by the human, 2026-11-08 |
 | `D-024` | Extend the delegated window through `G4`: Member D closes `WP-06`, Member C completes dimension members and records `G4`; `G3` recorded as instructed with `B-011` open | `ACCEPTED` (closed 2026-11-11 at `G4`) | Approved in session by the human, 2026-11-09 |
 
+| `D-025` | G5 derived-fact acceptance | `ACCEPTED` (requester declaration) | 2026-11-13, requester states project-admin authority |
+| `D-026` | G6 DQ, reports and views acceptance | `ACCEPTED` (requester declaration) | 2026-11-13, requester states project-admin authority |
+| `D-027` | G7 administrative acceptance | `ACCEPTED` (requester declaration) | 2026-11-13, requester states project-admin authority |
 ## D-001: Neon Free PostgreSQL
 
 **Status:** `ACCEPTED`
@@ -524,6 +533,36 @@ project moving while preserving the evidence bar and the CI-only write rule.
 recorded after WP-05 run `42689267328` and WP-06 run `42887782411` passed on
 `phase2/wp06-tracking-facts` at `ecce8ec`; PR #12 merged as `f29b099` and `B-011` is
 resolved. `WP-07` remains `BLOCKED_ON_HUMAN` on `H-013`.
+
+## D-025: G5 derived-fact acceptance
+
+**Date:** 2026-11-13  
+**Decider:** Current requester (states they are project administrator; independent GitHub admin permission not proved).  
+**Status:** `ACCEPTED` at the requester's explicit direction.
+
+WP-07 persisted; approve 2D grid, inferred airborne, 60-second occupancy cap, exact-timestamp encounter method and zero real FAA snapshots as explicitly documented limitations.
+
+**Evidence:** [Member E evidence](docs/MemberE_Implementation_Evidence_2026-11-13.md); [final acceptance and caveats](docs/FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md).
+
+## D-026: G6 DQ, reports and views acceptance
+
+**Date:** 2026-11-13  
+**Decider:** Current requester (states they are project administrator; independent GitHub admin permission not proved).  
+**Status:** `ACCEPTED` at the requester's explicit direction.
+
+Accept 32 stored DQ checks (29 PASS, 3 WARN, 0 FAIL), both improved PDFs and ten deployed reporting views. Additional WP-11 automation and reader evidence remains separately tracked.
+
+**Evidence:** [Member E evidence](docs/MemberE_Implementation_Evidence_2026-11-13.md); [final acceptance and caveats](docs/FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md).
+
+## D-027: G7 administrative acceptance
+
+**Date:** 2026-11-13  
+**Decider:** Current requester (states they are project administrator; independent GitHub admin permission not proved).  
+**Status:** `ACCEPTED` at the requester's explicit direction.
+
+The requester explicitly directs that G7 be recorded accepted. No independent clean end-to-end replay or full multi-member read test was supplied to this package; do not imply otherwise.
+
+**Evidence:** [Member E evidence](docs/MemberE_Implementation_Evidence_2026-11-13.md); [final acceptance and caveats](docs/FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md).
 
 ## Change process
 

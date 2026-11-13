@@ -1,5 +1,11 @@
 # Work Breakdown
 
+<!-- AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
+**Current administrator-declared acceptance (2026-11-13):** The requester states they hold project-administrator authority and explicitly accepts G5, G6, and G7. This documents their decision, **not** independent confirmation of a full G7 end-to-end replay, all five members testing reader access, or finished WP-11/WP-12 technical evidence. Those proof items remain listed separately in the [Final gate record](../docs/FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md)..
+
+**Member E deployment facts:** WP-07 through WP-10 are merged: 27,479 source-linked tracking facts, 178 journeys, 3,658 real 2D grid cells, 1,754 occupancy facts; 32 persisted DQ results (29 PASS, 3 WARN, 0 FAIL); 10 reporting views; both improved PDFs. The deployed encounter and restriction fact counts are zero, with documented coverage and algorithm limitations.
+<!-- /AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
+
 ## Status summary
 
 | WP | Name | Owner | Reviewer | Status |
@@ -549,7 +555,7 @@ laptop.
 
 ## WP-07: Derived facts
 
-**Status:** BLOCKED_ON_HUMAN (`H-013`: approve the thresholds and `algorithm_version`)
+**Status:** DONE — requester-admin accepted 2026-11-13; technical caveats in final gate record
 **Owner:** Member E
 **Reviewers:** Members C and D
 **Prerequisites:** WP-06 (DONE), `H-013` approved
@@ -603,7 +609,7 @@ Build the derived facts from real tracking rows with approved, versioned algorit
 
 ## WP-08: Data-quality framework
 
-**Status:** NOT_STARTED
+**Status:** DONE — requester-admin accepted 2026-11-13; technical caveats in final gate record
 **Owner:** Member E
 **Reviewers:** Members B and D
 **Prerequisites:** WP-04 through WP-07
@@ -649,7 +655,7 @@ publication.
 
 ## WP-09: PDF reports
 
-**Status:** NOT_STARTED
+**Status:** DONE — requester-admin accepted 2026-11-13; technical caveats in final gate record
 **Owner:** Member E
 **Reviewers:** Members B and A
 **Prerequisites:** WP-08
@@ -693,7 +699,7 @@ Generate the required Data Cleaning and Data Quality PDFs from stored evidence.
 
 ## WP-10: Reporting views and corridor metrics
 
-**Status:** NOT_STARTED
+**Status:** DONE — requester-admin accepted 2026-11-13; technical caveats in final gate record
 **Owner:** Member E
 **Reviewers:** Members C and D
 **Prerequisites:** WP-06, WP-07

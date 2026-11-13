@@ -1,18 +1,16 @@
 # AeroGrid Phase 2 - Physical Data Warehouse and ETL
 
+<!-- AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
+**Current administrator-declared acceptance (2026-11-13):** The requester states they hold project-administrator authority and explicitly accepts G5, G6, and G7. This documents their decision, **not** independent confirmation of a full G7 end-to-end replay, all five members testing reader access, or finished WP-11/WP-12 technical evidence. Those proof items remain listed separately in the [Final gate record](docs/FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md)..
+
+**Member E deployment facts:** WP-07 through WP-10 are merged: 27,479 source-linked tracking facts, 178 journeys, 3,658 real 2D grid cells, 1,754 occupancy facts; 32 persisted DQ results (29 PASS, 3 WARN, 0 FAIL); 10 reporting views; both improved PDFs. The deployed encounter and restriction fact counts are zero, with documented coverage and algorithm limitations.
+<!-- /AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
+
 Phase 2 turns the Phase 1 dimensional design into a shared, reproducible PostgreSQL
 data warehouse loaded from real public data. This directory is the control point for
 Phase 2 documentation, planning, status, and future implementation.
 
-**Implementation status: AUTHORIZED (2026-11-04, `H-007`).** `G0`-`G4` are closed.
-`WP-02` (run `42276737288`, PR #3 `b6b76b9`), `WP-03` (PR #5 `f9087f4`), `WP-04` (PR
-#7), `WP-05` (PR #8), and `WP-06` (PR #12 `f29b099`) are `DONE`. The real Tartan
-sample was loaded and both workflows passed: WP-05 run
-[42689267328](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42689267328) and
-WP-06 run [42887782411](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42887782411).
-`B-011` is resolved and `G4` was recorded on 2026-11-11; the `D-024` window is closed.
-`WP-07` (Member E) is `BLOCKED_ON_HUMAN` until the human approves `H-013`; see
-[PROGRESS.md](PROGRESS.md).
+**Current status (2026-11-13):** WP-07 through WP-10 have been merged and deployed. The requester, who states they hold project-administrator authority, explicitly accepted G5/G6/G7. The independent end-to-end replay, full reader-access checks and WP-11/12 automation proof have not been independently supplied and remain documented follow-ups. G0–G4 retain their original historical evidence.
 
 ## Quick links
 
@@ -84,51 +82,24 @@ The canonical source list, licenses, URLs, caveats, and validation status are in
 
 ## Progress dashboard
 
-Statuses use the vocabulary in [AGENTS.md](AGENTS.md). Detail is in
-[PROGRESS.md](PROGRESS.md).
+| Gate | Current status |
+|---|---|
+| G0–G4 | DONE (historical accepted evidence) |
+| G5 | DONE — requester-admin acceptance (D-025) |
+| G6 | DONE — requester-admin acceptance (D-026) |
+| G7 | DONE — requester-admin declaration (D-027; independent proof outstanding) |
 
-| Gate | Meaning | Status |
+| Work package | Status | Evidence |
 |---|---|---|
-| `G0` | Documentation baseline complete and links valid | `DONE` (`H-001`) |
-| `G1` | Human prerequisites and approvals | `DONE` (`H-007`; `H-002` deferred) |
-| `G2` | Platform and source readiness validated | `DONE` 2026-11-08 (`WP-02`/`WP-03`; PR #5 `f9087f4`) |
-| `G3` | Staging, dimensional schema, and keys validated | `DONE` 2026-11-09 (`WP-04`/`WP-05`; `B-011` later resolved in `WP-06`) |
-| `G4` | Core tracking and journey facts loaded | `DONE` 2026-11-11 (`WP-06`; runs `42689267328`/`42887782411`; PR #12 `f29b099`; `B-011` resolved) |
-| `G5` | Derived facts and thresholds validated | `NOT_STARTED` (`WP-07`; `H-013` approval pending) |
-| `G6` | DQ, reports, views, and automation complete | `NOT_STARTED` |
-| `G7` | End-to-end run and team access demonstrated | `NOT_STARTED` |
-
-| Work package | Owner | Status |
-|---|---|---|
-| `WP-00` Documentation and folder baseline | Member A | `DONE` |
-| `WP-01` Human prerequisites and shared platform | Member A + human | `DONE` |
-| `WP-02` Platform validation and access proof | Member A | `DONE` |
-| `WP-03` Source validation and georeferencing | Member B | `DONE` |
-| `WP-04` Staging DDL and loaders | Member B | `DONE` (PR #7; sample caveat `B-011`) |
-| `WP-05` Dimensions, keys, and dictionary | Member C | `DONE` (PR #8) |
-| `WP-06` Tracking and journey facts | Member D | `DONE` (PR #12 `f29b099`; `B-011` resolved; `G4` recorded) |
-| `WP-07` Derived facts | Member E | `BLOCKED_ON_HUMAN` (`H-013` thresholds/`algorithm_version`) |
-| `WP-08` Data-quality framework | Member E | `NOT_STARTED` |
-| `WP-09` PDF reports | Member E | `NOT_STARTED` |
-| `WP-10` Reporting views and corridor metrics | Member E | `NOT_STARTED` |
-| `WP-11` CI, access, and deployment | Member A | `NOT_STARTED` |
-| `WP-12` Integration, acceptance, and release | Member A + all | `NOT_STARTED` |
+| WP-07 | DONE (admin accepted) | 27,479 mapped, 3,658 real cells, 1,754 occupancy |
+| WP-08 | DONE (admin accepted) | 32 stored DQ results (29 PASS, 3 WARN, 0 FAIL) |
+| WP-09 | DONE (admin accepted) | Two improved live-source PDF reports on main |
+| WP-10 | DONE (admin accepted) | Ten deployed reporting views |
+| WP-11 / WP-12 | Technical follow-up | Independent G7 run, readers, and automation checks not independently observed |
 
 ## Current blockers and next action
 
-**`G4` is recorded and `WP-06` is `DONE`.** `WP-02`-`WP-06` are `DONE`; platform
-validation passed on 2026-11-07 (22 pass, 1 warn, 0 fail), source validation merged
-in PR #5 (`f9087f4`), staging and dimensions merged in PR #7 and PR #8, and the core
-facts merged in PR #12 (`f29b099`). `H-002` remains deferred by the human; the Member
-B-E names are recorded in [docs/08_team_work_division.md](docs/08_team_work_division.md).
-`B-011` is `RESOLVED` by the real Tartan WP-06 run.
-
-**Next actions:** the human approves `H-013` (severe: horizontal `< 0.5 nm` and
-vertical `< 500 ft`; proximity: horizontal `< 1.0 nm` and vertical `< 1,000 ft`; plus
-`algorithm_version`). Member E then starts `WP-07` and records `G5` evidence. No
-human input is needed for the completed `WP-06` closeout. Human-only actions still
-require the human (secrets, Neon roles, repository and environment settings,
-destructive SQL, and every gate after `G4`).
+H-013 is historically resolved. The requester has accepted G5/G6/G7 and the Member E packages. The remaining action is to archive independent WP-11/12 evidence rather than repeat already persisted WP-07–WP-10 implementation. See [final acceptance](docs/FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md).
 
 ## Directory map
 

@@ -1,5 +1,11 @@
 # AeroGrid: Low-Altitude Airspace Intelligence Warehouse
 
+<!-- AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
+**Current administrator-declared acceptance (2026-11-13):** The requester states they hold project-administrator authority and explicitly accepts G5, G6, and G7. This documents their decision, **not** independent confirmation of a full G7 end-to-end replay, all five members testing reader access, or finished WP-11/WP-12 technical evidence. Those proof items remain listed separately in the [Final gate record](Phase2/docs/FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md)..
+
+**Member E deployment facts:** WP-07 through WP-10 are merged: 27,479 source-linked tracking facts, 178 journeys, 3,658 real 2D grid cells, 1,754 occupancy facts; 32 persisted DQ results (29 PASS, 3 WARN, 0 FAIL); 10 reporting views; both improved PDFs. The deployed encounter and restriction fact counts are zero, with documented coverage and algorithm limitations.
+<!-- /AEROGRID_ADMIN_CLOSEOUT_2026_11_13 -->
+
 AeroGrid is a data-warehousing project for low-altitude airspace intelligence. It
 combines real public flight telemetry, weather, and airspace-restriction data to study
 mixed manned/UAS traffic, close encounters, restriction compliance, and corridor
@@ -7,17 +13,15 @@ capacity.
 
 ## Current status
 
-| Phase | State |
+| Phase | Current status |
 |---|---|
-| Phase 1 | Complete and frozen as the historical design baseline |
-| Phase 2 | Documentation baseline accepted (`G0`/`H-001`) |
-| Phase 2 implementation | **Authorized** 2026-11-04 (`H-007`) |
-| Current human gate | `G5 - Derived facts and approved thresholds` |
-| Current work packages | `WP-02`-`WP-06`, `DONE`; `WP-07` (Member E), `BLOCKED_ON_HUMAN` on `H-013` |
+| Phase 1 | Complete and frozen |
+| Phase 2 | Shared Neon warehouse, DQ, views, and PDFs deployed |
+| WP-07 to WP-10 | DONE by requester-admin acceptance (2026-11-13) |
+| G5 / G6 / G7 | DONE by requester-admin declaration; missing independent G7 proof is disclosed |
+| WP-11 / WP-12 | Member A/team technical evidence follow-up pending separate verification |
 
-Nothing in `Phase1/` should be edited. Phase 2 work is controlled from
-[`Phase2/`](Phase2/README.md), and the current status, blockers, and human action queue
-are in [`Phase2/PROGRESS.md`](Phase2/PROGRESS.md).
+See [Phase 2 progress](Phase2/PROGRESS.md) and [the final acceptance record](Phase2/docs/FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md).
 
 ## Start here
 
@@ -141,7 +145,7 @@ AeroGrid/
 │   ├── sql/                  # Schema, staging, dimension DDL and grants
 │   ├── etl/                  # Python loaders, verifiers, and tests
 │   ├── tests/                # Parser, SQL, and DQ tests
-│   └── reports/              # Generated PDF reports (not built yet)
+│   └── reports/              # Generated Data Cleaning and Data Quality PDFs
 ├── data/                     # Phase 1 data documentation and legacy samples
 ├── docs/                     # Phase 1 guide and overview PDFs
 └── .github/workflows/        # Validation, staging, and dimension workflows
@@ -158,17 +162,5 @@ AeroGrid/
 
 ## What happens next
 
-`G4` is recorded and `WP-06` is `DONE`. The next actions are:
+The user-authorized administrator has declared G5/G6/G7 accepted as of 2026-11-13. WP-07–WP-10 implementation, two improved reports and ten views are merged into main. Independently obtain the full G7 replay, second-member read-only access evidence and WP-11/12 automation proof before claiming those particular technical checks succeeded.
 
-1. HassanNawaz14: approve `H-013` (severe: horizontal `< 0.5 nm` and vertical
-   `< 500 ft`; proximity: horizontal `< 1.0 nm` and vertical `< 1,000 ft`; plus
-   `algorithm_version`), restore the `warehouse` environment reviewers, and confirm
-   the main-branch protection ruleset in
-   [`Phase2/docs/10_human_operating_manual.md`](Phase2/docs/10_human_operating_manual.md).
-2. Member E: start `WP-07` derived facts immediately after `H-013` is approved, using
-   the brief in
-   [`Phase2/dev_plan/01_work_breakdown.md`](Phase2/dev_plan/01_work_breakdown.md#wp-07-derived-facts).
-
-Human-only actions still apply: secrets, Neon roles, repository and environment
-settings, destructive SQL, thresholds, and gate acceptance. Later work packages wait
-until their gate is recorded.
