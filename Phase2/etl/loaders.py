@@ -383,6 +383,7 @@ def load_nightjar(
     etl_run_id: Any,
     source_file: str | None = None,
     source_manifest_id: int | None = None,
+    batch_size: int = 1,
 ) -> Any:
     logical = _logical_source_file(path, source_file)
 
@@ -406,6 +407,7 @@ def load_nightjar(
         source_system="NIGHTJAR",
         source_file=logical,
         etl_run_id=etl_run_id,
+        batch_size=batch_size,
     )
 
 
@@ -417,6 +419,7 @@ def load_nominal(
     site_code: str | None,
     source_file: str | None = None,
     source_manifest_id: int | None = None,
+    batch_size: int = 1,
 ) -> Any:
     logical = _logical_source_file(path, source_file)
 
@@ -441,6 +444,7 @@ def load_nominal(
         source_system="NOMINAL_DJI",
         source_file=logical,
         etl_run_id=etl_run_id,
+        batch_size=batch_size,
     )
 
 
@@ -451,6 +455,7 @@ def load_awc(
     etl_run_id: Any,
     source_file: str | None = None,
     source_manifest_id: int | None = None,
+    batch_size: int = 1,
 ) -> Any:
     logical = _logical_source_file(path, source_file)
 
@@ -477,6 +482,7 @@ def load_awc(
         source_system="AWC",
         source_file=logical,
         etl_run_id=etl_run_id,
+        batch_size=batch_size,
     )
 
 
@@ -488,6 +494,7 @@ def load_iem(
     etl_run_id: Any,
     source_file: str | None = None,
     source_manifest_id: int | None = None,
+    batch_size: int = 1,
 ) -> Any:
     logical = _logical_source_file(path, source_file)
 
@@ -514,6 +521,7 @@ def load_iem(
         source_system="IEM",
         source_file=logical,
         etl_run_id=etl_run_id,
+        batch_size=batch_size,
     )
 
 
@@ -527,6 +535,7 @@ def load_faa(
     feature_type: str | None = None,
     source_file: str | None = None,
     source_manifest_id: int | None = None,
+    batch_size: int = 1,
 ) -> Any:
     logical = _logical_source_file(path, source_file)
 
@@ -569,4 +578,5 @@ def load_faa(
         source_system=source_system,
         source_file=logical,
         etl_run_id=etl_run_id,
+        batch_size=batch_size,
     )
