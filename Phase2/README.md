@@ -105,7 +105,7 @@ H-013 is historically resolved. The requester has accepted G5/G6/G7 and the Memb
 The seven accepted data limitations are tracked with implementation triggers in
 [docs/13_accepted_data_limitations.md](docs/13_accepted_data_limitations.md); they are
 audit obligations for `WP-11` and `WP-12`, not closed items. `B-012` (WP-07 verifier
-missing `reportlab`) must be fixed before the WP-07 rollback verification can run.
+missing `reportlab`) was fixed and the rollback verification now passes.
 
 ## Directory map
 
