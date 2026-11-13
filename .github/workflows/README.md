@@ -14,6 +14,7 @@ dimension verification workflow; `WP-06` delivered the fact verification workflo
 | `wp05-dimensions-verify.yml` | Manual dispatch | `WP-05` proof of the six dimensions, `-1` unknown rows, seeds, and reader SELECT |
 | `wp06-facts-verify.yml` | Manual dispatch | `WP-06` proof of the real dimension seed + `01_facts.sql` DDL, real Tartan S3 fetch + SHA-256 check, staging-to-tracking reconciliation, journey segmentation, zero orphans, and idempotent persistence |
 | `wp11-ingest.yml` | Manual dispatch + Monday schedule | `WP-11` recurring ingestion: read-only `validate`, protected transactional `apply`, run summary artifact, and reader check (details below) |
+| `ci.yml` | Pull request, push to `main`, manual | Unit tests and `compileall`; no `warehouse` environment and no secrets |
 
 The probe script lives in [`../scripts/platform_probe.py`](../scripts/platform_probe.py).
 It prints only non-secret evidence and redacts connection strings. The verifiers live
@@ -58,9 +59,8 @@ create them.
 
 ## Remaining planned workflow
 
-| File | Trigger | Purpose |
-|---|---|---|
-| `ci.yml` | Pull request / feature branch | Lint, tests, SQL checks |
+None. `ci.yml` covers pull-request tests and compile checks; SQL checks run inside the
+package verifiers because they need the `warehouse` environment.
 
 ## Rules
 

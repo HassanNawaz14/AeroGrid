@@ -1,0 +1,37 @@
+name: CI checks
+
+# Unit tests and compile checks only. No warehouse environment, no secrets:
+# pull requests never receive database credentials.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test dependencies
+        run: >
+          python -m pip install --disable-pip-version-check
+          'pytest>=8,<10' 'reportlab>=4,<5'
+      - name: Compile
+        run: python -m compileall -q Phase2/etl Phase2/tests
+      - name: Unit tests
+        working-directory: Phase2
+        run: python -m pytest -q tests
