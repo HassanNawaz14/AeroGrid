@@ -20,6 +20,7 @@ Phase 2 documentation, planning, status, and future implementation.
 | Coding agent | [AGENTS.md](AGENTS.md), then [docs/09_agent_operating_manual.md](docs/09_agent_operating_manual.md) |
 | Status and blockers | [PROGRESS.md](PROGRESS.md) |
 | Work packages | [dev_plan/01_work_breakdown.md](dev_plan/01_work_breakdown.md) |
+| Accepted data limitations | [docs/13_accepted_data_limitations.md](docs/13_accepted_data_limitations.md) |
 | Team division | [docs/08_team_work_division.md](docs/08_team_work_division.md) |
 | Decisions | [DECISIONS.md](DECISIONS.md) |
 | Full documentation map | [docs/00_documentation_map.md](docs/00_documentation_map.md) |
@@ -100,6 +101,11 @@ The canonical source list, licenses, URLs, caveats, and validation status are in
 ## Current blockers and next action
 
 H-013 is historically resolved. The requester has accepted G5/G6/G7 and the Member E packages. The remaining action is to archive independent WP-11/12 evidence rather than repeat already persisted WP-07–WP-10 implementation. See [final acceptance](docs/FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md).
+
+The seven accepted data limitations are tracked with implementation triggers in
+[docs/13_accepted_data_limitations.md](docs/13_accepted_data_limitations.md); they are
+audit obligations for `WP-11` and `WP-12`, not closed items. `B-012` (WP-07 verifier
+missing `reportlab`) was fixed and the rollback verification now passes.
 
 ## Directory map
 

@@ -181,6 +181,22 @@ CHECKS = (
         SELECT CASE WHEN count(*) FILTER (WHERE reject_reason IS NULL) = 0 THEN 1 ELSE 0 END
         FROM project_staging.stg_restriction_snapshot
     """, "Source gap for KBTP is documented; not a claim about historical 2022 TFRs"),
+    Check("DQ-G-001", "Primary source produced no accepted rows", "CRITICAL", "project_staging.stg_adsb_position", """
+        SELECT CASE WHEN count(*) FILTER (WHERE reject_reason IS NULL) = 0 THEN 1 ELSE 0 END
+        FROM project_staging.stg_adsb_position
+    """, "Coverage guard: an empty primary source must fail, not report zero events"),
+    Check("DQ-G-002", "In-scope weather source not ingested", "WARNING", "project_staging.stg_weather_metar", """
+        SELECT CASE WHEN count(*) FILTER (WHERE reject_reason IS NULL) = 0 THEN 1 ELSE 0 END
+        FROM project_staging.stg_weather_metar
+    """, "Coverage gap, not proof of clear weather: METAR/ASOS validated but never loaded"),
+    Check("DQ-G-003", "In-scope UAS sources not ingested", "WARNING", "project_staging.stg_uas_position", """
+        SELECT CASE WHEN count(*) FILTER (WHERE reject_reason IS NULL) = 0 THEN 1 ELSE 0 END
+        FROM project_staging.stg_uas_position
+    """, "Coverage gap, not proof of no UAS traffic: Nightjar/DJI validated but never loaded"),
+    Check("DQ-G-004", "In-scope airspace source not ingested", "WARNING", "project_staging.stg_airspace_zone", """
+        SELECT CASE WHEN count(*) FILTER (WHERE reject_reason IS NULL) = 0 THEN 1 ELSE 0 END
+        FROM project_staging.stg_airspace_zone
+    """, "Coverage gap, not proof of empty airspace: FAA zones validated but never staged"),
 )
 
 

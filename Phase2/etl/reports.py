@@ -74,8 +74,35 @@ def snapshot(conn) -> dict[str, Any]:
         FROM project_staging.source_manifest ORDER BY fetched_at DESC LIMIT 25
     ''')
     storage = int(query(conn, 'SELECT pg_database_size(current_database())')[0][0])
+    # Coverage is measured per staging table so an unloaded source is reported as
+    # "no data loaded" instead of being indistinguishable from a genuine zero.
+    coverage = query(conn, '''
+        SELECT 'Tartan ADS-B (KBTP)', 'stg_adsb_position',
+               count(*) FILTER (WHERE reject_reason IS NULL)
+        FROM project_staging.stg_adsb_position
+        UNION ALL
+        SELECT 'AWC/IEM METAR', 'stg_weather_metar',
+               count(*) FILTER (WHERE reject_reason IS NULL)
+        FROM project_staging.stg_weather_metar
+        UNION ALL
+        SELECT 'Nightjar / nominal-io DJI', 'stg_uas_position',
+               count(*) FILTER (WHERE reject_reason IS NULL)
+        FROM project_staging.stg_uas_position
+        UNION ALL
+        SELECT 'FAA airspace zones', 'stg_airspace_zone',
+               count(*) FILTER (WHERE reject_reason IS NULL)
+        FROM project_staging.stg_airspace_zone
+        UNION ALL
+        SELECT 'FAA restrictions', 'stg_restriction_snapshot',
+               count(*) FILTER (WHERE reject_reason IS NULL)
+        FROM project_staging.stg_restriction_snapshot
+        UNION ALL
+        SELECT 'OpenSky (optional, D-013)', 'stg_opensky_state',
+               count(*) FILTER (WHERE reject_reason IS NULL)
+        FROM project_staging.stg_opensky_state
+    ''')
     return {'counts':counts,'run':run[0] if run else None,'dq_run':latest_dq,
-            'source_runs':source_runs,'staging_status':staging_status,
+            'source_runs':source_runs,'staging_status':staging_status,'coverage':coverage,
             'dq':dq,'rejects':rejects,'manifests':manifests,'database_bytes':storage,
             'generated_utc':datetime.now(timezone.utc).isoformat()}
 
@@ -152,6 +179,24 @@ def reconciliation_rows(source_runs: list[tuple]) -> list[tuple]:
     return rows
 
 
+def coverage_rows(coverage: list[tuple] | None) -> list[tuple]:
+    rows = [('Source', 'Staging table', 'Accepted rows', 'Status')]
+    for source, table, accepted in coverage or []:
+        accepted = int(accepted)
+        rows.append((source, table, accepted,
+                     'LOADED' if accepted > 0 else 'NO DATA LOADED'))
+    if len(rows) == 1:
+        rows.append(('UNAVAILABLE', '-', '-', 'Not measured'))
+    return rows
+
+
+COVERAGE_NOTE = (
+    'NO DATA LOADED means the source was validated but never ingested. It does '
+    'not mean zero events occurred. OpenSky is optional under D-013 and has no '
+    'ingestion path. See docs/13_accepted_data_limitations.md.'
+)
+
+
 def warning_rows(dq: list[tuple]) -> list[tuple]:
     explanations = {
         'DQ-C-003': ('Unknown weather-key assignments; no matched real METAR '
@@ -160,6 +205,12 @@ def warning_rows(dq: list[tuple]) -> list[tuple]:
                      'inferred and does not replace the observed field.'),
         'DQ-T-003': ('One warning indicator for missing real restriction snapshots; '
                      'this is NOT one missing flight or one restriction event.'),
+        'DQ-G-002': ('No METAR/ASOS rows were ingested. This is missing source '
+                     'coverage, not measured clear weather.'),
+        'DQ-G-003': ('No Nightjar/DJI rows were ingested. This is missing source '
+                     'coverage, not a measured absence of UAS traffic.'),
+        'DQ-G-004': ('No FAA airspace-zone rows were staged. This is missing source '
+                     'coverage, not evidence of empty airspace.'),
     }
     rows = [('Check', 'Observed', 'Meaning / source limitation')]
     for r in dq:
@@ -207,6 +258,9 @@ def build_reports(data: dict[str, Any], dest: Path) -> tuple[Path,Path]:
             ('Stored rejection records',s['project_staging.stg_reject']),
             ('Staged FAA airspace features',s['project_staging.stg_airspace_zone']),
             ('Staged FAA restriction snapshots',s['project_staging.stg_restriction_snapshot'])]),
+        ('Source coverage (loaded vs not loaded)',
+         coverage_rows(data.get('coverage'))),
+        ('Coverage meaning', COVERAGE_NOTE),
         ('ETL run-level reconciliation (latest 12 nonzero runs)',
          reconciliation_rows(data.get('source_runs', []))),
         ('Reconciliation scope',
@@ -242,6 +296,9 @@ def build_reports(data: dict[str, Any], dest: Path) -> tuple[Path,Path]:
                           +('No stored DQ evidence is available; report is NOT an acceptance proof.' if not dq else 'Refer to each check below.')),
         ('Check catalog results',dq_rows),
         ('Open DQ warnings explained', warning_rows(dq)),
+        ('Source coverage (loaded vs not loaded)',
+         coverage_rows(data.get('coverage'))),
+        ('Coverage meaning', COVERAGE_NOTE),
         ('Real warehouse row counts',counts),
         ('Unknown dimension members',
          'Dimension totals include the mandatory -1 unknown member. '
@@ -249,7 +306,7 @@ def build_reports(data: dict[str, Any], dest: Path) -> tuple[Path,Path]:
          'weather observation, and a one-row dim_airspace_zone does NOT '
          'imply one real FAA restriction.'),
         ('Capacity',f'Actual PostgreSQL database size: {data["database_bytes"]:,} bytes. Object-storage usage is not available from the PostgreSQL connection; do not equate manifest bytes with current bucket usage.'),
-        ('Encounter and restriction limitations','The WP07-v1 encounter algorithm requires identical timestamps. Near-time diagnostics were separate analytical SQL, not the production algorithm. No historical 2022 TFRs are inferred from 2026 FAA services. Zero derived rows may be legitimate source coverage, not evidence of a missing SQL table.'),
+        ('Encounter and restriction limitations','The WP07-v1 encounter algorithm requires identical timestamps. Near-time diagnostics were separate analytical SQL, not the production algorithm. No historical 2022 TFRs are inferred from 2026 FAA services. Zero derived rows may be legitimate source coverage, not evidence of a missing SQL table. Read the two zero-row views together with the source coverage table above and with docs/13_accepted_data_limitations.md: an unloaded source is not a measured zero.'),
         ('Decision rule','Any stored CRITICAL FAIL blocks trusted publication even if this PDF can be generated. A green unit-test run alone does not establish data quality.'),
         ('Evidence and reproducibility',f'{run_info}. DQ check IDs map to Phase2/etl/dq.py and Phase2/docs/06_data_quality_and_reports.md. Verify the source manifests and rejected-row counts directly in Neon.')]
     p2=dest/'Data_Quality_Report.pdf';_report(p2,'Data Quality Report',quality,data)

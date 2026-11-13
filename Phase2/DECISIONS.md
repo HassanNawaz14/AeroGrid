@@ -51,6 +51,8 @@ decision. Use the template in [templates/DECISION_RECORD.md](templates/DECISION_
 | `D-025` | G5 derived-fact acceptance | `ACCEPTED` (requester declaration) | 2026-11-13, requester states project-admin authority |
 | `D-026` | G6 DQ, reports and views acceptance | `ACCEPTED` (requester declaration) | 2026-11-13, requester states project-admin authority |
 | `D-027` | G7 administrative acceptance | `ACCEPTED` (requester declaration) | 2026-11-13, requester states project-admin authority |
+| `D-028` | Track accepted data limitations as a register with explicit implementation triggers | `ACCEPTED` | Directed by HassanNawaz14, 2026-11-13 |
+| `D-029` | Report empty sources as "no data loaded" (coverage guards `DQ-G-001`–`DQ-G-004`), never as measured zero | `ACCEPTED` | Directed by HassanNawaz14, 2026-11-13 |
 ## D-001: Neon Free PostgreSQL
 
 **Status:** `ACCEPTED`
@@ -563,6 +565,69 @@ Accept 32 stored DQ checks (29 PASS, 3 WARN, 0 FAIL), both improved PDFs and ten
 The requester explicitly directs that G7 be recorded accepted. No independent clean end-to-end replay or full multi-member read test was supplied to this package; do not imply otherwise.
 
 **Evidence:** [Member E evidence](docs/MemberE_Implementation_Evidence_2026-11-13.md); [final acceptance and caveats](docs/FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md).
+
+## D-028: Accepted limitations are tracked with implementation triggers
+
+**Date:** 2026-11-13
+
+**Decider:** HassanNawaz14
+
+**Status:** `ACCEPTED`
+
+Accepted data limitations are recorded in one canonical register,
+[`docs/13_accepted_data_limitations.md`](docs/13_accepted_data_limitations.md), with a
+stable `L-###` ID, the observed warehouse state, the condition that requires
+implementation, the required work, and the linked DQ check. `WP-11` must surface the
+linked DQ results and `WP-12` must report every open entry; neither package may close
+an entry by changing DQ severity or by omitting it from a report.
+
+**Rationale:** G5–G7 acceptance covered the limitations administratively. Without a
+register they would survive only as prose in the gate record, with no trigger and no
+audit owner. This makes each one implementable when its trigger occurs and makes
+silent masking a review failure.
+
+**Evidence:** Live verification 2026-11-13, WP-08 run `43471609483` (29 PASS, 3 WARN,
+0 FAIL) and WP-10 run `43471616729` (10 views); [register](docs/13_accepted_data_limitations.md);
+[PROGRESS.md](PROGRESS.md) verification section.
+
+## D-029: Empty sources are reported as missing coverage, not as zero events
+
+**Date:** 2026-11-13
+
+**Decider:** HassanNawaz14
+
+**Status:** `ACCEPTED`
+
+An approved source that produced **no accepted staging rows** must be reported as
+"no data loaded", never as a measured zero. Two mechanisms enforce this:
+
+1. **Coverage DQ checks.** `DQ-G-001` (`CRITICAL`) fails the run when the primary
+   Tartan source has zero accepted rows. `DQ-G-002`, `DQ-G-003`, and `DQ-G-004`
+   (`WARNING`) flag the empty METAR/ASOS, UAS, and FAA airspace sources.
+2. **Coverage reporting.** Both PDFs carry a per-source table with an explicit
+   `LOADED` / `NO DATA LOADED` status and a note that "no data loaded" is a coverage
+   gap, not proof of a zero-activity world.
+
+Two limitations are recorded for sources that were validated but never wired into
+ingestion: `L-008` (Nightjar / nominal-io DJI) and `L-009` (FAA granular airspace
+services and the optional OpenSky path). The register also carries the coverage
+completion plan that says which package fills each staging table, the expected
+volume per table, the ingestion sequence, and the reason for each volume limit, so
+no reduction is undocumented.
+
+**Rationale:** `vw_daily_encounter_hotspots` and `vw_restriction_traffic_impact`
+return 0 rows because the underlying sources were never ingested. Without an explicit
+coverage signal, a reader could conclude that the airspace had no encounters and no
+restrictions, which is a false safety claim. Severity stays `WARNING` for optional or
+not-yet-wired sources and `CRITICAL` only for the primary source whose absence
+invalidates the whole load.
+
+**Not decided here:** adding a source, starting UAS/airspace ingestion, enabling
+OpenSky, or changing project scope. Those remain human-gated per the register rules.
+
+**Evidence:** [register](docs/13_accepted_data_limitations.md);
+`Phase2/etl/dq.py` (`DQ-G-001`–`DQ-G-004`); `Phase2/etl/reports.py` (`coverage_rows`,
+`COVERAGE_NOTE`); [PROGRESS.md](PROGRESS.md) limitation register.
 
 ## Change process
 

@@ -54,6 +54,7 @@ the human action protocol in [AGENTS.md](../AGENTS.md).
 | Agent rules and stop conditions | [09_agent_operating_manual.md](09_agent_operating_manual.md) | [AGENTS.md](../AGENTS.md) |
 | Human actions and verification | [10_human_operating_manual.md](10_human_operating_manual.md) | [PROGRESS.md](../PROGRESS.md) |
 | Risks and validation spikes | [11_risks_and_validation.md](11_risks_and_validation.md) | Source doc |
+| Accepted data limitations and their implementation triggers | [13_accepted_data_limitations.md](13_accepted_data_limitations.md) | [PROGRESS.md](../PROGRESS.md) register, [final gate record](FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md) |
 | Terms | [12_glossary.md](12_glossary.md) | - |
 
 ## Audience split
@@ -85,6 +86,7 @@ the human action protocol in [AGENTS.md](../AGENTS.md).
 - [Data quality and reports](06_data_quality_and_reports.md)
 - [Operations, access, and security](07_operations_access_and_security.md)
 - [Risks and validation](11_risks_and_validation.md)
+- [Accepted data limitations](13_accepted_data_limitations.md)
 - [Glossary](12_glossary.md)
 
 ### People and operations

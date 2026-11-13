@@ -17,6 +17,15 @@ def test_catalog_ids_are_unique():
     assert len({c.check_id for c in CHECKS})==len(CHECKS)
     assert all(c.severity in ('CRITICAL','WARNING') for c in CHECKS)
 
+def test_coverage_guards_separate_empty_source_from_zero_events():
+    by_id={c.check_id:c for c in CHECKS}
+    # Only the primary source is a fatal guard; unwired sources warn.
+    assert by_id['DQ-G-001'].severity=='CRITICAL'
+    for check_id in ('DQ-G-002','DQ-G-003','DQ-G-004'):
+        assert by_id[check_id].severity=='WARNING'
+    # A zero accepted-row count must be observed as 1, not 0.
+    assert 'CASE WHEN count(*) FILTER (WHERE reject_reason IS NULL) = 0 THEN 1 ELSE 0 END' in by_id['DQ-G-001'].sql
+
 def test_only_read_only_sql():
     for c in CHECKS:
         assert c.sql.lstrip().upper().startswith('SELECT')

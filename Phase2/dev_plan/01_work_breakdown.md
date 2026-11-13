@@ -762,6 +762,8 @@ Automate weekly/manual execution and enforce critical DQ without local credentia
 - Report artifacts.
 - Read-only access test.
 - Run summary.
+- Accepted-limitation regression checks (`L-001`–`L-009`) surfaced from the DQ results.
+- Source-coverage guards (`DQ-G-001`–`DQ-G-004`) that separate "no data loaded" from a measured zero.
 
 ### Out of scope
 
@@ -777,6 +779,7 @@ Automate weekly/manual execution and enforce critical DQ without local credentia
 - Access proof.
 - Runbook update.
 - Artifact links.
+- Limitation audit lines in the run summary.
 
 ### Acceptance evidence
 
@@ -787,6 +790,8 @@ Automate weekly/manual execution and enforce critical DQ without local credentia
 - No secret appears in logs.
 - Read-only role cannot write.
 - Run summary has counts.
+- Run summary reports each open `L-###` limitation with its linked DQ status.
+- Run summary reports per-source coverage, marking any approved source with zero accepted rows as "no data loaded".
 
 ---
 
@@ -810,6 +815,7 @@ for submission/demo.
 - Report audit.
 - Access audit.
 - Documentation and link audit.
+- Accepted-limitation audit against [docs/13_accepted_data_limitations.md](../docs/13_accepted_data_limitations.md).
 - Demo script.
 - Final status.
 
@@ -826,6 +832,7 @@ for submission/demo.
 - Final PDFs.
 - Demo script.
 - Repository link.
+- Limitation audit appendix.
 - Updated `PROGRESS.md` and decisions.
 
 ### Acceptance evidence
@@ -837,4 +844,5 @@ for submission/demo.
 - No critical DQ failures.
 - No secrets/raw data in Git.
 - A fresh authorized run reproduces the result.
+- Every open `L-###` limitation is reported with its observed value, trigger status, and owner.
 - Human accepts the release.

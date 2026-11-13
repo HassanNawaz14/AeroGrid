@@ -101,6 +101,64 @@ and are never loaded into Phase 2.
 
 No human action may be simulated, inferred, or performed by an agent.
 
+## Accepted data limitations (canonical register)
+
+`G5`–`G7` acceptance did not resolve the data limitations; it accepted them. They are
+tracked with stable IDs, observed values, and the condition that turns each one into
+required work in
+[`docs/13_accepted_data_limitations.md`](docs/13_accepted_data_limitations.md)
+(`D-028`). `WP-11` must surface the linked DQ results and `WP-12` must report every
+open entry. No entry may be closed by changing DQ severity or by omitting it from a
+report.
+
+| ID | Limitation | Observed 2026-11-13 | Trigger summary | Status |
+|---|---|---|---|---|
+| `L-001` | No weather linkage on tracking facts | 27,479 rows with `weather_key = -1`; not a METAR reading | Any weather-attributed metric, or a joinable 2022 METAR window | `OPEN` |
+| `L-002` | Ground state unobserved | `on_ground` `NULL` on 27,479 rows; 7,433 inferred airborne | Any ground/air separation requirement | `OPEN` |
+| `L-003` | Occupancy is 2D, 60-second cap | 3,658 real cells, 1,754 facts, no altitude bands | Any 3D/altitude-band or sub-60-second requirement | `OPEN` |
+| `L-004` | Encounter predicate needs identical timestamps | 0 production facts; exploratory 20 s window: 22 pairs, 0 within limits | Any encounter count, rate, or "no conflicts" claim | `OPEN` |
+| `L-005` | No historical restriction snapshot | 0 activation facts; 2026 FAA check found 0 KBTP features | Any restriction-compliance metric | `OPEN` |
+| `L-006` | Reject ledger spans ETL runs | 418 events (416 invalid ID, 2 invalid timestamp) | Any single-run yield or rejection metric | `OPEN` |
+| `L-007` | Corridor views are screening only | 808 rows in each corridor view | Any use as a validated corridor or capacity input | `OPEN` |
+| `L-008` | UAS sources validated but never ingested | `stg_uas_position` 0 rows; Nightjar 12,448 and DJI 10,314 samples only tested | Any UAS traffic, UAS-to-manned separation, or combined airspace metric | `OPEN` |
+| `L-009` | Airspace zones never staged; OpenSky unused | `stg_airspace_zone` 0 rows despite 12,849 approved FAA features; no OpenSky loader | Any zone membership/proximity metric, or any OpenSky-derived metric | `OPEN` |
+
+The live DQ `WARN`s map exactly to this register: `L-001` (`DQ-C-003`), `L-002`
+(`DQ-C-008`), `L-005` (`DQ-T-003`), `L-001` (`DQ-G-002`), `L-008` (`DQ-G-003`), and
+`L-009` (`DQ-G-004`). `DQ-G-001` is the opposite guard: a primary source with zero
+accepted rows becomes a `CRITICAL` failure, so an empty load can never be reported as
+a measured zero. The "when is each table actually filled, and with how much data"
+plan is the coverage completion plan in
+[`docs/13_accepted_data_limitations.md`](docs/13_accepted_data_limitations.md#coverage-completion-plan):
+five staging tables will fill through `WP-11`, restrictions stay conditional on a
+real historical snapshot, OpenSky is deliberately not planned, and the planned initial
+load is ~632,000 rows / ~130–320 MB (under the 1 GiB free-tier limit). The same
+section records why each volume is limited, so no reduction is undocumented.
+
+## 2026-11-13 live warehouse verification
+
+Read-only verification dispatched on `main` after the local sync, to confirm the
+deployed warehouse matches the accepted state. Both passing runs explicitly
+`ROLLBACK`; no warehouse data changed.
+
+| Run | Workflow | Result | Evidence |
+|---|---|---|---|
+| [43471609483](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43471609483) | `wp08-dq-verify.yml` (`mode=verify`) | `PASS` — 29 PASS, 3 WARN, 0 FAIL of 32; `DQ READ-ONLY PASS; ROLLBACK` | `DQ-C-003` 27,479; `DQ-C-008` 27,479; `DQ-T-003` 1; all critical checks 0 |
+| [43471616729](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43471616729) | `wp10-views-verify.yml` (`mode=verify`) | `PASS` — 10 views present; `WP10 PASS; ROLLBACK - no persisted view changes` | Occupancy 1,754; traffic density 6,658; monthly 1; peak site hours 20; weather 1; corridor inputs 808; candidate cells 808; encounter and restriction views 0 |
+| [43471623351](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43471623351) | `wp07-derived-facts-verify.yml` | `FAIL` before warehouse access — `ModuleNotFoundError: reportlab` in the unit-test job (2 failed, 105 passed) | `B-012` opened; superseded by run `43473293723` |
+| [43473293723](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43473293723) | `wp07-derived-facts-verify.yml` (fixed in `bcf6777`) | `PASS` — 105 unit tests passed; `WP07 PASS; ROLLBACK (no persistent DDL or fact writes)` | 27,479 tracking inputs; 7,433 inferred airborne; 20,046 unknown airborne state; occupancy 1,754 candidates all already present; pass 2 inserted 0 rows; all 7 integrity checks 0; `accepted_snapshot_rows` 0 |
+| [43478821521](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43478821521) | `wp08-dq-verify.yml` (`mode=verify`, branch `docs/wp11-accepted-limitation-register`) | `PASS` — 109 unit tests; 30 PASS, 6 WARN, 0 FAIL of 36; `DQ READ-ONLY PASS; ROLLBACK` | `DQ-G-001` 0; `DQ-G-002` 1; `DQ-G-003` 1; `DQ-G-004` 1; the original three warnings unchanged |
+| [43478947023](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43478947023) | `wp09-reports.yml` | `PASS` — both PDFs generated and uploaded as artifacts | Both PDFs contain the source-coverage table: Tartan `LOADED`, five sources `NO DATA LOADED`, plus the coverage note |
+
+Verdict: the deployed data is consistent with the accepted state — every critical
+integrity check is 0, the six warnings are the accepted coverage and method
+limitations, and WP-07 re-derivation is idempotent. `B-012` is resolved. `DQ-G-001`
+proves the primary source is still loaded; `DQ-G-002`–`DQ-G-004` state explicitly
+that weather, UAS, and airspace are not yet ingested rather than measured as zero.
+The persisted audit run (`etl_run_id=7`) still holds the original 32 results; the
+four coverage checks are recorded in `dq_result` only by the next approved
+`mode=apply` run, which is a warehouse write and was not performed here.
+
 ## G1 execution checklist
 
 `H-002` remains blocked; `H-003` is done; `H-008` is resolved by `D-017`. Detailed
@@ -147,6 +205,7 @@ canonical steps for the Neon setup are also in
 | `B-009` | `aerogrid_etl` lacks `project_staging` DDL rights for WP-04 acceptance | Staging DDL cannot be applied; real-sample load/reconciliation evidence cannot be collected | `H-011` | `RESOLVED` 2026-11-08: owner grants applied, DDL verified twice (runs `42474788058`/`42477720902`), and the 15-row self-check returns `true` for ETL, reader, and table-level access |
 | `B-010` | `WP-05` start gate conflicts across canonical documents | Member C work cannot start without violating either the gate record or the dependency table; `G3` also requires `WP-05` | `H-012`, `D-022` | `RESOLVED` (Human directed no `WP-05` start until `WP-03`/`WP-04` merge; `D-022`) |
 | `B-011` | `WP-04` sample evidence used the legacy synthetic demo CSV (`data/sample/tartan_trajectory_sample.csv`), so no real row was accepted in staging | The `G3` criterion "staging loaders work on real samples" is not proven by accepted rows; the demo file is excluded by `D-017` | `WP-06` real Tartan load + `H-014` raw upload | `RESOLVED` 2026-11-11: `H-014` uploaded the real sample and WP-06 run [42887782411](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42887782411) `PASS` on `phase2/wp06-tracking-facts` at `ecce8ec` (accepted staging rows `> 0`, tracking facts reconciled 1-to-1, zero duplicate inserts, zero FK orphans, reader `SELECT = true`). |
+| `B-012` | `wp07-derived-facts-verify.yml` fails its unit-test job before touching the warehouse: the job installs `pytest` only, while `tests/test_reports.py` and `tests/test_report_improvements.py` import `reportlab` | The rollback-only WP-07 re-derivation and idempotency proof cannot run, so `WP-07` idempotency is unverified even though DQ integrity checks pass | Member A (`WP-11`): add `reportlab>=4,<5` to the unit-test install step in the workflow, then re-dispatch and record the run | `RESOLVED` 2026-11-13: fixed in `bcf6777` on `docs/wp11-accepted-limitation-register`; rerun [43473293723](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43473293723) `PASS` — 105 unit tests passed, `WP07 PASS; ROLLBACK`, all 7 integrity checks 0, second pass inserted 0 rows (idempotent) |
 
 ## Documentation baseline evidence
 
@@ -316,6 +375,9 @@ closed. The closeout used the real Tartan sample, not the excluded demo CSV:
 | `2026-11-10` | Member C | Member D / Team | `WP-06` seed fix | Fixed the merged `WP-06` CI preflight failure: extracted the real `samples/kbtp/01-01-22/1.csv` member from the public Tartan archive, verified SHA-256 `86342d09...a762`, and added `Phase2/sql/02_dimensions/03_seed_real.sql` with 156 distinct real Tartan ICAO 24-bit vehicle members (first/last seen from real rows; no invented weather/grid rows; idempotent, no deletes). WP-05 and WP-06 verifiers now apply the seed, and the temporary WP-06 `push` trigger was removed. | `Phase2/sql/02_dimensions/03_seed_real.sql`, `Phase2/etl/verify_wp05_dimensions.py`, `Phase2/etl/verify_wp06_facts.py`, `.github/workflows/wp06-facts-verify.yml`, `Phase2/tests/test_dimensions.py`, `Phase2/tests/test_facts.py`, `Phase2/sql/README.md`, `Phase2/etl/README.md`, `Phase2/README.md`, `data/data_dictionary.md`, `Phase2/PROGRESS.md` | `python -m pytest -q Phase2/tests`; `python -m compileall -q Phase2/etl Phase2/tests`; `git diff --check`; seed unit test asserts 156 unique real IDs and no invented rows | Run `wp05-dimensions-verify.yml` to apply/validate the seed, then dispatch `wp06-facts-verify.yml` from `main` (`dry_run=false`), record the run link and counts, close `B-011`/`WP-06`, and record `G4`. |
 | `2026-11-10` | Member C | Member D / Team | `WP-06` raw-sample blocker | Confirmed `aerogrid-raw` is empty, so the WP-06 verifier cannot fetch `samples/kbtp/01-01-22/1.csv`; the seed fix is necessary but not sufficient. Recorded `H-014` with the exact object key, size, SHA-256, and upload path. | `Phase2/PROGRESS.md`, `Phase2/README.md` | Neon Console check (bucket empty); local extracted sample SHA-256 `86342d09...a762` and size `4,325,376` bytes; `pytest` 62 passed | Upload the extracted CSV to `aerogrid-raw` (`H-014`), then run `wp05-dimensions-verify.yml` and dispatch `wp06-facts-verify.yml`. |
 | `2026-11-11` | Member C | Member E / Team | `WP-06` / `G4` closeout | Recorded the real Tartan `WP-05`/`WP-06` run evidence, resolved `B-011`/`H-014`, marked `WP-06`/`G4` `DONE`, closed the `D-024` window, and set `WP-07` `BLOCKED_ON_HUMAN` on `H-013`. Documentation only; no code, SQL, workflow, or test changes. | `Phase2/PROGRESS.md`, `Phase2/README.md`, `AGENTS.md`, `Phase2/AGENTS.md`, `Phase2/dev_plan/01`, `02`, `README.md`, `Phase2/DECISIONS.md`, `Phase2/docs/01`, `05`, `08`, `09`, `10`, `11`, `data/data_dictionary.md`, `.github/workflows/README.md`, root `README.md` | Markdown/link/status grep; `git diff --check`; no secrets or raw data | Human approves `H-013`; then Member E starts `WP-07` and records `G5` evidence |
+| `2026-11-13` | Member A | Team / `WP-11` | Limitation register + live verification | Synced local `main` to `f0c2e51`; created the canonical accepted-limitation register `L-001`–`L-007` with implementation triggers; ran the read-only warehouse verifiers. DQ `PASS` (29/3/0), WP-10 `PASS` (10 views), WP-07 verification blocked by CI dependency defect `B-012`. Documentation only; no warehouse writes. | `Phase2/docs/13_accepted_data_limitations.md`, `Phase2/docs/00_documentation_map.md`, `Phase2/DECISIONS.md`, `Phase2/PROGRESS.md`, `Phase2/README.md`, `Phase2/dev_plan/01_work_breakdown.md` | WP-08 run `43471609483` `PASS`; WP-10 run `43471616729` `PASS`; WP-07 run `43471623351` `FAIL` (CI dependency); relative links checked; `git diff --check` | Member A adds `reportlab` to the WP-07 unit-test install, re-runs the rollback verifier (`B-012`), then starts `WP-11` |
+| `2026-11-13` | Member A | Team / `WP-11` | `B-012` closeout | Fixed the WP-07 verifier's missing `reportlab` dependency (`bcf6777`), pushed `docs/wp11-accepted-limitation-register`, and re-dispatched: run `43473293723` `PASS` with 105 unit tests, all 7 integrity checks 0, second derivation pass inserting 0 rows, and an explicit rollback. No warehouse writes. | `.github/workflows/wp07-derived-facts-verify.yml`, `Phase2/PROGRESS.md`, `Phase2/README.md` | WP-07 run `43473293723` `PASS`; YAML parse; `git diff --check` | Start `WP-11`: weekly/manual orchestration, reader-access proof, and limitation lines in the run summary |
+| `2026-11-13` | Member A | Team / `WP-11` | Coverage guards and `L-008`/`L-009` | Added `DQ-G-001`–`DQ-G-004` so an approved source with no accepted rows is reported as missing coverage instead of a measured zero; added the per-source coverage table to both PDFs; recorded `L-008` (UAS never ingested) and `L-009` (airspace never staged, OpenSky unused) with a coverage completion plan; decision `D-029`. Read-only runs only. | `Phase2/etl/dq.py`, `Phase2/etl/reports.py`, `Phase2/tests/test_dq.py`, `Phase2/tests/test_report_improvements.py`, `Phase2/docs/13_accepted_data_limitations.md`, `Phase2/DECISIONS.md`, `Phase2/dev_plan/01_work_breakdown.md`, `Phase2/PROGRESS.md` | WP-08 run `43478821521` `PASS` (109 tests, 30 PASS / 6 WARN / 0 FAIL of 36); WP-09 run `43478947023` `PASS` with the coverage table in both PDFs; `python -m compileall`; `git diff --check`; local pytest 107 passed, 2 skipped-by-missing-`reportlab` failures that pass in CI | `WP-11`: wire the existing loaders into the scheduled ingestion job so weather, UAS, and airspace staging stop being empty |
 
 ## Change log
 
@@ -358,6 +420,9 @@ closed. The closeout used the real Tartan sample, not the excluded demo CSV:
 | `2026-11-11` | Uploaded the pinned real Tartan sample and ran both workflows: WP-05 run [42689267328](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42689267328) and WP-06 run [42887782411](https://github.com/HassanNawaz14/AeroGrid/actions/runs/42887782411) `PASS` on `phase2/wp06-tracking-facts` at `ecce8ec`; accepted staging rows `> 0`, facts reconciled, `B-011` resolved | Member C | `WP-06`, `B-011`, `H-014` |
 | `2026-11-11` | Merged PR #12 into `main` as `f29b099`; recorded `WP-06` `DONE` and `G4` `DONE` under `D-024`, closed the `D-024` window, and set `WP-07` `BLOCKED_ON_HUMAN` on `H-013` | Member C | `WP-06`, `G4`, `D-024`, `WP-07`, `H-013` |
 | `2026-11-11` | Documentation-only closeout: synchronized the status board, contracts, plan, manuals, ETL/dictionary notes, and workflow notes to the completed `WP-06`/`G4` state and the `WP-07` handoff; no code, SQL, workflow, or test changes | Member C | `WP-06`, `G4`, `WP-07`, `H-013` |
+| `2026-11-13` | Created the accepted-limitation register `L-001`–`L-007` with implementation triggers and audit hooks, verified the live warehouse read-only (DQ and WP-10 `PASS`), and opened `B-012` for the WP-07 verifier's missing `reportlab` dependency | Member A | `D-028`, `L-001`–`L-007`, `B-012` |
+| `2026-11-13` | Fixed the WP-07 verifier dependency and recorded the passing rollback run `43473293723`: idempotent re-derivation, 7/7 integrity checks 0, 105 unit tests; `B-012` `RESOLVED` | Member A | `B-012`, `WP-07` |
+| `2026-11-13` | Added source-coverage guards `DQ-G-001`–`DQ-G-004`, a coverage table in both PDFs, and register entries `L-008`/`L-009` with a coverage completion plan; read-only WP-08 run `43478821521` (36 checks, 30 PASS / 6 WARN / 0 FAIL) and WP-09 run `43478947023` both `PASS` | Member A | `D-029`, `L-008`, `L-009`, `WP-08`, `WP-09` |
 
 ## Update protocol
 
