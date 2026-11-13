@@ -36,7 +36,12 @@ never closed by silence, by a re-run, or by changing DQ severity.
 ## Register
 
 State verified against the live warehouse on 2026-11-13 by WP-08 run `43471609483`
-(32 checks: 29 PASS, 3 WARN, 0 FAIL) and WP-10 run `43471616729` (10 views).
+(32 checks: 29 PASS, 3 WARN, 0 FAIL) and WP-10 run `43471616729` (10 views). After
+the coverage guards were added, WP-08 run `43478821521` re-verified 36 checks
+(30 PASS, 6 WARN, 0 FAIL) and WP-09 run `43478947023` generated both PDFs with the
+coverage section rendered. The persisted audit run (`etl_run_id=7`) still holds the
+original 32 results; the four coverage checks enter `project_staging.dq_result` on
+the next approved `mode=apply` run, which is a warehouse write.
 
 | ID | Limitation | Observed state | Trigger that requires implementation | DQ hook | Status |
 |---|---|---|---|---|---|
