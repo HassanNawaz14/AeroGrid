@@ -1,0 +1,33 @@
+name: WP-09 Generate evidence-backed PDF reports
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: wp09-pdf-reports
+  cancel-in-progress: false
+jobs:
+  reports:
+    runs-on: ubuntu-latest
+    environment: warehouse
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --disable-pip-version-check 'pytest>=8,<10' 'psycopg[binary]>=3.2,<4' 'reportlab>=4,<5'
+      - run: python -m pytest -q Phase2/tests
+      - name: Generate both PDFs from real warehouse data
+        working-directory: Phase2
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python -m etl.reports --output-dir reports
+      - name: Upload PDF evidence as run artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aerogrid-wp09-pdf-reports
+          path: |
+            Phase2/reports/Data_Cleaning_Report.pdf
+            Phase2/reports/Data_Quality_Report.pdf
+          if-no-files-found: error
