@@ -1,0 +1,43 @@
+name: WP-08 Data Quality (verify or persist audit)
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Select read-only verify first; apply persists a DQ audit run'
+        required: true
+        default: verify
+        type: choice
+        options:
+          - verify
+          - apply
+      confirm:
+        description: 'If apply selected, type APPROVE_WP08_DQ'
+        required: false
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: wp08-warehouse
+  cancel-in-progress: false
+jobs:
+  dq:
+    if: ${{ inputs.mode == 'verify' || (inputs.mode == 'apply' && inputs.confirm == 'APPROVE_WP08_DQ' && github.ref == 'refs/heads/main') }}
+    runs-on: ubuntu-latest
+    environment: warehouse
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --disable-pip-version-check 'pytest>=8,<10' 'psycopg[binary]>=3.2,<4' 'reportlab>=4,<5'
+      - name: Unit tests
+        run: python -m pytest -q Phase2/tests
+      - name: Evaluate and optionally persist DQ evidence
+        working-directory: Phase2
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          WAREHOUSE_CI_APPROVED: 'true'
+          MODE: ${{ inputs.mode }}
+        run: |
+          if [ "$MODE" = "apply" ]; then python -m etl.dq --apply; else python -m etl.dq; fi
