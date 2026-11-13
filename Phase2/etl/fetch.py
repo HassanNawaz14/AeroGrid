@@ -6,6 +6,7 @@ No credentials are read here; GitHub provides DATABASE_URL only to the apply job
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -29,6 +30,8 @@ PAGE_BYTES = 8 * 1024 * 1024
 FILE_BYTES = 96 * 1024 * 1024
 MAX_PAGES = 20
 PAGE_SIZE = 250
+ATTEMPTS = 3
+RETRYABLE_HTTP = frozenset({429, 500, 502, 503, 504})
 
 
 @dataclass(frozen=True)
@@ -43,16 +46,35 @@ class FetchedFile:
     feature_type: str | None = None
 
 
+def _retry_pause(attempt: int) -> None:
+    time.sleep(2 * attempt)
+
+
 def _get(url: str, limit: int) -> bytes:
-    request = Request(
-        url,
-        headers={"User-Agent": USER_AGENT, "Accept": "*/*"},
-    )
-    try:
-        with urlopen(request, timeout=60) as response:
-            blob = response.read(limit + 1)
-    except (HTTPError, URLError, TimeoutError) as exc:
-        raise RuntimeError(f"Source unavailable: {url.split('?')[0]}") from exc
+    source = url.split("?")[0]
+    last_error: BaseException | None = None
+    for attempt in range(1, ATTEMPTS + 1):
+        request = Request(
+            url,
+            headers={"User-Agent": USER_AGENT, "Accept": "*/*"},
+        )
+        try:
+            with urlopen(request, timeout=60) as response:
+                blob = response.read(limit + 1)
+            break
+        except HTTPError as exc:
+            # A 4xx means the request itself is wrong; retrying cannot fix it.
+            if exc.code not in RETRYABLE_HTTP:
+                raise RuntimeError(
+                    f"Source unavailable ({exc.code}): {source}"
+                ) from exc
+            last_error = exc
+        except (URLError, TimeoutError) as exc:
+            last_error = exc
+        if attempt < ATTEMPTS:
+            _retry_pause(attempt)
+    else:
+        raise RuntimeError(f"Source unavailable: {source}") from last_error
     if len(blob) > limit:
         raise ValueError(f"Response exceeded {limit} bytes: {url.split('?')[0]}")
     if not blob:
@@ -68,14 +90,20 @@ def _write(dest: Path, name: str, blob: bytes) -> Path:
 
 
 def _http_json(url: str):
-    blob = _get(url, PAGE_BYTES)
-    try:
-        payload = json.loads(blob)
-    except (ValueError, UnicodeError) as exc:
-        raise ValueError("Source returned non-JSON content") from exc
-    if isinstance(payload, dict) and "error" in payload:
-        raise ValueError("Source reported an API error")
-    return payload
+    for attempt in range(1, ATTEMPTS + 1):
+        blob = _get(url, PAGE_BYTES)
+        try:
+            payload = json.loads(blob)
+        except (ValueError, UnicodeError) as exc:
+            raise ValueError("Source returned non-JSON content") from exc
+        if not (isinstance(payload, dict) and "error" in payload):
+            return payload
+        if attempt < ATTEMPTS:
+            _retry_pause(attempt)
+    detail = json.dumps(payload)[:200]
+    raise ValueError(
+        f"Source reported an API error at {url.split('?')[0]}: {detail}"
+    )
 
 
 def iem_metar_url(station: str, start: date, end: date) -> str:
