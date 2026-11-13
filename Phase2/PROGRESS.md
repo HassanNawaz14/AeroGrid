@@ -73,7 +73,7 @@ Gate definitions are canonical in
 | `WP-08` | Data-quality framework | Member E | `WP-04` to `WP-07` | `DONE` (requester-admin accepted 2026-11-13) | Run 7 persisted 32 DQ checks: 29 PASS, 3 WARN, 0 FAIL. |
 | `WP-09` | PDF reports | Member E | `WP-08` | `DONE` (requester-admin accepted 2026-11-13) | Both improved source-linked PDFs on main after PR #20. |
 | `WP-10` | Reporting views and corridor metrics | Member E | `WP-06`, `WP-07` | `DONE` (requester-admin accepted 2026-11-13) | Ten project_reporting views confirmed in Neon; CI run #2 passed. |
-| `WP-11` | CI, access, and deployment | HassanNawaz14 | `WP-02`, `WP-04` to `WP-10` | `READY_FOR_REVIEW` | Implemented on `phase2/wp11-ingestion` under `D-030`: `etl/run.py` orchestrates fetch -> manifest -> staging -> dimension refresh -> DQ in one transaction; `wp11-ingest.yml` provides read-only `validate` and protected `apply` modes, a Monday 06:00 UTC schedule gated by `WP11_SCHEDULE_ENABLED`, a manual reader-check job, and `ci.yml` unit tests on pull requests; the run summary reports every `L-001`–`L-010` entry with its linked DQ status and per-source coverage. Live validate 2026-11-14: 23,414 read / 23,254 accepted / 160 rejected, no database access. Checks: `pytest` 27 WP-11 tests pass; full local suite 136 passed. Two `mode=apply` dispatches failed and rolled back with no persisted rows (`B-013` `KeyError: 'AWC'`, `B-014` `round(double precision, integer)`), and a third failed in fetch on a transient API error (`B-015`, now retried with the source URL named). Remaining acceptance evidence: merge, first approved `mode=apply` run on `main`, reader proof for Members B–E, then enable the schedule (`H-015`–`H-017`). |
+| `WP-11` | CI, access, and deployment | HassanNawaz14 | `WP-02`, `WP-04` to `WP-10` | `READY_FOR_REVIEW` | Implemented on `phase2/wp11-ingestion` under `D-030`: `etl/run.py` orchestrates fetch -> manifest -> staging -> dimension refresh -> DQ in one transaction; `wp11-ingest.yml` provides read-only `validate` and protected `apply` modes, a Monday 06:00 UTC schedule gated by `WP11_SCHEDULE_ENABLED`, a manual reader-check job, and `ci.yml` unit tests on pull requests; the run summary reports every `L-001`–`L-010` entry with its linked DQ status and per-source coverage. First approved apply run [43502710978](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43502710978) `SUCCESS` on `165d59d`: `etl_run_id=11`, 23,414 read / 23,254 accepted / 160 rejected / 0 duplicate, 8 manifests, `dim_weather` 400, `dim_airspace_zone` 252, `dim_time` 166, `dim_vehicle` 2, DQ 32 PASS / 4 WARN / 0 FAIL, reader proof `PASS`. Checks: `pytest` 27 WP-11 tests pass; full local suite 136 passed. Three earlier `mode=apply` dispatches failed and rolled back with no persisted rows (`B-013`, `B-014`, `B-015`); all three fixes carry regression tests. Remaining acceptance evidence: enabling the schedule (`H-016`) and reader proof for Members B–E (`H-017`). | Remaining acceptance evidence: merge, first approved `mode=apply` run on `main`, reader proof for Members B–E, then enable the schedule (`H-015`–`H-017`). |
 | `WP-12` | Integration, acceptance, and release | HassanNawaz14 + all | `WP-11` | `NOT_STARTED` | Final gate |
 
 ## Human action queue
@@ -94,7 +94,7 @@ Gate definitions are canonical in
 | `H-012` | Confirm the authoritative start gate for `WP-05` | `PROGRESS.md` and `dev_plan/01_work_breakdown.md` said `WP-05` waits for `G3`, but `dev_plan/02_dependencies_and_gates.md` said `G2`; `G3` itself requires `WP-05`, so the records could not all be correct. Starting Member C work without a decision would violate the gate rules. | Human decided on 2026-11-08: do not start `WP-05` until `WP-03` and `WP-04` are merged; `D-022` records the rule and `G3` remains the acceptance gate after both packages. | `DONE` |
 | `H-013` | Approve the `WP-07` derived-fact thresholds and the `algorithm_version` value | `WP-07` cannot start without an approved close-encounter horizontal/vertical threshold, occupancy rule, and algorithm version; inventing them would be a business decision. | `G4` is recorded. Approved thresholds: severe horizontal < 0.5 nm and vertical < 500 ft; proximity horizontal < 1.0 nm and vertical < 1,000 ft (per `docs/04_data_model.md`). Approved `algorithm_version`: `wp07-v1` (per `dev_plan/01_work_breakdown.md`). No secret or console action is required. | `DONE` 2026-11-11; unblocks `WP-07` (Member E) |
 | `H-014` | Upload the pinned real Tartan sample to `aerogrid-raw` | The bucket was confirmed empty on 2026-11-10, so `WP-06` cannot fetch `samples/kbtp/01-01-22/1.csv`; the seed fix alone is not sufficient for the acceptance run. | In the Neon Console, select the branch used by the `warehouse` secrets, open **Object storage** -> `aerogrid-raw`, and upload the extracted CSV as `samples/kbtp/01-01-22/1.csv` (4,325,376 bytes; SHA-256 `86342d09e5004102d765b82d04d16b43b6f15f2e7d829bfbde7909187d08a762`). Upload the extracted CSV, not the `2022.zip` archive. Neon CLI equivalent: `neon buckets object put aerogrid-raw/samples/kbtp/01-01-22/1.csv --file <local 1.csv> --content-type text/csv`. | `DONE` 2026-11-11; the WP-06 run fetched and verified the object |
-| `H-015` | Review and merge the WP-11 ingestion PR, then dispatch the first approved apply run | The apply mode only runs on `main` inside the protected `warehouse` environment; no agent may write to the shared warehouse | After the WP-11 PR approval/merge: Actions -> **WP-11 Ingestion** -> Run workflow -> `mode=apply`, `confirm=APPROVE_WP11_APPLY`, sources `weather,uas,airspace`, stations `KBTP,KAGC`; record the run link and the per-source counts from the summary artifact. | `OPEN` |
+| `H-015` | Review and merge the WP-11 ingestion PR, then dispatch the first approved apply run | The apply mode only runs on `main` inside the protected `warehouse` environment; no agent may write to the shared warehouse | After the WP-11 PR approval/merge: Actions -> **WP-11 Ingestion** -> Run workflow -> `mode=apply`, `confirm=APPROVE_WP11_APPLY`, sources `weather,uas,airspace`, stations `KBTP,KAGC`; record the run link and the per-source counts from the summary artifact. | `DONE` 2026-11-14: PRs #24–#27 merged; run [43502710978](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43502710978) `SUCCESS`, `etl_run_id=11`, 23,254 accepted, 8 manifests, DQ 32 PASS / 4 WARN / 0 FAIL, reader proof `PASS` |
 | `H-016` | Create the repository variables that enable the weekly schedule | The `schedule` block is inert until a human enables it; unattended writes require a second explicit approval | GitHub repo Settings -> Secrets and variables -> Actions -> Variables: add `WP11_SCHEDULE_ENABLED=true` after the first apply run passes. Add `WP11_SCHEDULE_APPLY_ENABLED=true` only if unattended weekly writes are approved; without it, scheduled runs execute read-only `validate`. | `OPEN` |
 | `H-017` | Members B–E run the read-only access check | `WP-11` acceptance and the G7 caveat both require member-read proof; `H-009` proved the role, not each member's own credentials | Each member sets their private read-only connection string in `READONLY_DATABASE_URL` and runs `python .github/scripts/platform_probe.py --mode reader` from the repo root (installs `psycopg[binary]` and `boto3` only in their own environment). Report pass/fail and the SQLSTATE of the rejected write per member. Never post the connection string in chat, a PR, or a workflow file. | `OPEN` |
 
@@ -166,8 +166,9 @@ four coverage checks are recorded in `dq_result` only by the next approved
 
 ## 2026-11-14 WP-11 ingestion implementation
 
-`WP-11` adds the recurring ingestion path under `D-030`. No warehouse write was
-performed; the only live evidence is a read-only `validate` run.
+`WP-11` adds the recurring ingestion path under `D-030`. The first approved apply
+run [43502710978](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43502710978)
+completed on `main` at `165d59d` (`etl_run_id=11`).
 
 | Element | Delivered |
 |---|---|
@@ -176,7 +177,7 @@ performed; the only live evidence is a read-only `validate` run.
 | Config | `Phase2/etl/config.py` — source URLs, site anchors, stations, licences, `LIMITATIONS` (`L-001`–`L-010`), 7-day default window |
 | Dimension refresh | `Phase2/etl/dimension_loaders.py` — `dim_time`, `dim_vehicle`, `dim_weather`, `dim_airspace_zone` from accepted staging rows only |
 | Workflow | `.github/workflows/wp11-ingest.yml` — `validate`/`apply` dispatch, Monday 06:00 UTC schedule gated by `WP11_SCHEDULE_ENABLED`, manual reader-check job, summary artifact |
-| Tests | `Phase2/tests/test_wp11_run.py` — 22 tests: parsers, windows, apply guard, pagination, preview totals, dimension SQL, both summary modes, apply path |
+| Tests | `Phase2/tests/test_wp11_run.py` — 27 tests: parsers, windows, apply guard, pagination, preview totals, dimension SQL, both summary modes, apply path, failure summary, and fetch retry/backoff |
 | Safety | `--apply` requires `--confirm APPROVE_WP11_APPLY` plus `GITHUB_ACTIONS=true` and `WAREHOUSE_CI_APPROVED=true`; dispatch apply only on `main`; one transaction; `CRITICAL` DQ rolls back ingestion and records a separate `FAILED` run |
 
 Read-only validate run, 2026-11-14, default window 2026-11-07..2026-11-14,
@@ -188,11 +189,20 @@ five documented study boxes, 1,545 nationally); Route airspace 170/170. A first
 combined attempt failed once with a transient upstream API error and the immediate
 retry passed; the workflow fails loudly rather than loading a partial source set.
 
-The same validate run prints the accepted-limitation table for `L-001`–`L-010` with
-`not evaluated` for checks that require warehouse data, and states that a `PASS`
-proves staging coverage only. None of this closes `L-001`, `L-008`, or `L-009`: the
-weather keys on existing facts are not backfilled and no UAS/restriction fact loader
-exists.
+First approved apply run, 2026-11-14, window 2026-11-07..2026-11-13, stations
+`KBTP`,`KAGC`: **SUCCESS** in 35 s. 23,414 rows read, 23,254 accepted, 160 rejected,
+0 duplicate; 8 source manifests; dimensions `dim_weather` 400, `dim_airspace_zone`
+252, `dim_time` 166, `dim_vehicle` 2; 36 DQ results persisted under `etl_run_id=11`
+with 32 `PASS`, 4 `WARN` (`DQ-C-003`, `DQ-C-008`, `DQ-A-008`, `DQ-T-003`), 0 `FAIL`.
+Coverage guards `DQ-G-002`–`DQ-G-004` flipped from `WARN` to `PASS`; `DQ-G-001`
+stayed `PASS`. The `Reader access proof` job passed on the same dispatch. The
+transient fetch error that aborted the previous dispatch was fixed by retry/backoff
+in PR #27 (`B-015`).
+
+The summary still prints the accepted-limitation table for `L-001`–`L-010` and states
+that a `PASS` proves staging coverage only. None of this closes `L-001`, `L-008`, or
+`L-009`: the weather keys on existing facts are not backfilled and no
+UAS/restriction fact loader exists.
 
 Local checks: `python -m pytest -q Phase2/tests/test_wp11_run.py` → 27 passed; full
 suite → 136 passed with `reportlab>=4,<5` installed;
@@ -248,7 +258,7 @@ canonical steps for the Neon setup are also in
 | `B-012` | `wp07-derived-facts-verify.yml` fails its unit-test job before touching the warehouse: the job installs `pytest` only, while `tests/test_reports.py` and `tests/test_report_improvements.py` import `reportlab` | The rollback-only WP-07 re-derivation and idempotency proof cannot run, so `WP-07` idempotency is unverified even though DQ integrity checks pass | Member A (`WP-11`): add `reportlab>=4,<5` to the unit-test install step in the workflow, then re-dispatch and record the run | `RESOLVED` 2026-11-13: fixed in `bcf6777` on `docs/wp11-accepted-limitation-register`; rerun [43473293723](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43473293723) `PASS` — 105 unit tests passed, `WP07 PASS; ROLLBACK`, all 7 integrity checks 0, second pass inserted 0 rows (idempotent) |
 | `B-013` | WP-11 apply run [43497891843](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43497891843) failed with `KeyError: 'AWC'` | No manifest, staging, or DQ row was written (the transaction rolled back), but the approved ingestion path could not run | Fix `SOURCE_LICENSES` and reject an unrecorded system before connecting | `RESOLVED` 2026-11-14: fixed on `fix/wp11-awc-license`, merged as PR #25 (`5472ee1`); validate run on 2026-11-13 accepted AWC 400/400 and all other sources |
 | `B-014` | WP-11 apply run [43499567978](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43499567978) failed with `UndefinedFunction: function round(double precision, integer) does not exist` in `dimension_loaders.weather_sql()` | Same rollback behaviour: no manifest, staging, dimension, or DQ row persisted, but the approved apply path could not finish; the summary artifact was also missing because `main()` only wrote summaries on success | Cast the visibility conversion to `numeric` before `ROUND`, and write a failure summary so the artifact always exists | `RESOLVED` 2026-11-14: PR #26 merged as `90778f6` after `132 passed` locally and green CI; apply re-dispatch is a human action (`H-015`) |
-| `B-015` | WP-11 apply run [43501192117](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43501192117) failed in the fetch stage after 2.6s with `ValueError: Source reported an API error`; the message did not name the source | No warehouse write (fetch precedes connection), but the approved apply path still cannot complete; the same transient has now aborted two runs | Retry transient timeouts, `429`, and `5xx` responses up to three attempts, retry JSON `error` payloads, and include the source URL in a persistent failure | `RESOLVED` pending merge: `fetch.py` retry/backoff on `fix/wp11-fetch-retry`; local live validate of all three sources accepted 400 weather / 22,602 UAS / 252 airspace rows; `136 passed` |
+| `B-015` | WP-11 apply run [43501192117](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43501192117) failed in the fetch stage after 2.6s with `ValueError: Source reported an API error`; the message did not name the source | No warehouse write (fetch precedes connection), but the approved apply path still cannot complete; the same transient has now aborted two runs | Retry transient timeouts, `429`, and `5xx` responses up to three attempts, retry JSON `error` payloads, and include the source URL in a persistent failure | `RESOLVED` 2026-11-14: PR #27 merged as `165d59d`; the next apply run [43502710978](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43502710978) succeeded on that commit |
 
 ## Documentation baseline evidence
 
@@ -471,6 +481,7 @@ closed. The closeout used the real Tartan sample, not the excluded demo CSV:
 | `2026-11-14` | Implemented the WP-11 ingestion job and workflow with a validate/apply split, transactional apply and rollback-on-`CRITICAL`, gated weekly schedule, and per-source coverage plus `L-001`–`L-010` lines in the run summary; recorded `L-010`; live validate 23,414 read / 23,254 accepted / 160 rejected with no database access | Member A | `D-030`, `L-010`, `WP-11` |
 | `2026-11-14` | Fixed the first apply-run failure (`KeyError: 'AWC'`): added the AWC licence entry, a licence preflight before connecting, and regression tests; no warehouse write occurred | Member A | `B-013`, `WP-11` |
 | `2026-11-14` | Fixed the second apply-run failure (`round(double precision, integer)`): cast the visibility conversion to `numeric`, write a failure summary so the artifact exists, and pin both with regression tests; `132 passed`, `compileall` clean; no warehouse write occurred. Merged as PR #26 (`90778f6`); the apply re-dispatch remains a human action | Member A | `B-014`, `WP-11`, `H-015` |
+| `2026-11-14` | Fixed the transient fetch failure with bounded retry/backoff and a source-naming error (PR #27, `165d59d`), then recorded the first approved apply run [43502710978](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43502710978): `SUCCESS`, `etl_run_id=11`, 23,254 accepted / 160 rejected / 0 duplicate, 8 manifests, 820 dimension rows, DQ 32 PASS / 4 WARN / 0 FAIL, reader proof `PASS`; `H-015` closed | Member A | `B-015`, `H-015`, `WP-11` |
 
 ## Update protocol
 
@@ -491,7 +502,7 @@ When updating this file:
 | Authorized by | `HassanNawaz14` |
 | Authorization date | `2026-11-04` |
 | Authorized scope | Phase 2 implementation under gated work packages; `WP-02`–`WP-10` accepted (`D-023`/`D-024` windows closed); `WP-11` implementation authorized 2026-11-14 (`D-030`) |
-| Next gate to clear | None open for coding; `WP-11` acceptance and `WP-12` release evidence remain with the human (`H-015`–`H-017`) |
+| Next gate to clear | None open for coding; `WP-11` acceptance evidence is complete except the schedule switch and per-member reader proof (`H-016`, `H-017`); `WP-12` release closeout remains |
 
 ### Package acceptance
 

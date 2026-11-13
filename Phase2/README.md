@@ -10,7 +10,7 @@ Phase 2 turns the Phase 1 dimensional design into a shared, reproducible Postgre
 data warehouse loaded from real public data. This directory is the control point for
 Phase 2 documentation, planning, status, and future implementation.
 
-**Current status (2026-11-13):** WP-07 through WP-10 have been merged and deployed. The requester, who states they hold project-administrator authority, explicitly accepted G5/G6/G7. The independent end-to-end replay, full reader-access checks and WP-11/12 automation proof have not been independently supplied and remain documented follow-ups. G0–G4 retain their original historical evidence.
+**Current status (2026-11-14):** WP-07 through WP-10 have been merged and deployed. The requester, who states they hold project-administrator authority, explicitly accepted G5/G6/G7. The first approved WP-11 apply run ([43502710978](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43502710978)) wrote 23,254 staging rows, 8 manifests, and 820 dimension rows with 36 DQ results (32 PASS / 4 WARN / 0 FAIL); its reader proof job passed. The weekly schedule switch and per-member reader checks (`H-016`, `H-017`) and the WP-12 release closeout remain.
 
 ## Quick links
 

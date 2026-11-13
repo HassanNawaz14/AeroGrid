@@ -16,7 +16,10 @@ and dictionary merged in PR #8, and the core tracking/journey facts merged in PR
 passed, resolving `B-011` and recording `G4` on 2026-11-11. WP-07–WP-10 are deployed and merged; the requester explicitly accepted G5/G6/G7 on 2026-11-13. `WP-11`
 implements the recurring ingestion job (`run.py`, `fetch.py`, `config.py`,
 `dimension_loaders.py`, workflow `wp11-ingest.yml`) under `D-030`; it is
-`READY_FOR_REVIEW` and has not yet written to the warehouse. Every request retries
+`READY_FOR_REVIEW`. The first approved apply run
+[`43502710978`](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43502710978)
+wrote 23,254 staging rows, 8 manifests, and 820 dimension rows, and persisted 36 DQ
+results (32 PASS / 4 WARN / 0 FAIL) under `etl_run_id=11`. Every request retries
 transient timeouts, rate limits, and 5xx responses up to three attempts, and a
 persistent API error names the source URL in the failure message.
 
