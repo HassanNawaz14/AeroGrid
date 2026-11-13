@@ -16,7 +16,9 @@ and dictionary merged in PR #8, and the core tracking/journey facts merged in PR
 passed, resolving `B-011` and recording `G4` on 2026-11-11. WP-07–WP-10 are deployed and merged; the requester explicitly accepted G5/G6/G7 on 2026-11-13. `WP-11`
 implements the recurring ingestion job (`run.py`, `fetch.py`, `config.py`,
 `dimension_loaders.py`, workflow `wp11-ingest.yml`) under `D-030`; it is
-`READY_FOR_REVIEW` and has not yet written to the warehouse.
+`READY_FOR_REVIEW` and has not yet written to the warehouse. Every request retries
+transient timeouts, rate limits, and 5xx responses up to three attempts, and a
+persistent API error names the source URL in the failure message.
 
 ## Pipeline principles
 
