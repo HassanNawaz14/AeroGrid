@@ -4,6 +4,7 @@ import argparse
 import json
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+from urllib.error import HTTPError, URLError
 
 import pytest
 
@@ -167,6 +168,70 @@ def test_fetch_airspace_layer_empty_followup_page_ends_pagination(monkeypatch):
     monkeypatch.setattr(fetch_module, "_http_json", lambda url: next(pages))
     features = fetch_airspace_layer("Class_Airspace", (-80, 40, -79, 41))
     assert len(features) == fetch_module.PAGE_SIZE
+
+
+def test_get_retries_transient_transport_errors(monkeypatch):
+    calls = []
+
+    class Response:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+        def read(self, size):
+            return b"ok"
+
+    def fake_urlopen(request, timeout):
+        calls.append(request.full_url)
+        if len(calls) < 3:
+            raise URLError("temporary")
+        return Response()
+
+    monkeypatch.setattr(fetch_module, "urlopen", fake_urlopen)
+    monkeypatch.setattr(fetch_module, "_retry_pause", lambda attempt: None)
+
+    assert fetch_module._get("https://example.test/data?x=1", 10) == b"ok"
+    assert len(calls) == 3
+
+
+def test_get_does_not_retry_a_client_error(monkeypatch):
+    calls = []
+
+    def fake_urlopen(request, timeout):
+        calls.append(request.full_url)
+        raise HTTPError(request.full_url, 404, "Not Found", None, None)
+
+    monkeypatch.setattr(fetch_module, "urlopen", fake_urlopen)
+
+    with pytest.raises(RuntimeError, match=r"Source unavailable \(404\)"):
+        fetch_module._get("https://example.test/missing", 10)
+    assert len(calls) == 1
+
+
+def test_http_json_names_the_source_after_repeated_api_errors(monkeypatch):
+    monkeypatch.setattr(
+        fetch_module,
+        "_get",
+        lambda url, limit: b'{"error": {"code": 503, "message": "busy"}}',
+    )
+    monkeypatch.setattr(fetch_module, "_retry_pause", lambda attempt: None)
+
+    with pytest.raises(
+        ValueError, match="Source reported an API error at https://example.test/data"
+    ):
+        fetch_module._http_json("https://example.test/data?f=json")
+
+
+def test_http_json_recovers_after_a_transient_api_error(monkeypatch):
+    payloads = iter([b'{"error": "rate limited"}', b'[{"station": "KBTP"}]'])
+    monkeypatch.setattr(fetch_module, "_get", lambda url, limit: next(payloads))
+    monkeypatch.setattr(fetch_module, "_retry_pause", lambda attempt: None)
+
+    assert fetch_module._http_json("https://example.test/data") == [
+        {"station": "KBTP"}
+    ]
 
 
 def test_fetch_sources_uses_awc_for_recent_window_and_iem_for_history(monkeypatch):
