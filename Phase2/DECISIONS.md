@@ -53,6 +53,8 @@ decision. Use the template in [templates/DECISION_RECORD.md](templates/DECISION_
 | `D-027` | G7 administrative acceptance | `ACCEPTED` (requester declaration) | 2026-11-13, requester states project-admin authority |
 | `D-028` | Track accepted data limitations as a register with explicit implementation triggers | `ACCEPTED` | Directed by HassanNawaz14, 2026-11-13 |
 | `D-029` | Report empty sources as "no data loaded" (coverage guards `DQ-G-001`–`DQ-G-004`), never as measured zero | `ACCEPTED` | Directed by HassanNawaz14, 2026-11-13 |
+| `D-030` | WP-11 ingestion is one transactional job with a separate read-only `validate` mode; schedule stays inert until a human sets `WP11_SCHEDULE_ENABLED` | `ACCEPTED` | Directed by HassanNawaz14, 2026-11-14 |
+| `D-031` | WP-11 accepted; weekly Monday 06:00 UTC schedule enabled with standing approval for unattended `apply` and cited scope limits | `ACCEPTED` (requester declaration) | 2026-11-14, requester states project-admin authority |
 ## D-001: Neon Free PostgreSQL
 
 **Status:** `ACCEPTED`
@@ -683,6 +685,47 @@ limitation: `L-001` stays `OPEN` until facts are mapped to real weather keys, an
 `Phase2/etl/dimension_loaders.py`, `.github/workflows/wp11-ingest.yml`,
 `Phase2/tests/test_wp11_run.py`; [work breakdown](dev_plan/01_work_breakdown.md#wp-11-ci-access-and-deployment);
 [PROGRESS.md](PROGRESS.md).
+
+## D-031: WP-11 accepted; schedule enabled with standing approval for unattended apply
+
+**Date:** 2026-11-14
+
+**Decider:** HassanNawaz14 (explicit instruction: "you can accept WP-11"; statement
+that both repository variables were created)
+
+**Status:** `ACCEPTED` (requester declaration)
+
+The requester records `WP-11` `DONE` on the strength of apply run
+[`43502710978`](https://github.com/HassanNawaz14/AeroGrid/actions/runs/43502710978):
+`SUCCESS` on `main@165d59d`, `etl_run_id=11`, 23,254 accepted and 160 rejected rows,
+0 duplicates, 8 manifests, 820 dimension rows, 36 DQ results (32 `PASS`, 4 `WARN`,
+0 `FAIL`), and a passing reader-proof job.
+
+The requester states that `WP11_SCHEDULE_ENABLED=true` and
+`WP11_SCHEDULE_APPLY_ENABLED=true` were created, and this is the standing approval for
+unattended Monday 06:00 UTC writes. That approval is bounded:
+
+- one source set (`weather`, `uas`, `airspace`) and the documented stations;
+- the default 7-day window;
+- one transaction per run, rollback on any `CRITICAL` DQ failure, refusal of an empty
+  source before the first write, and a summary artifact on every run;
+- no new source, cadence change, threshold change, or `L-###` closure.
+
+Both variables were created as **environment** variables on the `warehouse`
+environment. The workflow's job-level `if` reads the `vars` context before the
+environment is assigned, so the first scheduled run (Monday 2026-11-16 06:00 UTC) must
+be checked. If it is skipped, create the same two variables at repository level
+(Settings -> Secrets and variables -> Actions -> Variables) and leave the environment
+copies in place. The run-mode step already reads the environment-scoped values.
+
+**Residual follow-up:** Members B-E have not individually run the reader probe
+(`H-017`); only the role-level proof in the apply dispatch exists. This acceptance is
+an administrative declaration, not independent end-to-end evidence, matching `D-025` –
+`D-027`.
+
+**Evidence:** [PROGRESS.md](PROGRESS.md) WP-11 row and change log;
+[accepted-limitations register](docs/13_accepted_data_limitations.md#wp-11-ingestion-status-2026-11-14);
+[human operating manual](docs/10_human_operating_manual.md#first-action-for-every-team-member-reader-proof).
 
 ## Change process
 

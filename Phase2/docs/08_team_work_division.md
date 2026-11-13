@@ -141,6 +141,10 @@ Reviewer checklist:
 
 ## Working agreements
 
+- **First action, before any other work:** run the read-only reader probe and report
+  pass/fail plus the rejected-write SQLSTATE. Steps are in
+  [10_human_operating_manual.md](10_human_operating_manual.md#first-action-for-every-team-member-reader-proof);
+  tracked as `H-017`.
 - One work package in progress per member.
 - Do not start a dependent package before its prerequisite passes.
 - Pull the latest `main` before branching.

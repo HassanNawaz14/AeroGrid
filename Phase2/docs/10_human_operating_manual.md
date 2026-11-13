@@ -17,21 +17,45 @@ warehouse without exposing secrets.
 | Audience | Start here |
 |---|---|
 | New human reviewer | `Phase2/README.md`, then this file |
-| New team member | `Phase2/README.md`, `08_team_work_division.md`, `07_operations_access_and_security.md` |
+| New team member | **Reader proof below**, then `Phase2/README.md`, `08_team_work_division.md`, `07_operations_access_and_security.md` |
 | Coding agent | `AGENTS.md`, `Phase2/AGENTS.md`, `09_agent_operating_manual.md` |
 | Instructor/reviewer | `Phase2/README.md`, `Phase2/PROGRESS.md`, reports |
+
+## First action for every team member (reader proof)
+
+Do this **before any other work**, and only once. It proves that your own
+credentials can read the shared warehouse and cannot write to it.
+
+1. Get your private read-only connection string from HassanNawaz14 out of band. Never
+   paste it into chat, a PR, an issue, or a workflow file.
+2. From the repository root, set it only for your shell session:
+   `export READONLY_DATABASE_URL='postgresql://...'` (PowerShell:
+   `$env:READONLY_DATABASE_URL='postgresql://...'`).
+3. Run the probe:
+   `python -m pip install 'psycopg[binary]>=3.2,<4' 'boto3>=1.35,<2'` then
+   `python .github/scripts/platform_probe.py --mode reader`.
+4. Report in the team channel: pass/fail, the SQLSTATE of each rejected write (any
+   write must fail with `42501`), and the date. Do not include the connection string.
+5. If the probe fails, stop and report the error code rather than retrying with a
+   different role.
+
+The same steps are tracked as `H-017` in [`../PROGRESS.md`](../PROGRESS.md). The role
+itself was proven by apply run `43502710978`; this per-member check is the remaining
+`G7` evidence.
 
 ## Current state
 
 - Phase 1 is complete and frozen.
 - Phase 2 documentation and planning baseline is accepted (`G0`/`H-001`).
 - Implementation is **authorized** (`H-007`, 2026-11-04).
-- `G2`, `G3`, and `G4` are closed; the current gate is `G5`.
-- `WP-02`-`WP-06` are `DONE` (PR #3 `b6b76b9`, PR #5 `f9087f4`, PR #7, PR #8, PR #12
-  `f29b099`). The real Tartan WP-05/WP-06 runs passed and `G4` was recorded on
-  2026-11-11; `B-011` is resolved and the `D-024` window is closed.
-- `WP-07` is `BLOCKED_ON_HUMAN` on `H-013`; approve the thresholds and
-  `algorithm_version` so Member E can start.
+- `G0`–`G4` are closed; the requester accepted `G5`, `G6`, and `G7` on 2026-11-13
+  (`D-025`–`D-027`).
+- `WP-02`–`WP-11` are `DONE`. The first approved WP-11 apply run `43502710978`
+  persisted 23,254 accepted rows, 8 manifests, 820 dimension rows, and 36 DQ results
+  (32 `PASS`, 4 `WARN`, 0 `FAIL`). WP-11 acceptance is recorded in `D-031`.
+- The weekly Monday 06:00 UTC schedule is enabled (`WP11_SCHEDULE_ENABLED=true` and
+  `WP11_SCHEDULE_APPLY_ENABLED=true`). Check the first scheduled run on 2026-11-16.
+- `WP-12` (integration, acceptance, release) is the remaining work package.
 
 ## The one rule for secrets
 
@@ -59,6 +83,9 @@ The canonical queue is in [`../PROGRESS.md`](../PROGRESS.md). Current status:
 | `H-012` | Confirm the `WP-05` start gate | `DONE` 2026-11-08 via `D-022` |
 | `H-013` | Approve the `WP-07` thresholds and algorithm version | `OPEN`; `G4` is recorded, so this is the only blocker before Member E starts derived facts |
 | `H-014` | Upload the pinned real Tartan sample to `aerogrid-raw` | `DONE` 2026-11-11; the WP-06 run fetched and verified `samples/kbtp/01-01-22/1.csv` |
+| `H-015` | Merge WP-11 and run the first approved apply | `DONE` 2026-11-14; run `43502710978` `SUCCESS`, `etl_run_id=11` |
+| `H-016` | Create the schedule variables | Variables created 2026-11-14 at `warehouse` environment scope; repository-level copies may be needed because the job-level gate reads `vars` first |
+| `H-017` | Members B-E run the reader probe | `OPEN`; each member does this **before any other work** (see [First action](#first-action-for-every-team-member-reader-proof)) |
 
 Project `AeroGrid-DW`, branch `br-royal-cherry-beij6hxw`, database `neondb`, bucket
 `aerogrid-raw`, and the storage endpoint are recorded in
