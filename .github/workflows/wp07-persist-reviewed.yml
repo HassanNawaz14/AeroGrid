@@ -1,0 +1,38 @@
+name: WP-07 approved persistence (ONE-TIME)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type exactly APPROVE_WP07_PERSIST after G5 rules/scoping review'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wp07-persistent-warehouse
+  cancel-in-progress: false
+
+jobs:
+  verify-and-persist:
+    if: ${{ github.ref == 'refs/heads/main' && inputs.confirm == 'APPROVE_WP07_PERSIST' }}
+    runs-on: ubuntu-latest
+    environment: warehouse
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check 'pytest>=8,<10' 'psycopg[binary]>=3.2,<4' 'reportlab>=4,<5'
+      - name: Regression tests
+        run: python -m pytest -q Phase2/tests
+      - name: Persist WP-07 after all internal assertions pass
+        working-directory: Phase2
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: python -m etl.verify_wp07_facts --apply
