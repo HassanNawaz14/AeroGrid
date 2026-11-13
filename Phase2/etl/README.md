@@ -28,6 +28,16 @@ recorded.
   (SHA-256 verified), applies fact DDL twice, runs staging + tracking + journey loads
   twice for reconciliation/idempotency/orphan/reader checks (`--dry-run` rolls back;
   persistent acceptance commits when all checks pass).
+- `config.py` (`WP-11`): approved source URLs, station/site anchors, licences,
+  default 7-day window, and the `L-001`–`L-010` limitation list.
+- `fetch.py` (`WP-11`): network clients for IEM/AWC METAR, Nightjar, nominal-io DJI,
+  and the three approved FAA airspace services, with size caps and pagination.
+- `dimension_loaders.py` (`WP-11`): refreshes `dim_time`, `dim_vehicle`,
+  `dim_weather`, and `dim_airspace_zone` from accepted staging rows only.
+- `run.py` (`WP-11`): ingestion orchestrator. Without `--apply` it fetches and parses
+  with no database connection; with `--apply --confirm APPROVE_WP11_APPLY` it writes
+  manifest, staging, rejects, dimensions, and DQ in one transaction and rolls back on
+  a `CRITICAL` DQ failure.
 - `transforms.py`: unit, visibility, ceiling, and flight-category helpers.
 
 ## Local checks
@@ -54,7 +64,8 @@ that is always rolled back. Do not use synthetic flight rows.
 - Real public data only; never generate synthetic business rows.
 - No local PostgreSQL, Docker, or dev containers.
 - Use environment variables/secrets; never hard-code credentials.
-- Archive raw data in object storage with a manifest.
+- Archive raw data in object storage with a manifest. This is not implemented yet;
+  `L-010` records the gap and every WP-11 run summary states it.
 - Use idempotent loads and preserve provenance.
 - Fail closed on critical DQ.
 - Do not add a dependency without checking its license and free-tier terms.

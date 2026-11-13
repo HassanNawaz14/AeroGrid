@@ -1,0 +1,149 @@
+name: WP-11 Ingestion (validate or approved apply)
+
+# validate: fetch + parse real sources, no database access, no secret.
+# apply: one transaction for manifests, staging, dimension refresh, and DQ.
+# A CRITICAL DQ failure rolls the ingestion back and records the failure run.
+#
+# Scheduled runs are disabled until a human creates the repository variable
+# WP11_SCHEDULE_ENABLED=true. The weekly Monday schedule runs read-only validate
+# unless WP11_SCHEDULE_APPLY_ENABLED=true is also set; that second variable is the
+# standing approval for unattended writes (D-030).
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'verify is read-only; apply writes to the shared warehouse'
+        required: true
+        default: verify
+        type: choice
+        options:
+          - verify
+          - apply
+      confirm:
+        description: 'If apply selected, type APPROVE_WP11_APPLY'
+        required: false
+        type: string
+      sources:
+        description: 'Comma-separated sources'
+        required: false
+        default: 'weather,uas,airspace'
+        type: string
+      stations:
+        description: 'Comma-separated METAR stations'
+        required: false
+        default: 'KBTP,KAGC'
+        type: string
+      start:
+        description: 'UTC start date (YYYY-MM-DD); blank means 7 days ago'
+        required: false
+        type: string
+      end:
+        description: 'UTC end date (YYYY-MM-DD); blank means today'
+        required: false
+        type: string
+  schedule:
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wp11-warehouse
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    if: >-
+      (github.event_name == 'schedule' && vars.WP11_SCHEDULE_ENABLED == 'true')
+      || (github.event_name == 'workflow_dispatch' && inputs.mode == 'verify')
+      || (github.event_name == 'workflow_dispatch' && inputs.mode == 'apply' && inputs.confirm == 'APPROVE_WP11_APPLY' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    environment: warehouse
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --disable-pip-version-check 'pytest>=8,<10' 'psycopg[binary]>=3.2,<4' 'reportlab>=4,<5'
+      - name: Unit tests
+        run: python -m pytest -q Phase2/tests
+      - name: Select run mode
+        id: plan
+        shell: bash
+        run: |
+          MODE=verify
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "${{ vars.WP11_SCHEDULE_APPLY_ENABLED }}" = "true" ]; then
+            MODE=apply
+          fi
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            MODE="${{ inputs.mode }}"
+          fi
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "Selected mode: $MODE"
+      - name: Validate sources (read-only)
+        if: steps.plan.outputs.mode == 'verify'
+        working-directory: Phase2
+        env:
+          SOURCES: ${{ inputs.sources || 'weather,uas,airspace' }}
+          STATIONS: ${{ inputs.stations || 'KBTP,KAGC' }}
+          START_DATE: ${{ inputs.start }}
+          END_DATE: ${{ inputs.end }}
+        run: |
+          EXTRA=()
+          if [ -n "$START_DATE" ] && [ -n "$END_DATE" ]; then
+            EXTRA+=(--start "$START_DATE" --end "$END_DATE")
+          fi
+          python -m etl.run \
+            --sources "$SOURCES" \
+            --stations "$STATIONS" \
+            "${EXTRA[@]}" \
+            --summary-path "$RUNNER_TEMP/wp11-summary.md"
+      - name: Apply ingestion (approved warehouse job)
+        if: steps.plan.outputs.mode == 'apply'
+        working-directory: Phase2
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          WAREHOUSE_CI_APPROVED: 'true'
+          SOURCES: ${{ inputs.sources || 'weather,uas,airspace' }}
+          STATIONS: ${{ inputs.stations || 'KBTP,KAGC' }}
+          START_DATE: ${{ inputs.start }}
+          END_DATE: ${{ inputs.end }}
+        run: |
+          EXTRA=()
+          if [ -n "$START_DATE" ] && [ -n "$END_DATE" ]; then
+            EXTRA+=(--start "$START_DATE" --end "$END_DATE")
+          fi
+          python -m etl.run \
+            --apply \
+            --confirm APPROVE_WP11_APPLY \
+            --sources "$SOURCES" \
+            --stations "$STATIONS" \
+            "${EXTRA[@]}" \
+            --summary-path "$RUNNER_TEMP/wp11-summary.md"
+      - name: Upload run summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wp11-run-summary
+          path: ${{ runner.temp }}/wp11-summary.md
+          if-no-files-found: warn
+
+  reader-check:
+    name: Reader access proof
+    needs: ingest
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'apply' }}
+    runs-on: ubuntu-latest
+    environment: warehouse
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --disable-pip-version-check 'psycopg[binary]>=3.2,<4' 'boto3>=1.35,<2'
+      - name: Shared reader role can read but not write
+        env:
+          READONLY_DATABASE_URL: ${{ secrets.READONLY_DATABASE_URL }}
+        run: python .github/scripts/platform_probe.py --mode reader
