@@ -611,7 +611,9 @@ An approved source that produced **no accepted staging rows** must be reported a
 Two limitations are recorded for sources that were validated but never wired into
 ingestion: `L-008` (Nightjar / nominal-io DJI) and `L-009` (FAA granular airspace
 services and the optional OpenSky path). The register also carries the coverage
-completion plan that says which package fills each staging table.
+completion plan that says which package fills each staging table, the expected
+volume per table, the ingestion sequence, and the reason for each volume limit, so
+no reduction is undocumented.
 
 **Rationale:** `vw_daily_encounter_hotspots` and `vw_restriction_traffic_impact`
 return 0 rows because the underlying sources were never ingested. Without an explicit

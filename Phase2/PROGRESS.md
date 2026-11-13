@@ -127,9 +127,13 @@ The live DQ `WARN`s map exactly to this register: `L-001` (`DQ-C-003`), `L-002`
 (`DQ-C-008`), `L-005` (`DQ-T-003`), `L-001` (`DQ-G-002`), `L-008` (`DQ-G-003`), and
 `L-009` (`DQ-G-004`). `DQ-G-001` is the opposite guard: a primary source with zero
 accepted rows becomes a `CRITICAL` failure, so an empty load can never be reported as
-a measured zero. The "when is each table actually filled" plan is the coverage
-completion plan in
-[`docs/13_accepted_data_limitations.md`](docs/13_accepted_data_limitations.md#coverage-completion-plan).
+a measured zero. The "when is each table actually filled, and with how much data"
+plan is the coverage completion plan in
+[`docs/13_accepted_data_limitations.md`](docs/13_accepted_data_limitations.md#coverage-completion-plan):
+five staging tables will fill through `WP-11`, restrictions stay conditional on a
+real historical snapshot, OpenSky is deliberately not planned, and the planned initial
+load is ~632,000 rows / ~130–320 MB (under the 1 GiB free-tier limit). The same
+section records why each volume is limited, so no reduction is undocumented.
 
 ## 2026-11-13 live warehouse verification
 

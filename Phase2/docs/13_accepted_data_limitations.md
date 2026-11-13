@@ -114,24 +114,62 @@ has no loader, and its provenance and licence must be reviewed before use.
 
 ## Coverage completion plan
 
-This table answers "when is each staging table filled". "Filled" means the source's
-real rows are accepted into staging by the scheduled ingestion job, not that a
-sample was validated in a test.
+This table answers "when is each staging table filled, and with how much data".
+"Filled" means the source's real rows are accepted into staging by the scheduled
+ingestion job, not that a sample was validated in a test. Volumes are the `WP-03`
+initial-load estimate in
+[11_risks_and_validation.md](11_risks_and_validation.md#risk-review-points); they are
+planning figures, not accepted-row counts.
 
-| Staging table | Filled by | Package | Current state | Blocking precondition |
-|---|---|---|---|---|
-| `stg_adsb_position` | Tartan KBTP loader (running today) | `WP-06` (done) | 27,479 accepted rows for 2022-01-01 | None |
-| `stg_weather_metar` | AWC/IEM METAR loader | `WP-11` ingestion | 0 rows | Wire `load_awc`/`load_iem` into the scheduled job; closes `L-001` |
-| `stg_uas_position` | Nightjar and nominal-io DJI loaders | `WP-11` ingestion | 0 rows | Wire `load_nightjar`/`load_nominal`; closes `L-008` |
-| `stg_airspace_zone` | FAA granular airspace loader | `WP-11` ingestion | 0 rows | Wire `load_faa` with `D-020` services; closes `L-009` |
-| `stg_restriction_snapshot` | FAA TFR snapshot loader | `WP-11` ingestion, `WP-12` audit | 0 rows | Needs a real historical snapshot covering the flight window; `L-005` may stay `OPEN` |
-| `stg_reject` | All loaders (rejection ledger) | `WP-06`, `WP-11` | 418 stored events across runs | `L-006` reporting rule |
-| `stg_opensky_state` | No loader exists | Not planned | 0 rows | Requires a new human decision; optional under `D-013` |
+| Staging table | Filled by | Package | Expected volume (initial load) | Current state | Blocking precondition |
+|---|---|---|---|---|---|
+| `stg_adsb_position` | Tartan KBTP loader (running today) | `WP-06` (done) | ~609,000 rows for one week (~122–305 MB) | 27,479 accepted rows for 2022-01-01 | None |
+| `stg_weather_metar` | AWC/IEM METAR loader | `WP-11` ingestion | under 1,000 rows for the initial study dates (<0.5 MB) | 0 rows | Wire `load_awc`/`load_iem` into the scheduled job; closes `L-001` |
+| `stg_uas_position` | Nightjar and nominal-io DJI loaders | `WP-11` ingestion | 22,762 rows (Nightjar 12,448 + DJI 10,314) | 0 rows | Wire `load_nightjar`/`load_nominal`; closes `L-008` |
+| `stg_airspace_zone` | FAA granular airspace loader | `WP-11` ingestion | under 1,000 filtered study-site features (<1 MB) | 0 rows | Wire `load_faa` with `D-020` services; closes `L-009` |
+| `stg_restriction_snapshot` | FAA TFR snapshot loader | `WP-11` ingestion, `WP-12` audit | unknown; 0 until a real historical snapshot is found | 0 rows | Needs a real historical snapshot covering the flight window; `L-005` may stay `OPEN` |
+| `stg_reject` | All loaders (rejection ledger) | `WP-06`, `WP-11` | grows with every load | 418 stored events across runs | `L-006` reporting rule |
+| `stg_opensky_state` | No loader exists | Not planned | 0 | 0 rows | Requires a new human decision; optional under `D-013` |
+
+**Planned initial total:** ~632,000 rows and ~130–320 MB with indexes. That is below
+the 500 MiB target and the 1 GiB free-tier limit. The full Tartan year (~22 million
+rows, ~4.4 GB) is deliberately excluded because it exceeds that limit.
 
 `WP-11` is the package that turns validation into recurring ingestion. Until its
 ingestion workflow runs, every empty row above is missing coverage, not measured
 zero. The coverage DQ checks (`DQ-G-001`–`DQ-G-004`) and the coverage section in
 both PDFs make that distinction explicit on every run.
+
+### How the ingestion job fills the tables
+
+The sequence itself is already canonical: run modes (`initial`, `weekly`, `validate`,
+`reports`), the end-to-end flow, and the manual-dispatch inputs are specified in
+[05_etl_pipeline.md](05_etl_pipeline.md#run-modes). `WP-11` implements it as one
+GitHub Actions workflow (`workflow_dispatch` plus the weekly Monday 06:00 UTC
+schedule under `D-018`/`D-019`):
+
+```
+read approved source -> validate -> write staging (stg_*) and rejects
+-> upsert dimensions -> map keys -> load core facts -> derive occupancy/restrictions
+-> run DQ -> write run summary -> build both PDFs as artifacts
+```
+
+The loaders and normalizers already exist and are unit-tested; the missing piece is
+the job that calls them and records `etl_run_log`, `source_manifest`, and
+`dq_result` rows.
+
+### Why the volumes are this size
+
+No row is removed to make a number look better. Each limit comes from a documented
+constraint:
+
+| Reduction | Reason | Where it is recorded |
+|---|---|---|
+| One week of Tartan, not a year | A year is ~22 million rows (~4.4 GB) and exceeds the 1 GiB free-tier limit; free tiers only is `D-006` | [11_risks_and_validation.md](11_risks_and_validation.md#risk-review-points), [03_data_sources_and_licensing.md](03_data_sources_and_licensing.md) |
+| UAS data is ~22,762 rows | The providers publish exactly these datasets: Nightjar `20260804` (12,448 rows) and three nominal-io DJI flights (10,314 rows). We load the real published sample, not a thinned copy | [03_data_sources_and_licensing.md](03_data_sources_and_licensing.md) |
+| Airspace is filtered by study site | FAA publishes 12,849 national features; only the few dozen intersecting each study site (19–90 per site) can affect these flights, so the rest is not loaded | [03_data_sources_and_licensing.md](03_data_sources_and_licensing.md), `D-020` |
+| Weather is the stations and hours around the flight window | Only that window can be joined honestly to these flights; a wider window would not match any tracking fact | [03_data_sources_and_licensing.md](03_data_sources_and_licensing.md), `L-001` |
+| 0 encounters, 0 restrictions, 2D grid, 60-second cap | Method and source limits, not deletion: the encounter predicate needs identical timestamps, no 2022 TFR archive exists, and `wp07-v1` is a 2D grid with a 60-second sample cap | `L-003`, `L-004`, `L-005` |
 
 ## Current DQ warnings map exactly to this register
 
@@ -162,4 +200,4 @@ evidence that these limitations are resolved.
 | Date | Change | Reference |
 |---|---|---|
 | `2026-11-13` | Created the register from the G5–G7 accepted limitations; verified current values against live warehouse runs `43471609483` and `43471616729`. | `D-028` |
-| `2026-11-13` | Added `L-008` (UAS never ingested) and `L-009` (airspace never staged, OpenSky unused); added the coverage completion plan and the `DQ-G-001`–`DQ-G-004` coverage guards. | `D-029` |
+| `2026-11-13` | Added `L-008` (UAS never ingested) and `L-009` (airspace never staged, OpenSky unused); added the coverage completion plan with expected volumes, the ingestion sequence, and the documented reason for each volume limit; added the `DQ-G-001`–`DQ-G-004` coverage guards. | `D-029` |
