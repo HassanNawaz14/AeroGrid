@@ -206,7 +206,21 @@ def check_preview_totals(totals: Mapping[str, PreviewCounts]) -> None:
 
 
 def _content_type(path: Path) -> str:
-    return "text/csv" if path.suffix.lower() == ".csv" else "application/geo+json"
+    suffix = path.suffix.lower()
+    if suffix == ".csv":
+        return "text/csv"
+    if suffix == ".geojson":
+        return "application/geo+json"
+    return "application/json"
+
+
+def check_licenses(files: Iterable[FetchedFile]) -> None:
+    """Fail readably instead of a KeyError when a fetched system has no licence."""
+    missing = sorted({f.system for f in files} - set(SOURCE_LICENSES))
+    if missing:
+        raise ValueError(
+            "No licence recorded for fetched systems: " + ", ".join(missing)
+        )
 
 
 def apply_files(
@@ -614,6 +628,7 @@ def run(
     fetched = fetch(sources, window[0], window[1], work, stations=stations)
     if not fetched:
         raise RuntimeError("No source files were fetched")
+    check_licenses(fetched)
 
     report: dict[str, Any] = {
         "mode": "apply" if args.apply else "validate",
