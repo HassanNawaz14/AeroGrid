@@ -73,7 +73,7 @@ def weather_sql() -> str:
     SELECT DISTINCT ON (w.station_icao, w.observation_ts)
            w.station_icao, w.observation_ts, COALESCE(ds.site_key, -1),
            w.temperature_c, w.wind_speed_kts,
-           ROUND(w.visibility_sm * 1609.344, 2)
+           ROUND((w.visibility_sm * 1609.344)::numeric, 2)
     FROM project_staging.stg_weather_metar w
     LEFT JOIN project_dw.dim_site ds
         ON ds.site_code = {_weather_site_case()}
