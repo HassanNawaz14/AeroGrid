@@ -1,0 +1,5 @@
+## Implementation/physical-schema note — WP-07 (2026-11-13)
+
+For SQL queries and reports use the **deployed DDL** in `Phase2/sql/02_dimensions/01_dimensions.sql` and `Phase2/sql/03_facts/02_derived_facts.sql` rather than assuming all conceptual fields in this dictionary are physical columns. `dim_spatial_grid` is 2D (`grid_cell_id`, `site_key`, `lat_bin`, `lon_bin`) with 0.01-degree cells inferred from real staging coordinates. Occupancy is one `(time_key, grid_key, algorithm_version)` row; no altitude-band surrogate key or columns are deployed. Counts at the 2026-11-13 QA snapshot: 3,658 real cells, one unknown member, 1,754 occupancy facts. Original Tartan `on_ground` remains NULL; 7,433 airborne candidates are inferred separately, not written as observed False.
+
+Data coverage: weather and zone dimensions contain only their unknown member, while encounter and restriction fact tables contain no real rows. This is a documented limitation, not a mandate to fabricate data. See `Phase2/docs/MemberE_Implementation_Evidence_2026-11-13.md`.

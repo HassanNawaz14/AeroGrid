@@ -1,0 +1,3 @@
+## Verified deployment status — 2026-11-13
+
+The "missing" pre-remediation findings below explain the initial baseline, **not the current Neon state**. Following the protected WP-07 persistent run, `dim_spatial_grid` has 3,658 real cells, 27,479 tracking rows have non-unknown grid keys, and 1,754 occupancy facts are persisted. Original Tartan `on_ground=NULL` values remain unchanged by design, with 7,433 *inferred* airborne eligible observations for KBTP. Missing true weather and FAA snapshots are disclosed in DQ. G5 owner acceptance is pending; no schema was modified to provide 3D altitude-band occupancy.

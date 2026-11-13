@@ -1,0 +1,3 @@
+### Member E implementation update (2026-11-13)
+
+`WP-07` derived facts are persisted (27,479 tracking rows with real grid assignments, 3,658 real grid cells, 1,754 hourly occupancy facts). `WP-08` persisted 32 DQ checks (29 pass / 3 warn / 0 fail). `WP-09` published both improved PDFs to [`Phase2/reports/`](Phase2/reports/) through merged PR #20. `WP-10` persisted 10 reporting views. Code and evidence are ready for final review, but **G5 and G6 are not marked DONE until the gate owner approves; WP-11/WP-12 and G7 remain separate work**. See [`Phase2/PROGRESS.md`](Phase2/PROGRESS.md) and the [Member E evidence handoff](Phase2/docs/MemberE_Implementation_Evidence_2026-11-13.md).

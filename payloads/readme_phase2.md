@@ -1,0 +1,3 @@
+### Current implementation evidence (2026-11-13)
+
+The Member E packages `WP-07` to `WP-10` have been merged and deployed to the shared Neon project where applicable. Evidence: 27,479 accepted tracking facts; 3,658 real mapped 2D grid cells; 1,754 `wp07-v1` occupancy facts; 32 DQ rows (29 PASS / 3 WARN / 0 FAIL, run 7); two verified source-linked PDFs in `reports/`; and 10 `project_reporting` views. GitHub PRs #15–#20 are merged. Package state is `READY_FOR_REVIEW`; formal G5/G6 acceptance and Member A's WP-11/G7 deployment/access responsibilities remain pending. Refer to [the live status board](PROGRESS.md) and [technical evidence handoff](docs/MemberE_Implementation_Evidence_2026-11-13.md).

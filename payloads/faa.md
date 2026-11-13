@@ -1,0 +1,3 @@
+## Live FAA probe result and current warehouse state — 2026-11-13
+
+A read-only KBTP FAA TFR-source probe at approximately 2026-11-12 22:01 UTC returned **zero live features** in the selected study box. Accepted FAA restriction snapshots and airspace-zone staging rows are still **zero**, so `wp07-v1` stores zero restriction-activation facts. The lack of 2026 source features is *not* proof that no FAA TFRs existed for the historical January 2022 Tartan period. There is no evidence-based basis to create a snapshot or historical activation artificially. This source limitation requires explicit G5 consideration; the DQ audit records warning `DQ-T-003` (indicator value 1).

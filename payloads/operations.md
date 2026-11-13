@@ -1,0 +1,5 @@
+## WP-07–WP-10 protected CI and publication update (2026-11-13)
+
+The following manual GitHub Actions workflows are merged to `main`, use the protected `warehouse` environment, and must not expose the `DATABASE_URL` secret: `wp07-persist-reviewed.yml` (one-time approved persistent derived load); `wp08-dq-verify.yml` (verify, then confirmed DQ audit `apply`); `wp10-views-verify.yml` (verify, then confirmed reporting-view `apply`); `wp09-reports.yml` (read-only PDF generation and artifact upload). The WP-07 persistent run and WP-08/10 apply verifications succeeded for the data snapshot described in [Member E evidence](MemberE_Implementation_Evidence_2026-11-13.md).
+
+All ten `project_reporting` views now exist, but **verify each role's SELECT privilege and negative INSERT/UPDATE tests** before declaring G7. GitHub merge and a successful CI run do not automatically certify team-wide read access, periodic automation, least privilege, or release readiness. Preserve `main` branch protection, avoid direct production SQL writes, and never put connection strings or object-storage credentials in documentation.
