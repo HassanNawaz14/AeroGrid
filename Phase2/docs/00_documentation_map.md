@@ -57,6 +57,7 @@ the human action protocol in [AGENTS.md](../AGENTS.md).
 | Accepted data limitations and their implementation triggers | [13_accepted_data_limitations.md](13_accepted_data_limitations.md) | [PROGRESS.md](../PROGRESS.md) register, [final gate record](FINAL_ACCEPTANCE_G5_G6_G7_2026-11-13.md) |
 | Release evidence, rubric audit, limitation audit | [WP12_RELEASE_EVIDENCE_2026-11-14.md](WP12_RELEASE_EVIDENCE_2026-11-14.md) | [13_accepted_data_limitations.md](13_accepted_data_limitations.md) |
 | Demo run sheet | [14_demo_script.md](14_demo_script.md) | [10_human_operating_manual.md](10_human_operating_manual.md) |
+| Architecture evaluation walkthrough, warehouse inventory, failure-injection playbook | [15_architecture_and_evaluation_guide.md](15_architecture_and_evaluation_guide.md) | [02_architecture_and_platform.md](02_architecture_and_platform.md) |
 | Terms | [12_glossary.md](12_glossary.md) | - |
 
 ## Audience split
