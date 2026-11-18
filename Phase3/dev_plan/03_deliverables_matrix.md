@@ -9,7 +9,7 @@ evidence. Statuses: `PLANNED` / `IN_PROGRESS` / `READY_FOR_REVIEW` / `DONE` /
 | 1 | Analytical SQL queries | 10 | `Phase3/sql/analytical/*.sql` + run log | WP-P3-02 | E | recorded query outputs with capture date | PLANNED |
 | 2 | OLAP queries | 5 | `Phase3/sql/olap/*.sql` + run log | WP-P3-03 | E | DQ3-A-004 grand-total reconciliation | PLANNED |
 | 3 | Reporting views | — | `project_reporting.vw_monthly_traffic_growth`, `vw_vehicle_analysis`, `vw_source_performance` | WP-P3-04 | E | view DDL + row-count reconciliation | PLANNED |
-| 4 | Indexing report (PDF) | — | `Phase3/reports/Indexing_Report.pdf` | WP-P3-05 | D | before/after EXPLAIN ANALYZE pairs | PLANNED |
+| 4 | Indexing report (PDF) | — | `Phase3/reports/Indexing_Report.pdf` | WP-P3-05 | D | before/after EXPLAIN ANALYZE pairs | IN_PROGRESS |
 | 5 | Power BI dashboard (PBIX) | 10 | `Phase3/deliverables/AeroGrid_Dashboard.pbix` (or artifact if ≥ 10 MB) | WP-P3-06 | E | KPI traceability table (DQ3-A-002) | PLANNED |
 | 6 | Dashboard screenshots (PDF) | — | `Phase3/reports/Dashboard_Screenshots.pdf` | WP-P3-06 | E | per-page captures with data-as-of | PLANNED |
 | 7 | Business insights report (PDF) | 5 | `Phase3/reports/Business_Insights_Report.pdf` | WP-P3-07 | E | claim → query → check citation map | PLANNED |

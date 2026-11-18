@@ -22,6 +22,18 @@ the view row/measure reconciliation (`DQ3-A-001`), and the separate
 reconciliation without persisting the views; only an apply-mode file with a
 passing reader section is apply evidence.
 
+`index_optimization_<mode>_<UTC timestamp>.json` and `.md` are written by
+[`../scripts/measure_indexes.py`](../scripts/measure_indexes.py). Each file records
+the capture time, role/database/version (never the connection string), the fact
+baseline, every `OQ-P3-05-xx` query SHA-256, and one
+`EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` before/after pair per candidate index plus
+its measured size. Verify-mode files are rollback evidence: the DDL was created and
+discarded in the same transaction. Only an apply-mode file with
+`"persisted": true` proves the indexes exist. The PDF in `Phase3/reports/` is built
+from this JSON by
+[`../scripts/generate_index_report.py`](../scripts/generate_index_report.py); never
+hand-edit a pair or copy a number into the report.
+
 A run file is evidence only when it was produced against the shared warehouse through
 `aerogrid_reader` (or a read-only transaction) and the capture date is visible. Never
 hand-edit a generated run file or copy numbers into it.
