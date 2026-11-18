@@ -63,6 +63,26 @@ def _mib(value: Any) -> str:
     return f"{float(value) / (1024 * 1024):,.2f} MiB"
 
 
+def capacity_summary(evidence: dict[str, Any]) -> str:
+    """Build the capacity paragraph from measured evidence, never fixed numbers."""
+    baseline = evidence.get("fact_baseline") or {}
+    if baseline:
+        facts = "; ".join(
+            f"{name}={count:,}" for name, count in sorted(baseline.items())
+        )
+        lead = f"At capture the measured fact baseline was: {facts}."
+    else:
+        lead = "The fact baseline was not recorded in this evidence file."
+    return (
+        lead
+        + " The storage guard is 700 MB; an apply run rolls back if the post-apply "
+        "database size would exceed it. Index sizes above are measured inside the "
+        "same transaction and are reported even when a candidate is rejected. "
+        "Objects larger than 10 MB are published as CI artifacts instead of being "
+        "committed (D3-008)."
+    )
+
+
 def build_report(evidence: dict[str, Any], output_path: Path) -> dict[str, Any]:
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import letter
@@ -131,7 +151,11 @@ def build_report(evidence: dict[str, Any], output_path: Path) -> dict[str, Any]:
             f"{name}={count}" for name, count in (evidence.get("fact_baseline") or {}).items()
         ) or "UNKNOWN"],
         ["Database size before", _mib(evidence.get("baseline_database_size_bytes"))],
-        ["Database size after", _mib(evidence.get("final_database_size_bytes"))],
+        [
+            "Database size at end",
+            f"{_mib(evidence.get('final_database_size_bytes'))} "
+            f"(persisted: {str(evidence.get('persisted', False)).lower()})",
+        ],
         ["Storage guard", _mib(evidence.get("storage_guard_bytes"))],
         [DQ_ID, status],
     ]
@@ -243,17 +267,7 @@ def build_report(evidence: dict[str, Any], output_path: Path) -> dict[str, Any]:
         story.append(Spacer(1, 4))
 
     story.append(Paragraph("Capacity guard", heading))
-    story.append(
-        Paragraph(
-            "The baseline is 27,479 tracking facts, 178 journeys, and 1,754 occupancy "
-            "facts at the capture recorded above. The storage guard is 700 MB; an apply "
-            "run rolls back if the post-apply database size would exceed it. Index "
-            "sizes above are measured inside the same transaction and are reported even "
-            "when a candidate is rejected. Objects larger than 10 MB are published as "
-            "CI artifacts instead of being committed (D3-008).",
-            body,
-        )
-    )
+    story.append(Paragraph(html.escape(capacity_summary(evidence)), body))
 
     story.append(Paragraph("Rules and limitations", heading))
     story.extend(

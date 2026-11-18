@@ -4,8 +4,9 @@ Read-only analytical and OLAP queries for WP-P3-02 and WP-P3-03, the
 WP-P3-04 gold-view DDL, and the WP-P3-05 optimization assets. The analytical and
 OLAP layers read only `project_dw`; they create no objects and write no rows. The
 `views/` layer creates three `project_reporting` views and writes no base-table
-rows. The `optimization/` layer mirrors the dashboard-critical view queries for
-`EXPLAIN ANALYZE` measurement; `indexes/` holds idempotent candidate index DDL that
+rows. The `optimization/` layer exercises the access paths of the
+dashboard-critical view queries for `EXPLAIN ANALYZE` measurement; `indexes/` holds
+idempotent candidate index DDL that
 is only persisted by the protected WP-P3-05 apply workflow. All analytical/OLAP and
 optimization files are single `SELECT`/`WITH` statements checked by
 `Phase3/scripts/run_readonly_analytics.py`; the view files are checked by

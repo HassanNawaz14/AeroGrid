@@ -1,7 +1,8 @@
 -- Query ID: OQ-P3-05-03
 -- WP-P3-05 dashboard-critical query: per-vehicle observed activity, journey
--- totals, and peak UTC hour. Mirrors project_reporting.vw_vehicle_analysis so the
--- EXPLAIN ANALYZE before/after pair measures the real dashboard access path.
+-- totals, and peak UTC hour. Exercises the access path of
+-- project_reporting.vw_vehicle_analysis so the EXPLAIN ANALYZE before/after pair
+-- measures the real dashboard scan. It is a measurement query, not the view DDL.
 -- Read-only. Grain: one row per real dim_vehicle member (vehicle_key > 0).
 -- Vehicles with no facts stay visible with coverage labels, never as evidence of
 -- inactivity (D3-009). Identity is source-scoped only (L3-003).

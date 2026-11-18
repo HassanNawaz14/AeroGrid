@@ -1,7 +1,8 @@
 -- Query ID: OQ-P3-05-02
 -- WP-P3-05 dashboard-critical query: observed monthly traffic and month-over-month
--- growth per site. Mirrors project_reporting.vw_monthly_traffic_growth so the
--- EXPLAIN ANALYZE before/after pair measures the real dashboard access path.
+-- growth per site. Exercises the access path of
+-- project_reporting.vw_monthly_traffic_growth so the EXPLAIN ANALYZE
+-- before/after pair measures the real dashboard scan.
 -- Read-only. Grain: one row per real site per observed UTC month. An absent
 -- site-month is missing coverage, never zero activity (D3-009). No month spine.
 SELECT

@@ -1,7 +1,7 @@
 -- Query ID: OQ-P3-05-01
 -- WP-P3-05 dashboard-critical query: observed monthly tracking volume per source.
--- Mirrors the monthly CTE of project_reporting.vw_source_performance so the
--- EXPLAIN ANALYZE before/after pair measures the real dashboard access path.
+-- Exercises the monthly access path of project_reporting.vw_source_performance
+-- so the EXPLAIN ANALYZE before/after pair measures the real dashboard scan.
 -- Read-only. Grain: one row per source system per observed UTC month. A missing
 -- month is missing coverage, never zero activity (D3-009).
 SELECT

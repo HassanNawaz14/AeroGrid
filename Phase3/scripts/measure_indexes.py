@@ -364,6 +364,10 @@ def measure_indexes(database_url: str, apply: bool) -> tuple[dict[str, Any], boo
                 cur.execute(f"ANALYZE {definition.table}")
             after = measure_query(conn, query["sql"])
             size = index_size_bytes(conn, definition.table, definition.index_name)
+            if size <= 0:
+                raise RuntimeError(
+                    f"{definition.index_name}: created index has no measurable size"
+                )
             record = {
                 "index_id": definition.index_id,
                 "index_name": definition.index_name,
@@ -446,7 +450,8 @@ def render_markdown(evidence: dict[str, Any]) -> str:
             f"- Server: {evidence.get('server', 'UNKNOWN')}",
             f"- Storage guard: {evidence['storage_guard_bytes'] / (1024 * 1024):.0f} MiB",
             f"- Database size before: {evidence['baseline_database_size_bytes']} bytes",
-            f"- Database size after: {evidence['final_database_size_bytes']} bytes",
+            f"- Database size at end: {evidence['final_database_size_bytes']} bytes "
+            f"(persisted: {str(evidence['persisted']).lower()})",
             "",
             "## Fact baseline at capture",
             "",

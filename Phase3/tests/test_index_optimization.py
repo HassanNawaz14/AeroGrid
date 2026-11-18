@@ -209,6 +209,19 @@ def test_dq3_a_006_passes_only_with_complete_pairs() -> None:
     assert report.dq3_a_006_status(broken) == "FAIL"
 
 
+def test_capacity_text_uses_measured_evidence_not_hardcoded_numbers() -> None:
+    evidence = _evidence()
+    evidence["fact_baseline"] = {
+        "fact_vehicle_tracking": 99,
+        "fact_flight_journey": 7,
+    }
+    text = report.capacity_summary(evidence)
+    assert "99" in text
+    assert "7" in text
+    assert "27,479" not in text
+    assert "1,754" not in text
+
+
 def test_report_generator_writes_pdf_and_rejects_missing_pair(tmp_path: Path) -> None:
     pytest.importorskip("reportlab")
     output = tmp_path / "Indexing_Report.pdf"
