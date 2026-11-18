@@ -8,7 +8,8 @@ This is the only status board for Phase 3. Decision records live in
 `PHASE3_P3G0_P3G1_DONE` — documentation baseline merged (PR #31) and human
 prerequisites closed by the requester-admin on 2026-11-18 (H3-001 authorized,
 H3-002 Power BI Desktop confirmed, H3-003 whole team presents). WP-P3-01 is `DONE`
-and gate P3-G1 is closed. WP-P3-02 and WP-P3-03 are `READY` for Member E to claim.
+and gate P3-G1 is closed. WP-P3-02 is `IN_PROGRESS` (Member E, 2026-11-18);
+WP-P3-03 remains `READY` for Member E as the paired P3-G2 package.
 
 ## Gate status
 
@@ -27,7 +28,7 @@ and gate P3-G1 is closed. WP-P3-02 and WP-P3-03 are `READY` for Member E to clai
 |---|---|---|---|
 | WP-P3-00 | Documentation baseline | A | DONE (PR #31, 2026-11-18) |
 | WP-P3-01 | Human prerequisites | Human / A | DONE (2026-11-18, requester-admin) |
-| WP-P3-02 | Analytical SQL layer | E | READY |
+| WP-P3-02 | Analytical SQL layer | E | IN_PROGRESS (Member E, 2026-11-18) |
 | WP-P3-03 | OLAP queries (ROLLUP / CUBE) | E | READY |
 | WP-P3-04 | Phase 3 reporting views | E | NOT_STARTED |
 | WP-P3-05 | Query optimization + indexing report | D | NOT_STARTED |
