@@ -5,10 +5,13 @@ This is the only status board for Phase 3. Decision records live in
 
 ## Headline
 
-`PHASE3_P3G0_P3G1_DONE` — documentation baseline merged (PR #31) and human
+`PHASE3_P3G2_READY_FOR_REVIEW` — documentation baseline merged (PR #31) and human
 prerequisites closed by the requester-admin on 2026-11-18 (H3-001 authorized,
 H3-002 Power BI Desktop confirmed, H3-003 whole team presents). WP-P3-01 is `DONE`
-and gate P3-G1 is closed. WP-P3-02 and WP-P3-03 are `READY` for Member E to claim.
+and gate P3-G1 is closed. WP-P3-02 and WP-P3-03 are `READY_FOR_REVIEW` as the paired
+P3-G2 package (Member E, 2026-11-18); the live read-only run executed 10 of 10 SQL
+files against `neondb` as `aerogrid_reader` and `DQ3-A-004` returned `PASS`. Reviewer
+sign-off from C and D remains before P3-G2 can close.
 
 ## Gate status
 
@@ -16,7 +19,7 @@ and gate P3-G1 is closed. WP-P3-02 and WP-P3-03 are `READY` for Member E to clai
 |---|---|---|---|
 | P3-G0 | Documentation baseline | DONE | PR #31 merged (commit `c700ad7`): docs 00–13 + dev_plan; no implementation, no secrets, no raw data |
 | P3-G1 | Human prerequisites | DONE | Requester-admin closure 2026-11-18: H3-001 authorized, H3-002 confirmed, H3-003 whole team presents |
-| P3-G2 | Analytical SQL + OLAP | NOT_STARTED | WP-P3-02, WP-P3-03 |
+| P3-G2 | Analytical SQL + OLAP | READY_FOR_REVIEW | WP-P3-02 + WP-P3-03 evidence: `Phase3/evidence/analytics_run_20261118T110136Z.md` (10/10 queries, `aerogrid_reader`, `DQ3-A-004` PASS); CI run 44290826341; awaiting reviewers C and D |
 | P3-G3 | Reporting views + optimization | NOT_STARTED | WP-P3-04, WP-P3-05 |
 | P3-G4 | Dashboard + insights + presentation | NOT_STARTED | WP-P3-06 … WP-P3-08 |
 | P3-G5 | Release | NOT_STARTED | WP-P3-09, WP-P3-10 |
@@ -27,8 +30,8 @@ and gate P3-G1 is closed. WP-P3-02 and WP-P3-03 are `READY` for Member E to clai
 |---|---|---|---|
 | WP-P3-00 | Documentation baseline | A | DONE (PR #31, 2026-11-18) |
 | WP-P3-01 | Human prerequisites | Human / A | DONE (2026-11-18, requester-admin) |
-| WP-P3-02 | Analytical SQL layer | E | READY |
-| WP-P3-03 | OLAP queries (ROLLUP / CUBE) | E | READY |
+| WP-P3-02 | Analytical SQL layer | E | READY_FOR_REVIEW (Member E, 2026-11-18; evidence `Phase3/evidence/analytics_run_20261118T110136Z.md`) |
+| WP-P3-03 | OLAP queries (ROLLUP / CUBE) | E | READY_FOR_REVIEW (Member E, 2026-11-18; same paired evidence, `DQ3-A-004` PASS) |
 | WP-P3-04 | Phase 3 reporting views | E | NOT_STARTED |
 | WP-P3-05 | Query optimization + indexing report | D | NOT_STARTED |
 | WP-P3-06 | Power BI dashboard | E | NOT_STARTED |
@@ -41,6 +44,27 @@ and gate P3-G1 is closed. WP-P3-02 and WP-P3-03 are `READY` for Member E to clai
 | WP-P3-H3 | (Optional) SCD Type 2 evaluation | C | NOT_STARTED |
 | WP-P3-H4 | (Optional) Materialized marts + refresh | D | NOT_STARTED |
 
+## P3-G2 handoff (2026-11-18)
+
+- Branch: `phase3/wp-p3-02-analytical-sql` (PR #35). Evidence harness merged as
+  PR #34 (`phase3/wp-p3-ci-evidence`); workflow run 44290826341.
+- Files: 7 queries under `Phase3/sql/analytical/`, 3 queries under
+  `Phase3/sql/olap/`, `Phase3/scripts/run_readonly_analytics.py`,
+  `Phase3/tests/test_analytics_assets.py`, `Phase3/tests/conftest.py`,
+  `Phase3/sql/README.md`, `Phase3/evidence/README.md`.
+- Checks: `python -m pytest -q Phase3/tests` -> 22 passed; CI static tests passed;
+  live read-only run executed 10 of 10 queries; `DQ3-A-004` returned `PASS`.
+- Evidence: `Phase3/evidence/analytics_run_20261118T110136Z.md`, captured
+  `2026-11-18T11:01:37Z` as `aerogrid_reader` against `neondb` (PostgreSQL 18.7).
+- Observed at capture: 27,479 tracking facts; 178 journeys; 1,754 occupancy facts;
+  158 vehicle dimension rows (156 with tracking, 2 UAS rows with no tracking facts);
+  3,658 grid cells; 0 detected encounters. One observed tracking month (2022-01);
+  four sites exist, only KBTP has tracking coverage.
+- Zero-coverage rows are labelled as coverage gaps, never as zero activity
+  (`D3-009`; `L-003`, `L-004`, `L-008`, `L3-002`, `L3-003`).
+- Next: reviewers C and D verify KPI definitions, read-only SQL, coverage labels,
+  and the `DQ3-A-004` reconciliation; then close P3-G2 and release WP-P3-04.
+
 ## Human action queue
 
 Stable IDs; agents never simulate these actions.
@@ -50,6 +74,7 @@ Stable IDs; agents never simulate these actions.
 | H3-001 | Authorize Phase 3 start (confirm scope: analytics + BI on the existing warehouse) | P3-G1 cannot start without explicit approval | Reply in chat / mark approved in dev_plan | CLOSED 2026-11-18 (authorized) |
 | H3-002 | Confirm Power BI Desktop availability for the team (free Desktop; no Service workspace unless a human creates one) | WP-P3-06 deliverable needs a build tool | Install from Microsoft; report back | CLOSED 2026-11-18 (confirmed) |
 | H3-003 | Decide who presents the final deck | Presentation delivery is human-owned | Team decision; record in DECISIONS.md | CLOSED 2026-11-18 (whole team presents) |
+| H3-004 | Review and sign off WP-P3-02 + WP-P3-03, then close P3-G2 | Owner E cannot self-approve; reviewers C and D must approve | Review the evidence file and SQL, then record approval in this board | OPEN |
 
 ## Carried-over open items from Phase 2
 
@@ -59,4 +84,6 @@ the optional hardening track (WP-P3-H1 … H4) owns them through decisions.
 
 ## Blockers
 
-None beyond the human actions above.
+- P3-G2 reviewer sign-off (H3-004). WP-P3-04 must wait for P3-G2 closure.
+- No technical blocker remains for the evidence run; the package PR review is the
+  only open item.
