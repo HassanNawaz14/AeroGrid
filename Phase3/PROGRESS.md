@@ -5,13 +5,15 @@ This is the only status board for Phase 3. Decision records live in
 
 ## Headline
 
-`PHASE3_P3G2_READY_FOR_REVIEW` — documentation baseline merged (PR #31) and human
-prerequisites closed by the requester-admin on 2026-11-18 (H3-001 authorized,
-H3-002 Power BI Desktop confirmed, H3-003 whole team presents). WP-P3-01 is `DONE`
-and gate P3-G1 is closed. WP-P3-02 and WP-P3-03 are `READY_FOR_REVIEW` as the paired
-P3-G2 package (Member E, 2026-11-18); the live read-only run executed 10 of 10 SQL
-files against `neondb` as `aerogrid_reader` and `DQ3-A-004` returned `PASS`. Reviewer
-sign-off from C and D remains before P3-G2 can close.
+`PHASE3_P3G3_VERIFY_PASSED_APPLY_PENDING` — documentation baseline merged (PR #31)
+and human prerequisites closed by the requester-admin on 2026-11-18 (H3-001
+authorized, H3-002 Power BI Desktop confirmed, H3-003 whole team presents).
+WP-P3-01 is `DONE`. WP-P3-02 and WP-P3-03 are `DONE`; PR #35 merged as `761475b`
+and the requester confirmed the C/D review sign-off on 2026-11-18. P3-G2 is closed
+on the recorded evidence: 10 of 10 read-only queries, `aerogrid_reader`,
+`DQ3-A-004` `PASS`. WP-P3-04 is `BLOCKED_ON_HUMAN`: the rollback verification
+passed (run 44295954164, `DQ3-A-001` `PASS` for all three views), and only the
+approved apply plus reader proof (`H3-005`) remains for P3-G3.
 
 ## Gate status
 
@@ -19,8 +21,8 @@ sign-off from C and D remains before P3-G2 can close.
 |---|---|---|---|
 | P3-G0 | Documentation baseline | DONE | PR #31 merged (commit `c700ad7`): docs 00–13 + dev_plan; no implementation, no secrets, no raw data |
 | P3-G1 | Human prerequisites | DONE | Requester-admin closure 2026-11-18: H3-001 authorized, H3-002 confirmed, H3-003 whole team presents |
-| P3-G2 | Analytical SQL + OLAP | READY_FOR_REVIEW | WP-P3-02 + WP-P3-03 evidence: `Phase3/evidence/analytics_run_20261118T110136Z.md` (10/10 queries, `aerogrid_reader`, `DQ3-A-004` PASS); CI run 44290826341; awaiting reviewers C and D |
-| P3-G3 | Reporting views + optimization | NOT_STARTED | WP-P3-04, WP-P3-05 |
+| P3-G2 | Analytical SQL + OLAP | DONE | WP-P3-02 + WP-P3-03 evidence: `Phase3/evidence/analytics_run_20261118T110136Z.md` (10/10 queries, `aerogrid_reader`, `DQ3-A-004` PASS); CI run 44290826341; PR #35 merged as `761475b`; C/D review sign-off confirmed 2026-11-18 |
+| P3-G3 | Reporting views + optimization | IN_PROGRESS | WP-P3-04 rollback verification PASS (run 44295954164; `Phase3/evidence/gold_views_20261118T113454Z.md`); apply/reader proof pending `H3-005`; WP-P3-05 not started |
 | P3-G4 | Dashboard + insights + presentation | NOT_STARTED | WP-P3-06 … WP-P3-08 |
 | P3-G5 | Release | NOT_STARTED | WP-P3-09, WP-P3-10 |
 
@@ -30,9 +32,9 @@ sign-off from C and D remains before P3-G2 can close.
 |---|---|---|---|
 | WP-P3-00 | Documentation baseline | A | DONE (PR #31, 2026-11-18) |
 | WP-P3-01 | Human prerequisites | Human / A | DONE (2026-11-18, requester-admin) |
-| WP-P3-02 | Analytical SQL layer | E | READY_FOR_REVIEW (Member E, 2026-11-18; evidence `Phase3/evidence/analytics_run_20261118T110136Z.md`) |
-| WP-P3-03 | OLAP queries (ROLLUP / CUBE) | E | READY_FOR_REVIEW (Member E, 2026-11-18; same paired evidence, `DQ3-A-004` PASS) |
-| WP-P3-04 | Phase 3 reporting views | E | NOT_STARTED |
+| WP-P3-02 | Analytical SQL layer | E | DONE (PR #35, `761475b`; evidence `Phase3/evidence/analytics_run_20261118T110136Z.md`) |
+| WP-P3-03 | OLAP queries (ROLLUP / CUBE) | E | DONE (PR #35, `761475b`; same paired evidence, `DQ3-A-004` PASS) |
+| WP-P3-04 | Phase 3 reporting views | E | BLOCKED_ON_HUMAN (verify PASS 2026-11-18; apply pending H3-005) |
 | WP-P3-05 | Query optimization + indexing report | D | NOT_STARTED |
 | WP-P3-06 | Power BI dashboard | E | NOT_STARTED |
 | WP-P3-07 | Business insights report | E | NOT_STARTED |
@@ -62,8 +64,40 @@ sign-off from C and D remains before P3-G2 can close.
   four sites exist, only KBTP has tracking coverage.
 - Zero-coverage rows are labelled as coverage gaps, never as zero activity
   (`D3-009`; `L-003`, `L-004`, `L-008`, `L3-002`, `L3-003`).
-- Next: reviewers C and D verify KPI definitions, read-only SQL, coverage labels,
-  and the `DQ3-A-004` reconciliation; then close P3-G2 and release WP-P3-04.
+- Closed: PR #35 merged as `761475b`; requester confirmed C/D review sign-off on
+  2026-11-18. P3-G2 is `DONE`, releasing WP-P3-04 for P3-G3.
+
+## WP-P3-04 handoff (2026-11-18)
+
+- Branch: `phase3/wp-p3-04-reporting-views` (pushed). Gate: P3-G3.
+- CI plumbing: `.github/workflows/wp-p3-gold-views.yml` merged to `main` via PR #36
+  (`d90f2a1`). It verifies with rollback by default; `apply` is `main`-only and
+  needs the `warehouse` environment plus `APPROVE_WP3_GOLD_VIEWS`.
+- Files added: `Phase3/sql/views/01_gold_views.sql`,
+  `Phase3/sql/views/README.md`, `Phase3/scripts/verify_gold_views.py`,
+  `Phase3/tests/test_gold_views.py`.
+- Files updated: `Phase3/sql/README.md`, `Phase3/evidence/README.md`,
+  `Phase3/README.md`, `Phase3/PROGRESS.md`.
+- Views: `vw_monthly_traffic_growth` (observed site-month grain, null-safe
+  month-over-month status), `vw_vehicle_analysis` (one row per real vehicle,
+  observed-hour summary, `L3-003` identity note), `vw_source_performance` (one row
+  per source system, observed-month span and coverage labels, `L-008`).
+- Static checks: `python -m pytest -q Phase3/tests` -> 33 passed;
+  `python -m compileall -q Phase3/scripts Phase3/tests` -> OK; `pglast` parsed the
+  three-view DDL; workflow YAML parsed; secret scan clean.
+- Rollback verification: workflow run 44295954164 `PASS`, captured
+  `2026-11-18T11:34:54Z` as `aerogrid_etl` against `neondb` (PostgreSQL 18.7);
+  evidence `Phase3/evidence/gold_views_20261118T113454Z.md`; no persisted view
+  changes. Baseline: 27,479 tracking facts; 178 journeys; 1 site-month; 158 vehicle
+  rows; 3 source rows.
+- `DQ3-A-001`: `PASS` for `vw_monthly_traffic_growth` (1 row, 27,479 tracking),
+  `vw_vehicle_analysis` (158 rows, 27,479 tracking, 178 journeys), and
+  `vw_source_performance` (3 rows, 27,479 tracking, 178 journeys).
+- Pending: `H3-005` approval for the CI `apply`, then the separate
+  `aerogrid_reader` proof; only then is WP-P3-04 ready for C/D review and P3-G3
+  closure.
+- Coverage rule: no month spine, no synthetic rows; zero-fact members stay visible
+  with coverage labels, never as zero activity (`D3-009`).
 
 ## Human action queue
 
@@ -74,7 +108,8 @@ Stable IDs; agents never simulate these actions.
 | H3-001 | Authorize Phase 3 start (confirm scope: analytics + BI on the existing warehouse) | P3-G1 cannot start without explicit approval | Reply in chat / mark approved in dev_plan | CLOSED 2026-11-18 (authorized) |
 | H3-002 | Confirm Power BI Desktop availability for the team (free Desktop; no Service workspace unless a human creates one) | WP-P3-06 deliverable needs a build tool | Install from Microsoft; report back | CLOSED 2026-11-18 (confirmed) |
 | H3-003 | Decide who presents the final deck | Presentation delivery is human-owned | Team decision; record in DECISIONS.md | CLOSED 2026-11-18 (whole team presents) |
-| H3-004 | Review and sign off WP-P3-02 + WP-P3-03, then close P3-G2 | Owner E cannot self-approve; reviewers C and D must approve | Review the evidence file and SQL, then record approval in this board | OPEN |
+| H3-004 | Review and sign off WP-P3-02 + WP-P3-03, then close P3-G2 | Owner E cannot self-approve; reviewers C and D must approve | Review the evidence file and SQL, then record approval in this board | CLOSED 2026-11-18 (requester confirmed C/D sign-off; PR #35 merged) |
+| H3-005 | Approve WP-P3-04 gold-view apply after a clean rollback verification | Applying views is a shared-warehouse write; CI needs the `warehouse` environment and the `APPROVE_WP3_GOLD_VIEWS` confirmation | Verify passed in run 44295954164; a human dispatches `apply` on `main` with the token and confirms the reader evidence | OPEN (verify PASS 2026-11-18; apply pending) |
 
 ## Carried-over open items from Phase 2
 
@@ -84,6 +119,7 @@ the optional hardening track (WP-P3-H1 … H4) owns them through decisions.
 
 ## Blockers
 
-- P3-G2 reviewer sign-off (H3-004). WP-P3-04 must wait for P3-G2 closure.
-- No technical blocker remains for the evidence run; the package PR review is the
-  only open item.
+- WP-P3-04 apply and reader proof are blocked on `H3-005`; the rollback
+  verification passed and no view has been persisted yet.
+- WP-P3-04 final sign-off needs reviewers C/D after apply; owner E cannot
+  self-approve.
