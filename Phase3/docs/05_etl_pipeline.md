@@ -39,6 +39,11 @@ ever performs are new views/indexes in `project_reporting` and `project_dw`
 | Dashboard | Manual refresh in Power BI Desktop against current views | E |
 | Materialized marts | Only if `D3-007` evidence approves them; refresh in the same transaction as view apply | D |
 
+WP-P3-05 verify run 44397831286 measured three candidate indexes as `NEUTRAL`
+(identical plans and costs), so none is applied (`D3-011`); the DDL stays
+evaluated/deferred. That run says nothing in favor of materialized marts, so
+`D3-007` remains unproven and `WP-P3-H4` stays optional.
+
 ## Optional hardening track (post-course or by decision)
 
 | WP | Item | Trigger |

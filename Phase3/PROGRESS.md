@@ -5,7 +5,7 @@ This is the only status board for Phase 3. Decision records live in
 
 ## Headline
 
-`PHASE3_P3G3_VERIFY_PASSED_APPLY_PENDING` — documentation baseline merged (PR #31)
+`PHASE3_P3G3_WP05_RECORDED_APPLY_DECLINED` — documentation baseline merged (PR #31)
 and human prerequisites closed by the requester-admin on 2026-11-18 (H3-001
 authorized, H3-002 Power BI Desktop confirmed, H3-003 whole team presents).
 WP-P3-01 is `DONE`. WP-P3-02 and WP-P3-03 are `DONE`; PR #35 merged as `761475b`
@@ -13,12 +13,13 @@ and the requester confirmed the C/D review sign-off on 2026-11-18. P3-G2 is clos
 on the recorded evidence: 10 of 10 read-only queries, `aerogrid_reader`,
 `DQ3-A-004` `PASS`. WP-P3-04 is `BLOCKED_ON_HUMAN`: the rollback verification
 passed (run 44295954164, `DQ3-A-001` `PASS` for all three views), and only the
-approved apply plus reader proof (`H3-005`) remains for P3-G3. WP-P3-05
-implementation is `IN_PROGRESS` (Member D, 2026-11-19): a rollback-first
-`EXPLAIN ANALYZE` harness, three candidate index blocks, a guarded verify/apply
-workflow, and the PDF report generator are on
-`phase3/wp-p3-05-query-optimization`; measured pairs and the report await the
-human-dispatched `H3-006`/`H3-007` runs.
+approved apply plus reader proof (`H3-005`) remains for P3-G3. WP-P3-05 (Member D)
+verify measurement is recorded: run 44397831286, captured 2026-11-18T21:05:46Z
+(`DQ3-A-006` `PASS`), all three candidates `NEUTRAL` — plans and costs unchanged,
+execution-time deltas +0.36% to +0.58%, 992 KiB total footprint. Per `D3-011` no
+index is applied; the DDL stays evaluated/deferred and the verify-mode
+`Phase3/reports/Indexing_Report.pdf` is the deliverable. WP-P3-05 is
+`READY_FOR_REVIEW` for reviewers C/A.
 
 ## Gate status
 
@@ -27,7 +28,7 @@ human-dispatched `H3-006`/`H3-007` runs.
 | P3-G0 | Documentation baseline | DONE | PR #31 merged (commit `c700ad7`): docs 00–13 + dev_plan; no implementation, no secrets, no raw data |
 | P3-G1 | Human prerequisites | DONE | Requester-admin closure 2026-11-18: H3-001 authorized, H3-002 confirmed, H3-003 whole team presents |
 | P3-G2 | Analytical SQL + OLAP | DONE | WP-P3-02 + WP-P3-03 evidence: `Phase3/evidence/analytics_run_20261118T110136Z.md` (10/10 queries, `aerogrid_reader`, `DQ3-A-004` PASS); CI run 44290826341; PR #35 merged as `761475b`; C/D review sign-off confirmed 2026-11-18 |
-| P3-G3 | Reporting views + optimization | IN_PROGRESS | WP-P3-04 rollback verification PASS (run 44295954164; `Phase3/evidence/gold_views_20261118T113454Z.md`); apply/reader proof pending `H3-005`; WP-P3-05 harness implemented 2026-11-19, measurement pending `H3-006` |
+| P3-G3 | Reporting views + optimization | IN_PROGRESS | WP-P3-04 rollback verification PASS (run 44295954164; `Phase3/evidence/gold_views_20261118T113454Z.md`); apply/reader proof pending `H3-005`; WP-P3-05 verify PASS (run 44397831286, `DQ3-A-006` PASS, all candidates NEUTRAL, persisted false) with `Phase3/reports/Indexing_Report.pdf` committed and no apply per `D3-011` |
 | P3-G4 | Dashboard + insights + presentation | NOT_STARTED | WP-P3-06 … WP-P3-08 |
 | P3-G5 | Release | NOT_STARTED | WP-P3-09, WP-P3-10 |
 
@@ -40,7 +41,7 @@ human-dispatched `H3-006`/`H3-007` runs.
 | WP-P3-02 | Analytical SQL layer | E | DONE (PR #35, `761475b`; evidence `Phase3/evidence/analytics_run_20261118T110136Z.md`) |
 | WP-P3-03 | OLAP queries (ROLLUP / CUBE) | E | DONE (PR #35, `761475b`; same paired evidence, `DQ3-A-004` PASS) |
 | WP-P3-04 | Phase 3 reporting views | E | BLOCKED_ON_HUMAN (verify PASS 2026-11-18; apply pending H3-005) |
-| WP-P3-05 | Query optimization + indexing report | D | IN_PROGRESS (harness implemented 2026-11-19; measurement/apply/report pending H3-006/H3-007) |
+| WP-P3-05 | Query optimization + indexing report | D | READY_FOR_REVIEW (verify run 44397831286 PASS; all candidates NEUTRAL; PDF committed; no apply per `D3-011`; C/A review pending) |
 | WP-P3-06 | Power BI dashboard | E | NOT_STARTED |
 | WP-P3-07 | Business insights report | E | NOT_STARTED |
 | WP-P3-08 | Final presentation | E | NOT_STARTED |
@@ -129,17 +130,31 @@ human-dispatched `H3-006`/`H3-007` runs.
   above the 700 MB guard. The PDF refuses to build unless every claimed index has
   a before/after pair (`DQ3-A-006`); neutral or slower results are reported as
   measured.
-- Checks: `python -m pytest -q Phase3/tests` -> 46 passed with the optional
-  `pglast` parser installed (45 passed, 1 skipped without it);
+- Checks: `python -m pytest -q Phase3/tests` -> 49 passed after the
+  schema-qualified-index fix (`2d283bc`, PR #39 merged as `6678c1a`);
   `python -m compileall -q Phase3/scripts Phase3/tests` OK; `pglast` parsed the
-  four SQL assets; workflow YAML parsed; `git diff --check` clean. No warehouse
-  connection was made; no measured numbers exist yet and none were invented.
-- Pending: `H3-006` dispatch of the verify measurement (human/CI), then `H3-007`
-  apply approval after review. The committed `Phase3/reports/Indexing_Report.pdf`
-  is produced from the apply-mode JSON and committed only if < 10 MB (`D3-008`).
-- Next step after `H3-006`: read the evidence JSON, confirm three pairs and
-  `DQ3-A-006 PASS`, review whether each measured delta justifies the index, then
-  request C/A review and `H3-007`.
+  four SQL assets; workflow YAML parsed; `git diff --check` clean. The first live
+  run failed on `pg_relation_size` because a three-part relation name was rejected
+  (`FeatureNotSupported`); the fix qualifies the index as `schema.index`, and the
+  failure stays visible in history rather than being hidden.
+- Verify measurement: run 44397831286, captured `2026-11-18T21:05:46Z` as
+  `aerogrid_etl` against `neondb` (PostgreSQL 18.7). Mode `verify`,
+  `persisted: false`; baseline 27,479 tracking / 178 journey / 1,754 occupancy;
+  database 71.72 MiB before, 71.78 MiB at end; guard 700 MiB.
+  `DQ3-A-006: PASS`.
+- Measured pairs (one observed `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` run, not
+  a benchmark): `OQ-P3-05-01` 28.927 -> 29.064 ms (+0.47%), cost 5,683.16 both,
+  index 488 KiB; `OQ-P3-05-02` 32.055 -> 32.240 ms (+0.58%), cost 11,359.07 both,
+  index 488 KiB; `OQ-P3-05-03` 33.101 -> 33.220 ms (+0.36%), cost 9,347.77 both,
+  index 16 KiB. Every plan is identical before and after, so each verdict is
+  `NEUTRAL`; no speed-up is claimed (`D3-010`).
+- Decision `D3-011`: none of the candidates is applied. Applying neutral indexes
+  would add ~992 KiB and write maintenance for no measured gain; the idempotent
+  DDL stays in `Phase3/sql/indexes/` as evaluated/deferred. The verify-mode
+  `Phase3/reports/Indexing_Report.pdf` (6.4 KiB, < 10 MB per `D3-008`) is the
+  P3-G3 deliverable.
+- Status: `READY_FOR_REVIEW`; reviewers C/A check the run, PDF, and `D3-011`.
+  Owner D cannot self-approve.
 
 ## Human action queue
 
@@ -152,8 +167,8 @@ Stable IDs; agents never simulate these actions.
 | H3-003 | Decide who presents the final deck | Presentation delivery is human-owned | Team decision; record in DECISIONS.md | CLOSED 2026-11-18 (whole team presents) |
 | H3-004 | Review and sign off WP-P3-02 + WP-P3-03, then close P3-G2 | Owner E cannot self-approve; reviewers C and D must approve | Review the evidence file and SQL, then record approval in this board | CLOSED 2026-11-18 (requester confirmed C/D sign-off; PR #35 merged) |
 | H3-005 | Approve WP-P3-04 gold-view apply after a clean rollback verification | Applying views is a shared-warehouse write; CI needs the `warehouse` environment and the `APPROVE_WP3_GOLD_VIEWS` confirmation | Verify passed in run 44295954164; a human dispatches `apply` on `main` with the token and confirms the reader evidence | OPEN (verify PASS 2026-11-18; apply pending) |
-| H3-006 | Dispatch the WP-P3-05 index measurement (verify mode) | The harness needs the `warehouse` credentials; agents cannot dispatch Actions or read secrets. No measured pair exists yet, so no report can be built | Actions -> **WP-P3-05 indexes (verify or apply)** -> Run workflow -> branch `phase3/wp-p3-05-query-optimization` (or `main` after merge) -> `mode=verify`, no token. Download `wp-p3-05-index-evidence-<run_id>`. Pass: `DQ3-A-006: PASS`, three before/after pairs, `persisted: false`, no index left behind | OPEN |
-| H3-007 | Approve the WP-P3-05 index apply after reviewing the measured pairs | Persisting indexes is a shared-warehouse write; only the protected CI path may apply it | After `H3-006` passes, C/A review the evidence, the PR merges, then Actions -> **WP-P3-05 indexes** -> branch `main` -> `mode=apply`, `confirm=APPROVE_WP3_INDEXES`. Pass: three indexes present, database after < 700 MB, `DQ3-A-006 PASS`. Commit the apply-mode `Indexing_Report.pdf` only if < 10 MB (`D3-008`) | OPEN |
+| H3-006 | Dispatch the WP-P3-05 index measurement (verify mode) | The harness needs the `warehouse` credentials; agents cannot dispatch Actions or read secrets. No measured pair exists yet, so no report can be built | Actions -> **WP-P3-05 indexes (verify or apply)** -> Run workflow -> branch `phase3/wp-p3-05-query-optimization` (or `main` after merge) -> `mode=verify`, no token. Download `wp-p3-05-index-evidence-<run_id>`. Pass: `DQ3-A-006: PASS`, three before/after pairs, `persisted: false`, no index left behind | CLOSED 2026-11-19 (run 44397831286 PASS; three pairs, `persisted: false`) |
+| H3-007 | Approve the WP-P3-05 index apply after reviewing the measured pairs | Persisting indexes is a shared-warehouse write; only the protected CI path may apply it | After `H3-006` passes, C/A review the evidence, the PR merges, then Actions -> **WP-P3-05 indexes** -> branch `main` -> `mode=apply`, `confirm=APPROVE_WP3_INDEXES`. Pass: three indexes present, database after < 700 MB, `DQ3-A-006 PASS`. Commit the apply-mode `Indexing_Report.pdf` only if < 10 MB (`D3-008`) | CLOSED 2026-11-19 as not required: all candidates measured NEUTRAL, so the human declined the apply and accepted the verify-mode PDF (`D3-011`) |
 
 ## Carried-over open items from Phase 2
 
@@ -167,7 +182,6 @@ the optional hardening track (WP-P3-H1 … H4) owns them through decisions.
   verification passed and no view has been persisted yet.
 - WP-P3-04 final sign-off needs reviewers C/D after apply; owner E cannot
   self-approve.
-- WP-P3-05 measurement and apply are blocked on `H3-006`/`H3-007` (human-dispatched
-  CI). The harness is implemented and statically tested, but no warehouse
-  measurement or `Indexing_Report.pdf` exists yet; do not fabricate one.
-- WP-P3-05 final sign-off needs reviewers C/A; owner D cannot self-approve.
+- WP-P3-05 is `READY_FOR_REVIEW` on run 44397831286 and the committed
+  verify-mode PDF; final sign-off needs reviewers C/A (owner D cannot
+  self-approve). No index apply is pending (`D3-011`).

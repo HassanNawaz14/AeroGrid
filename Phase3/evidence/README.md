@@ -29,8 +29,9 @@ baseline, every `OQ-P3-05-xx` query SHA-256, and one
 `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` before/after pair per candidate index plus
 its measured size. Verify-mode files are rollback evidence: the DDL was created and
 discarded in the same transaction. Only an apply-mode file with
-`"persisted": true` proves the indexes exist. The PDF in `Phase3/reports/` is built
-from this JSON by
+`"persisted": true` proves the indexes exist. When `D3-011` declines the apply,
+the verify-mode PDF is the final deliverable and stays labelled `verify`. The PDF
+in `Phase3/reports/` is built from this JSON by
 [`../scripts/generate_index_report.py`](../scripts/generate_index_report.py); never
 hand-edit a pair or copy a number into the report.
 
