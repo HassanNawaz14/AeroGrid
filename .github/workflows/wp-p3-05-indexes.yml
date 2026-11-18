@@ -1,0 +1,86 @@
+name: WP-P3-05 indexes (verify or apply)
+
+# Verify measures every candidate index with EXPLAIN ANALYZE, creates it inside a
+# transaction, measures again, and rolls back. Apply is allowed only on main, from
+# the protected warehouse environment, after a human types the confirmation token.
+# The PDF is generated from the measured JSON; only an apply-mode PDF is the
+# committed deliverable.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Verify with rollback first, then apply after review"
+        type: choice
+        required: true
+        default: verify
+        options:
+          - verify
+          - apply
+      confirm:
+        description: "If apply selected, type APPROVE_WP3_INDEXES"
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wp-p3-05-indexes
+  cancel-in-progress: false
+
+jobs:
+  index_optimization:
+    name: Measure or apply candidate indexes
+    if: ${{ inputs.mode == 'verify' || (inputs.mode == 'apply' && inputs.confirm == 'APPROVE_WP3_INDEXES' && github.ref == 'refs/heads/main') }}
+    runs-on: ubuntu-latest
+    environment: warehouse
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install test and measurement dependencies
+        run: >
+          python -m pip install --disable-pip-version-check
+          "pytest>=8,<10" "psycopg[binary]>=3.2,<4" "reportlab>=4,<5"
+
+      - name: Run Phase 3 static tests
+        run: python -m pytest -q Phase3/tests
+
+      - name: Measure with rollback or apply
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          WAREHOUSE_CI_APPROVED: "true"
+          MODE: ${{ inputs.mode }}
+        run: |
+          set -euo pipefail
+          stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+          json="Phase3/evidence/index_optimization_${MODE}_${stamp}.json"
+          md="Phase3/evidence/index_optimization_${MODE}_${stamp}.md"
+          if [ "$MODE" = "apply" ]; then
+            python Phase3/scripts/measure_indexes.py --apply \
+              --json-output "$json" --md-output "$md"
+          else
+            python Phase3/scripts/measure_indexes.py \
+              --json-output "$json" --md-output "$md"
+          fi
+          python Phase3/scripts/generate_index_report.py \
+            --evidence "$json" --output "Phase3/reports/Indexing_Report.pdf"
+
+      - name: Upload evidence and report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wp-p3-05-index-evidence-${{ github.run_id }}
+          path: |
+            Phase3/evidence/index_optimization_*.json
+            Phase3/evidence/index_optimization_*.md
+            Phase3/reports/Indexing_Report.pdf
+          if-no-files-found: warn
+          retention-days: 30

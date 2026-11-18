@@ -13,7 +13,10 @@ exactly as Phase 2 defined them. Phase 3 workflows:
 2. Run analytics verification: every gold view returns a reconciled row count;
    zero rows are labeled missing coverage, never "no events" (`D3-009`).
 3. Run optimization checks: `EXPLAIN ANALYZE` before/after for the queries the
-   dashboard uses; index DDL is idempotent (`CREATE INDEX IF NOT EXISTS`).
+   dashboard uses; index DDL is idempotent (`CREATE INDEX IF NOT EXISTS`). The
+   measurement harness is `Phase3/scripts/measure_indexes.py`; it always rolls back
+   in verify mode and only the protected `.github/workflows/wp-p3-05-indexes.yml`
+   apply mode persists `Phase3/sql/indexes/01_indexes.sql` (`D3-010`).
 4. Package artifacts (SQL, PDFs, PBIX under the size guard) for the release.
 
 All of the above are read-only with respect to base tables; the only writes Phase 3
