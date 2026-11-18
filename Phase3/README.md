@@ -12,11 +12,11 @@ that produces it.
   `Phase2/PROGRESS.md` and the Phase 2 final gate record).
 - Phase 3 implementation is in progress: WP-P3-02 and WP-P3-03 are merged,
   P3-G2 is closed, and WP-P3-04 (gold reporting views) is `BLOCKED_ON_HUMAN` on
-  `H3-005`. WP-P3-05 (query optimization + indexing report) is `IN_PROGRESS`:
-  the rollback-first measurement harness, candidate index DDL, guarded CI
-  workflow, and report generator are implemented; the measured pairs and PDF
-  await the human-dispatched `H3-006`/`H3-007` runs. P3-G0 is the documentation
-  baseline; P3-G1 was authorized under H3-001.
+  `H3-005`. WP-P3-05 (query optimization + indexing report) is
+  `READY_FOR_REVIEW`: verify run 44397831286 passed `DQ3-A-006` but measured all
+  three candidates `NEUTRAL`, so no index is applied (`D3-011`) and the
+  verify-mode `reports/Indexing_Report.pdf` is the deliverable. P3-G0 is the
+  documentation baseline; P3-G1 was authorized under H3-001.
 - The canonical entry point is [docs/00_documentation_map.md](docs/00_documentation_map.md).
 
 ## What Phase 3 delivers (course brief)
