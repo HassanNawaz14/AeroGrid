@@ -279,8 +279,28 @@ def fact_baseline(conn: Any) -> dict[str, int]:
     return counts
 
 
+def index_relation(table: str, index_name: str) -> str:
+    """Return the schema-qualified index name accepted by to_regclass.
+
+    An index is a relation in the same schema as its table, so the table name must
+    not be part of the reference: ``project_dw.ix_name``, never
+    ``project_dw.table.ix_name`` (PostgreSQL reads three parts as a cross-database
+    reference and raises FeatureNotSupported).
+    """
+    if "." not in table:
+        raise ValueError(f"table must be schema-qualified, got {table!r}")
+    schema = table.split(".", 1)[0].strip()
+    if not schema or not INDEX_NAME_RE.match(index_name):
+        raise ValueError(f"unsafe index relation: {schema!r}.{index_name!r}")
+    return f"{schema}.{index_name}"
+
+
 def index_size_bytes(conn: Any, table: str, index_name: str) -> int:
-    value = _scalar(conn, "SELECT pg_relation_size(to_regclass(%s))", (f"{table}.{index_name}",))
+    value = _scalar(
+        conn,
+        "SELECT pg_relation_size(to_regclass(%s))",
+        (index_relation(table, index_name),),
+    )
     return int(value or 0)
 
 
@@ -307,7 +327,7 @@ def _index_exists(conn: Any, table: str, index_name: str) -> bool:
     exists = _scalar(
         conn,
         "SELECT to_regclass(%s) IS NOT NULL",
-        (f"{table}.{index_name}",),
+        (index_relation(table, index_name),),
     )
     return bool(exists)
 

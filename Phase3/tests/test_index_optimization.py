@@ -201,6 +201,43 @@ def test_compare_summaries_reports_honest_deltas() -> None:
     assert delta["total_cost_pct"] == -40.0
 
 
+def test_index_relation_name_is_schema_qualified_not_table_qualified() -> None:
+    assert (
+        measure.index_relation("project_dw.fact_vehicle_tracking", "ix_example")
+        == "project_dw.ix_example"
+    )
+    with pytest.raises(ValueError):
+        measure.index_relation("fact_vehicle_tracking", "ix_example")
+
+
+def test_index_size_uses_the_schema_qualified_relation(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeCursor:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def execute(self, sql, params=None):
+            captured["sql"] = sql
+            captured["params"] = params
+
+        def fetchone(self):
+            return (4096,)
+
+    class FakeConnection:
+        def cursor(self):
+            return FakeCursor()
+
+    size = measure.index_size_bytes(
+        FakeConnection(), "project_dw.fact_vehicle_tracking", "ix_example"
+    )
+    assert size == 4096
+    assert captured["params"] == ("project_dw.ix_example",)
+
+
 def test_dq3_a_006_passes_only_with_complete_pairs() -> None:
     evidence = _evidence()
     assert report.dq3_a_006_status(evidence) == "PASS"
