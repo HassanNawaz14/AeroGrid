@@ -1,0 +1,78 @@
+name: WP-P3-04 gold views (verify or apply)
+
+# Verify runs the committed gold-view DDL in a writer transaction and rolls it
+# back. Apply commits the views and proves aerogrid_reader access. Apply is
+# allowed only on main, from the protected warehouse environment, after a human
+# types the confirmation token.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Verify with rollback first, then apply after review"
+        type: choice
+        required: true
+        default: verify
+        options:
+          - verify
+          - apply
+      confirm:
+        description: "If apply selected, type APPROVE_WP3_GOLD_VIEWS"
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wp-p3-gold-views
+  cancel-in-progress: false
+
+jobs:
+  gold_views:
+    name: Verify or apply gold views
+    if: ${{ inputs.mode == 'verify' || (inputs.mode == 'apply' && inputs.confirm == 'APPROVE_WP3_GOLD_VIEWS' && github.ref == 'refs/heads/main') }}
+    runs-on: ubuntu-latest
+    environment: warehouse
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install test and verifier dependencies
+        run: >
+          python -m pip install --disable-pip-version-check
+          "pytest>=8,<10" "psycopg[binary]>=3.2,<4"
+
+      - name: Run Phase 3 static tests
+        run: python -m pytest -q Phase3/tests
+
+      - name: Verify with rollback or apply
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          READONLY_DATABASE_URL: ${{ secrets.READONLY_DATABASE_URL }}
+          WAREHOUSE_CI_APPROVED: "true"
+          MODE: ${{ inputs.mode }}
+        run: |
+          set -euo pipefail
+          stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+          output="Phase3/evidence/gold_views_${stamp}.md"
+          if [ "$MODE" = "apply" ]; then
+            python Phase3/scripts/verify_gold_views.py --apply --output "$output"
+          else
+            python Phase3/scripts/verify_gold_views.py --output "$output"
+          fi
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wp-p3-gold-views-evidence-${{ github.run_id }}
+          path: Phase3/evidence/gold_views_*.md
+          if-no-files-found: warn
+          retention-days: 30
