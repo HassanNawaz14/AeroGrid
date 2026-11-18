@@ -10,10 +10,9 @@ that produces it.
 
 - Phase 1 is frozen; Phase 2 is merged, deployed, and accepted (see
   `Phase2/PROGRESS.md` and the Phase 2 final gate record).
-- This folder holds the **Phase 3 documentation baseline** (docs `00`–`13` and the
-  `dev_plan/`). No Phase 3 implementation exists yet.
-- All work packages are `NOT_STARTED`. The first gate (P3-G0) is documentation
-  baseline; P3-G1 requires human authorization.
+- Phase 3 implementation is in progress: WP-P3-02 and WP-P3-03 are merged,
+  P3-G2 is closed, and WP-P3-04 (gold reporting views) is `IN_PROGRESS`. P3-G0 is
+  the documentation baseline; P3-G1 was authorized under H3-001.
 - The canonical entry point is [docs/00_documentation_map.md](docs/00_documentation_map.md).
 
 ## What Phase 3 delivers (course brief)

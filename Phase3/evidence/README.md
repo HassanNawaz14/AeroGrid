@@ -14,6 +14,14 @@ records:
 - the `DQ3-A-004` grand-total reconciliation status;
 - explicit labels for zero-row results (missing coverage, not zero activity).
 
+`gold_views_<UTC timestamp>.md` is written by
+[`../scripts/verify_gold_views.py`](../scripts/verify_gold_views.py). Each file
+records the DDL SHA-256, writer mode (`ROLLBACK` or `apply`), the fact baseline,
+the view row/measure reconciliation (`DQ3-A-001`), and the separate
+`aerogrid_reader` proof in apply mode. A verify-mode file proves the DDL and
+reconciliation without persisting the views; only an apply-mode file with a
+passing reader section is apply evidence.
+
 A run file is evidence only when it was produced against the shared warehouse through
 `aerogrid_reader` (or a read-only transaction) and the capture date is visible. Never
 hand-edit a generated run file or copy numbers into it.

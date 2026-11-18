@@ -1,8 +1,12 @@
 # Phase 3 SQL layers
 
-Read-only analytical and OLAP queries for WP-P3-02 and WP-P3-03. Both layers read
-only `project_dw`; they create no objects and write no rows. All files are single
-`SELECT`/`WITH` statements and are checked by `Phase3/scripts/run_readonly_analytics.py`.
+Read-only analytical and OLAP queries for WP-P3-02 and WP-P3-03, plus the
+WP-P3-04 gold-view DDL. The analytical and OLAP layers read only `project_dw`; they
+create no objects and write no rows. The `views/` layer creates three
+`project_reporting` views and writes no base-table rows. All analytical/OLAP files
+are single `SELECT`/`WITH` statements checked by
+`Phase3/scripts/run_readonly_analytics.py`; the view files are checked by
+`Phase3/scripts/verify_gold_views.py`.
 
 ## Layout
 
@@ -10,6 +14,7 @@ only `project_dw`; they create no objects and write no rows. All files are singl
 |---|---|---|
 | `analytical/` | WP-P3-02 Analytical SQL layer | P3-G2 |
 | `olap/` | WP-P3-03 OLAP queries (ROLLUP / CUBE) | P3-G2 |
+| `views/` | WP-P3-04 Phase 3 reporting views | P3-G3 |
 
 ## Query catalogue
 
@@ -25,6 +30,13 @@ only `project_dw`; they create no objects and write no rows. All files are singl
 | QW-P3-03-01 | `olap/01_rollup_site_source_category_vehicle_type.sql` | ROLLUP: site → source category → vehicle type | DQ3-A-004 |
 | QW-P3-03-02 | `olap/02_cube_site_source_system.sql` | CUBE: site × source system | DQ3-A-004 |
 | QW-P3-03-03 | `olap/03_grand_total_reconciliation.sql` | Prove ROLLUP/CUBE grand totals equal the plain aggregation | DQ3-A-004 |
+
+## Gold reporting views
+
+`views/01_gold_views.sql` creates `vw_monthly_traffic_growth`,
+`vw_vehicle_analysis`, and `vw_source_performance` in `project_reporting`. Their
+grains, coverage labels, apply gate, and evidence rules are documented in
+[views/README.md](views/README.md).
 
 ## Coverage rules
 
