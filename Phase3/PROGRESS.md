@@ -46,7 +46,7 @@ sign-off from C and D remains before P3-G2 can close.
 
 ## P3-G2 handoff (2026-11-18)
 
-- Branch: `phase3/wp-p3-02-analytical-sql` (PR pending). Evidence harness merged as
+- Branch: `phase3/wp-p3-02-analytical-sql` (PR #35). Evidence harness merged as
   PR #34 (`phase3/wp-p3-ci-evidence`); workflow run 44290826341.
 - Files: 7 queries under `Phase3/sql/analytical/`, 3 queries under
   `Phase3/sql/olap/`, `Phase3/scripts/run_readonly_analytics.py`,
