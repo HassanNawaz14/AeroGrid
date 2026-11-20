@@ -1,0 +1,107 @@
+{
+  "name": "AeroGrid Observatory",
+  "dataColors": [
+    "#2E86C1",
+    "#6FD3E8",
+    "#F2A900",
+    "#7B61FF",
+    "#2E8B57",
+    "#D64545",
+    "#5B6B7C",
+    "#8EA9C1",
+    "#C9A227",
+    "#4C9F70"
+  ],
+  "background": "#F5F7FA",
+  "foreground": "#1B2A38",
+  "tableAccent": "#0B1F33",
+  "textClasses": {
+    "callout": {
+      "fontSize": 32,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#0B1F33"
+    },
+    "title": {
+      "fontSize": 20,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#0B1F33"
+    },
+    "header": {
+      "fontSize": 12,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#1B2A38"
+    },
+    "label": {
+      "fontSize": 10,
+      "fontFace": "Segoe UI",
+      "color": "#5B6B7C"
+    }
+  },
+  "visualStyles": {
+    "page": {
+      "*": {
+        "background": [
+          {
+            "show": true,
+            "color": {
+              "solid": {
+                "color": "#F5F7FA"
+              }
+            },
+            "transparency": 0
+          }
+        ],
+        "outspace": [
+          {
+            "show": true,
+            "color": {
+              "solid": {
+                "color": "#F5F7FA"
+              }
+            },
+            "transparency": 0
+          }
+        ]
+      }
+    },
+    "*": {
+      "*": {
+        "background": [
+          {
+            "show": true,
+            "color": {
+              "solid": {
+                "color": "#FFFFFF"
+              }
+            },
+            "transparency": 0
+          }
+        ],
+        "border": [
+          {
+            "show": true,
+            "color": {
+              "solid": {
+                "color": "#D9E2EC"
+              }
+            },
+            "radius": 8
+          }
+        ],
+        "dropShadow": [
+          {
+            "show": true,
+            "color": {
+              "solid": {
+                "color": "#0B1F33"
+              }
+            },
+            "position": "BottomRight",
+            "preset": "BottomRight",
+            "transparency": 85
+          }
+        ]
+      }
+    }
+  }
+}
