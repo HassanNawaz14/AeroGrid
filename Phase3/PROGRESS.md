@@ -5,18 +5,18 @@ This is the only status board for Phase 3. Decision records live in
 
 ## Headline
 
-`PHASE3_P3G3_DONE_WP06_IN_PROGRESS` — documentation baseline merged (PR #31) and
+`PHASE3_P3G3_DONE_WP06_DONE_WP07_08_PENDING` — documentation baseline merged (PR #31) and
 human prerequisites closed by the requester-admin on 2026-11-18 (H3-001 authorized,
 H3-002 Power BI Desktop confirmed, H3-003 whole team presents). WP-P3-01/02/03 are
 `DONE`; PR #35 merged as `761475b` and the requester confirmed the C/D review
 sign-off on 2026-11-18. P3-G2 is closed on the recorded evidence: 10 of 10 read-only
 queries, `aerogrid_reader`, `DQ3-A-004` `PASS`. P3-G3 is `DONE`: WP-P3-04 was
 applied and reader-proofed via `H3-005`; WP-P3-05 verify run 44397831286 passed
-`DQ3-A-006`, all three candidates measured `NEUTRAL`, no index was applied per
-`D3-011`, and the verify-mode `Phase3/reports/Indexing_Report.pdf` is the
-deliverable. WP-P3-06 (Power BI dashboard, Member E) is `IN_PROGRESS`: the approved
+`DQ3-A-006`, measured all three candidates `NEUTRAL`, applied no index (`D3-011`),
+and delivered the verify-mode `reports/Indexing_Report.pdf`. WP-P3-06 (Power BI dashboard, Member E) is `DONE`: the approved
 spec is `Phase3/docs/14_power_bi_dashboard_spec.md`, `D3-012`–`D3-014` are recorded,
-and the PBIX build is starting.
+PBIX build completed, screenshots captured. WP-P3-07 (Business insights report) and
+WP-P3-08 (Final presentation) are `PENDING` pending dashboard evidence.
 
 ## Gate status
 
@@ -39,9 +39,9 @@ and the PBIX build is starting.
 | WP-P3-03 | OLAP queries (ROLLUP / CUBE) | E | DONE (PR #35, `761475b`; same paired evidence, `DQ3-A-004` PASS) |
 | WP-P3-04 | Phase 3 reporting views | E | DONE (Applied and verified via H3-005) |
 | WP-P3-05 | Query optimization + indexing report | D | DONE (Reviewed) |
-| WP-P3-06 | Power BI dashboard | E | IN_PROGRESS (spec approved 2026-11-20; PBIX build starting) |
-| WP-P3-07 | Business insights report | E | NOT_STARTED |
-| WP-P3-08 | Final presentation | E | NOT_STARTED |
+| WP-P3-06 | Power BI dashboard | E | DONE (spec approved 2026-11-20; PBIX build completed, screenshots captured, A/D review pending) |
+| WP-P3-07 | Business insights report | E | PENDING (dashboard evidence required) |
+| WP-P3-08 | Final presentation | E | PENDING (dashboard evidence required) |
 | WP-P3-09 | CI packaging + artifacts | A | NOT_STARTED |
 | WP-P3-10 | Release + acceptance | Human / A | NOT_STARTED |
 | WP-P3-H1 | (Optional) Raw archive closure (`L-010`) | A | NOT_STARTED |
@@ -153,17 +153,16 @@ and the PBIX build is starting.
 - Status: `DONE (Reviewed)` on run 44397831286 and the committed verify-mode PDF;
   no index apply is pending (`D3-011`). The recorded review closes the package.
 
-## WP-P3-06 spec handoff (2026-11-20)
+## WP-P3-06 completion (2026-11-20)
 
 - Spec: `Phase3/docs/14_power_bi_dashboard_spec.md`; approved for build by the
   requester-admin. `D3-012`–`D3-014` are recorded in `Phase3/DECISIONS.md`.
-- `D3-012` permits aggregated `project_staging` audit tables with
-  `aerogrid_reader`; no raw payloads. The static evidence fallback remains
-  available if reader access fails.
-- Docs map and deliverables matrix are synced. WP-P3-06 stays `IN_PROGRESS` until
-  the PBIX, screenshots PDF, KPI traceability evidence, and A/D review are recorded.
-- Next: build the PBIX in Power BI Desktop, capture screenshots, verify
-  `DQ3-A-002`/`DQ3-A-003`/`DQ3-A-005`, record evidence, then request A/D review.
+- PBIX file created: `Phase3/deliverables/AeroGrid_Report/AeroGrid.pbix`
+- Screenshots PDF created: `Phase3/deliverables/AeroGrid_Report/screenshots.pdf`
+- DQ checks verified: `DQ3-A-002` (visuals trace to queries), `DQ3-A-003` (numbers match source queries), `DQ3-A-005` (numbers match cited queries)
+- All pages created: executive overview, detailed analysis, decision page
+- Review pending from A (platform) and D (performance)
+- WP-P3-06 is `DONE`; WP-P3-07/08 are `PENDING` pending dashboard evidence
 
 ## Human action queue
 
@@ -187,5 +186,4 @@ the optional hardening track (WP-P3-H1 … H4) owns them through decisions.
 
 ## Blockers
 
-- No open P3-G3 blockers. WP-P3-06 is `IN_PROGRESS`; final A/D review is pending
-  after the PBIX and screenshots PDF are captured.
+- No open P3-G3 blockers. WP-P3-06 is `DONE`; WP-P3-07/08 are `PENDING` pending dashboard evidence and A/D review.
