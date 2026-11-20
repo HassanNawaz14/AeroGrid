@@ -5,8 +5,8 @@ This is the only status board for Phase 3. Decision records live in
 
 ## Headline
 
-`PHASE3_P3G3_DONE_WP06_NEXT` — documentation baseline merged (PR #31) and human
-prerequisites closed by the requester-admin on 2026-11-18 (H3-001 authorized,
+`PHASE3_P3G3_DONE_WP06_IN_PROGRESS` — documentation baseline merged (PR #31) and
+human prerequisites closed by the requester-admin on 2026-11-18 (H3-001 authorized,
 H3-002 Power BI Desktop confirmed, H3-003 whole team presents). WP-P3-01/02/03 are
 `DONE`; PR #35 merged as `761475b` and the requester confirmed the C/D review
 sign-off on 2026-11-18. P3-G2 is closed on the recorded evidence: 10 of 10 read-only
@@ -14,8 +14,9 @@ queries, `aerogrid_reader`, `DQ3-A-004` `PASS`. P3-G3 is `DONE`: WP-P3-04 was
 applied and reader-proofed via `H3-005`; WP-P3-05 verify run 44397831286 passed
 `DQ3-A-006`, all three candidates measured `NEUTRAL`, no index was applied per
 `D3-011`, and the verify-mode `Phase3/reports/Indexing_Report.pdf` is the
-deliverable. WP-P3-06 (Power BI dashboard, Member E) is the next package; H3-002 is
-closed.
+deliverable. WP-P3-06 (Power BI dashboard, Member E) is `IN_PROGRESS`: the approved
+spec is `Phase3/docs/14_power_bi_dashboard_spec.md`, `D3-012`–`D3-014` are recorded,
+and the PBIX build is starting.
 
 ## Gate status
 
@@ -25,7 +26,7 @@ closed.
 | P3-G1 | Human prerequisites | DONE | Requester-admin closure 2026-11-18: H3-001 authorized, H3-002 confirmed, H3-003 whole team presents |
 | P3-G2 | Analytical SQL + OLAP | DONE | WP-P3-02 + WP-P3-03 evidence: `Phase3/evidence/analytics_run_20261118T110136Z.md` (10/10 queries, `aerogrid_reader`, `DQ3-A-004` PASS); CI run 44290826341; PR #35 merged as `761475b`; C/D review sign-off confirmed 2026-11-18 |
 | P3-G3 | Reporting views + optimization | DONE | WP-P3-04 applied and reader proofed (`H3-005` closed); WP-P3-05 verify PASS (run 44397831286, `DQ3-A-006` PASS, all candidates NEUTRAL, persisted false) with `Phase3/reports/Indexing_Report.pdf` committed and no apply per `D3-011` |
-| P3-G4 | Dashboard + insights + presentation | NOT_STARTED | WP-P3-06 … WP-P3-08 |
+| P3-G4 | Dashboard + insights + presentation | IN_PROGRESS | WP-P3-06 spec approved 2026-11-20; PBIX build starting |
 | P3-G5 | Release | NOT_STARTED | WP-P3-09, WP-P3-10 |
 
 ## Work package status
@@ -38,7 +39,7 @@ closed.
 | WP-P3-03 | OLAP queries (ROLLUP / CUBE) | E | DONE (PR #35, `761475b`; same paired evidence, `DQ3-A-004` PASS) |
 | WP-P3-04 | Phase 3 reporting views | E | DONE (Applied and verified via H3-005) |
 | WP-P3-05 | Query optimization + indexing report | D | DONE (Reviewed) |
-| WP-P3-06 | Power BI dashboard | E | NOT_STARTED |
+| WP-P3-06 | Power BI dashboard | E | IN_PROGRESS (spec approved 2026-11-20; PBIX build starting) |
 | WP-P3-07 | Business insights report | E | NOT_STARTED |
 | WP-P3-08 | Final presentation | E | NOT_STARTED |
 | WP-P3-09 | CI packaging + artifacts | A | NOT_STARTED |
@@ -152,6 +153,18 @@ closed.
 - Status: `DONE (Reviewed)` on run 44397831286 and the committed verify-mode PDF;
   no index apply is pending (`D3-011`). The recorded review closes the package.
 
+## WP-P3-06 spec handoff (2026-11-20)
+
+- Spec: `Phase3/docs/14_power_bi_dashboard_spec.md`; approved for build by the
+  requester-admin. `D3-012`–`D3-014` are recorded in `Phase3/DECISIONS.md`.
+- `D3-012` permits aggregated `project_staging` audit tables with
+  `aerogrid_reader`; no raw payloads. The static evidence fallback remains
+  available if reader access fails.
+- Docs map and deliverables matrix are synced. WP-P3-06 stays `IN_PROGRESS` until
+  the PBIX, screenshots PDF, KPI traceability evidence, and A/D review are recorded.
+- Next: build the PBIX in Power BI Desktop, capture screenshots, verify
+  `DQ3-A-002`/`DQ3-A-003`/`DQ3-A-005`, record evidence, then request A/D review.
+
 ## Human action queue
 
 Stable IDs; agents never simulate these actions.
@@ -174,5 +187,5 @@ the optional hardening track (WP-P3-H1 … H4) owns them through decisions.
 
 ## Blockers
 
-- No open P3-G3 blockers. WP-P3-06 (Power BI dashboard, Member E) is the next
-  package; `H3-002` is closed and the spec closeout is in progress.
+- No open P3-G3 blockers. WP-P3-06 is `IN_PROGRESS`; final A/D review is pending
+  after the PBIX and screenshots PDF are captured.

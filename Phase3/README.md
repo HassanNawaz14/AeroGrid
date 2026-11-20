@@ -14,7 +14,8 @@ that produces it.
   P3-G2 is closed. P3-G3 is `DONE`: WP-P3-04 was applied and reader-proofed via
   `H3-005`; WP-P3-05 verify run 44397831286 passed `DQ3-A-006`, measured all three
   candidates `NEUTRAL`, applied no index (`D3-011`), and delivered the verify-mode
-  `reports/Indexing_Report.pdf`. WP-P3-06 (Power BI dashboard) is the next package.
+  `reports/Indexing_Report.pdf`. WP-P3-06 (Power BI dashboard) is `IN_PROGRESS`:
+  its specification was approved on 2026-11-20 and the PBIX build is starting.
   P3-G0 is the documentation baseline; P3-G1 was authorized under H3-001.
 - The canonical entry point is [docs/00_documentation_map.md](docs/00_documentation_map.md).
 
