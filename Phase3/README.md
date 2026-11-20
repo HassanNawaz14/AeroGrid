@@ -10,13 +10,12 @@ that produces it.
 
 - Phase 1 is frozen; Phase 2 is merged, deployed, and accepted (see
   `Phase2/PROGRESS.md` and the Phase 2 final gate record).
-- Phase 3 implementation is in progress: WP-P3-02 and WP-P3-03 are merged,
-  P3-G2 is closed, and WP-P3-04 (gold reporting views) is `BLOCKED_ON_HUMAN` on
-  `H3-005`. WP-P3-05 (query optimization + indexing report) is
-  `READY_FOR_REVIEW`: verify run 44397831286 passed `DQ3-A-006` but measured all
-  three candidates `NEUTRAL`, so no index is applied (`D3-011`) and the
-  verify-mode `reports/Indexing_Report.pdf` is the deliverable. P3-G0 is the
-  documentation baseline; P3-G1 was authorized under H3-001.
+- Phase 3 implementation is in progress: WP-P3-02 and WP-P3-03 are merged and
+  P3-G2 is closed. P3-G3 is `DONE`: WP-P3-04 was applied and reader-proofed via
+  `H3-005`; WP-P3-05 verify run 44397831286 passed `DQ3-A-006`, measured all three
+  candidates `NEUTRAL`, applied no index (`D3-011`), and delivered the verify-mode
+  `reports/Indexing_Report.pdf`. WP-P3-06 (Power BI dashboard) is the next package.
+  P3-G0 is the documentation baseline; P3-G1 was authorized under H3-001.
 - The canonical entry point is [docs/00_documentation_map.md](docs/00_documentation_map.md).
 
 ## What Phase 3 delivers (course brief)

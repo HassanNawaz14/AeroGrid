@@ -6,10 +6,10 @@ evidence. Statuses: `PLANNED` / `IN_PROGRESS` / `READY_FOR_REVIEW` / `DONE` /
 
 | # | Course deliverable | Marks | Phase 3 artifact | WP | Owner | Evidence | Status |
 |---|---|---|---|---|---|---|---|
-| 1 | Analytical SQL queries | 10 | `Phase3/sql/analytical/*.sql` + run log | WP-P3-02 | E | recorded query outputs with capture date | PLANNED |
-| 2 | OLAP queries | 5 | `Phase3/sql/olap/*.sql` + run log | WP-P3-03 | E | DQ3-A-004 grand-total reconciliation | PLANNED |
-| 3 | Reporting views | — | `project_reporting.vw_monthly_traffic_growth`, `vw_vehicle_analysis`, `vw_source_performance` | WP-P3-04 | E | view DDL + row-count reconciliation | PLANNED |
-| 4 | Indexing report (PDF) | — | `Phase3/reports/Indexing_Report.pdf` | WP-P3-05 | D | before/after EXPLAIN ANALYZE pairs | READY_FOR_REVIEW (run 44397831286; all pairs NEUTRAL; no apply per `D3-011`) |
+| 1 | Analytical SQL queries | 10 | `Phase3/sql/analytical/*.sql` + run log | WP-P3-02 | E | recorded query outputs with capture date | DONE (PR #35, `761475b`; `Phase3/evidence/analytics_run_20261118T110136Z.md`) |
+| 2 | OLAP queries | 5 | `Phase3/sql/olap/*.sql` + run log | WP-P3-03 | E | DQ3-A-004 grand-total reconciliation | DONE (PR #35, `761475b`; `DQ3-A-004` PASS) |
+| 3 | Reporting views | — | `project_reporting.vw_monthly_traffic_growth`, `vw_vehicle_analysis`, `vw_source_performance` | WP-P3-04 | E | view DDL + row-count reconciliation | DONE (applied and reader-proofed via `H3-005`; `DQ3-A-001` PASS) |
+| 4 | Indexing report (PDF) | — | `Phase3/reports/Indexing_Report.pdf` | WP-P3-05 | D | before/after EXPLAIN ANALYZE pairs | DONE (Reviewed; run 44397831286; all pairs NEUTRAL; no apply per `D3-011`) |
 | 5 | Power BI dashboard (PBIX) | 10 | `Phase3/deliverables/AeroGrid_Dashboard.pbix` (or artifact if ≥ 10 MB) | WP-P3-06 | E | KPI traceability table (DQ3-A-002) | PLANNED |
 | 6 | Dashboard screenshots (PDF) | — | `Phase3/reports/Dashboard_Screenshots.pdf` | WP-P3-06 | E | per-page captures with data-as-of | PLANNED |
 | 7 | Business insights report (PDF) | 5 | `Phase3/reports/Business_Insights_Report.pdf` | WP-P3-07 | E | claim → query → check citation map | PLANNED |
