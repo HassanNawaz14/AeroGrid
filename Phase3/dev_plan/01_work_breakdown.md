@@ -83,14 +83,14 @@ owner, reviewers, prerequisites, gate, scope, deliverables, and acceptance.
   artifact packaging); artifact directory layout; release notes template.
 - **Acceptance:** workflows green on main; artifacts packaged per `D3-008`; no
   secrets in logs.
-- **Status:** `READY_FOR_REVIEW` (2026-11-21, Member A). The views and optimization
+- **Status:** `DONE` (2026-11-21, Member A; run 44871649279 green on `main`; D and E reviews recorded). The views and optimization
   workflows were delivered with WP-P3-04/05; this package adds the packaging workflow.
 - **Delivered:** `Phase3/scripts/package_artifacts.py`,
   `.github/workflows/wp-p3-09-package.yml`, `Phase3/tests/test_package_artifacts.py`,
   `Phase3/templates/RELEASE_NOTES.md`, layout READMEs in `Phase3/deliverables/` and
   `Phase3/reports/`, dry-run evidence in `Phase3/evidence/`.
-- **Open before `DONE`:** green run on `main` (`H3-008`); D and E review recorded; final
-  `--strict` run once the BI files exist (`H3-009`).
+- **Still open (outside this package):** the final `--strict` run and
+  `Phase3/RELEASE_NOTES.md` once the BI files exist (`H3-009`).
 
 ## WP-P3-10 — Release + acceptance
 

@@ -5,7 +5,7 @@ This is the only status board for Phase 3. Decision records live in
 
 ## Headline
 
-`PHASE3_P3G3_DONE_WP06_DONE_WP07_08_PENDING_WP09_READY_FOR_REVIEW` — documentation baseline merged (PR #31) and
+`PHASE3_P3G3_DONE_WP06_DONE_WP07_08_PENDING_WP09_DONE` — documentation baseline merged (PR #31) and
 human prerequisites closed by the requester-admin on 2026-11-18 (H3-001 authorized,
 H3-002 Power BI Desktop confirmed, H3-003 whole team presents). WP-P3-01/02/03 are
 `DONE`; PR #35 merged as `761475b` and the requester confirmed the C/D review
@@ -17,10 +17,11 @@ and delivered the verify-mode `reports/Indexing_Report.pdf`. WP-P3-06 (Power BI 
 spec is `Phase3/docs/14_power_bi_dashboard_spec.md`, `D3-012`–`D3-014` are recorded,
 PBIX build completed, screenshots captured. WP-P3-07 (Business insights report) and
 WP-P3-08 (Final presentation) are `PENDING` pending dashboard evidence. WP-P3-09 (CI
-packaging + artifacts, Member A) is `READY_FOR_REVIEW` as of 2026-11-21: artifact layout,
+packaging + artifacts, Member A) is `DONE` as of 2026-11-21: artifact layout,
 the `D3-008` packaging script and manual workflow, and the release-notes template are
-in place; Member A's review of WP-P3-06 is complete; the first CI run on `main` and the
-D/E review are still open (`H3-008`).
+in place; workflow run [44871649279](https://github.com/HassanNawaz14/AeroGrid/actions/runs/44871649279) passed on `main`
+(`01a5ccb`); D and E reviews and Member A's review of WP-P3-06 are recorded; `H3-008`
+is closed. The final `--strict` run and release notes remain (`H3-009`).
 
 ## Gate status
 
@@ -31,7 +32,7 @@ D/E review are still open (`H3-008`).
 | P3-G2 | Analytical SQL + OLAP | DONE | WP-P3-02 + WP-P3-03 evidence: `Phase3/evidence/analytics_run_20261118T110136Z.md` (10/10 queries, `aerogrid_reader`, `DQ3-A-004` PASS); CI run 44290826341; PR #35 merged as `761475b`; C/D review sign-off confirmed 2026-11-18 |
 | P3-G3 | Reporting views + optimization | DONE | WP-P3-04 applied and reader proofed (`H3-005` closed); WP-P3-05 verify PASS (run 44397831286, `DQ3-A-006` PASS, all candidates NEUTRAL, persisted false) with `Phase3/reports/Indexing_Report.pdf` committed and no apply per `D3-011` |
 | P3-G4 | Dashboard + insights + presentation | IN_PROGRESS | WP-P3-06 spec approved 2026-11-20; PBIX build starting |
-| P3-G5 | Release | IN_PROGRESS | WP-P3-09 `READY_FOR_REVIEW` (2026-11-21; dry-run evidence `Phase3/evidence/packaging_dryrun_20261121T052507Z.md`); WP-P3-10 waits for P3-G4 and WP-P3-09 |
+| P3-G5 | Release | IN_PROGRESS | WP-P3-09 `DONE` (run 44871649279 on `main`, `01a5ccb`; dry-run evidence `Phase3/evidence/packaging_dryrun_20261121T052507Z.md`); WP-P3-10 waits for P3-G4 (BI files) and the human close |
 
 ## Work package status
 
@@ -46,7 +47,7 @@ D/E review are still open (`H3-008`).
 | WP-P3-06 | Power BI dashboard | E | DONE (spec approved 2026-11-20; PBIX build completed, screenshots captured; A review complete 2026-11-21, D review pending) |
 | WP-P3-07 | Business insights report | E | PENDING (dashboard evidence required) |
 | WP-P3-08 | Final presentation | E | PENDING (dashboard evidence required) |
-| WP-P3-09 | CI packaging + artifacts | A | READY_FOR_REVIEW (2026-11-21; layout, `package_artifacts.py`, `wp-p3-09-package.yml`, release-notes template; reviewers D, E; first CI run on `main` pending `H3-008`) |
+| WP-P3-09 | CI packaging + artifacts | A | DONE (2026-11-21; run 44871649279 green on `main`, `01a5ccb`; D and E reviews recorded) |
 | WP-P3-10 | Release + acceptance | Human / A | NOT_STARTED |
 | WP-P3-H1 | (Optional) Raw archive closure (`L-010`) | A | NOT_STARTED |
 | WP-P3-H2 | (Optional) FAA quota mitigation | B | NOT_STARTED |
@@ -177,7 +178,7 @@ D/E review are still open (`H3-008`).
 | Task | State |
 |---|---|
 | Release artifact layout (`Phase3/deliverables/`, `Phase3/reports/`) documented | DONE (`deliverables/README.md`, `reports/README.md`) |
-| Packaging workflow under the `D3-008` 10 MiB rule | DONE (`package_artifacts.py`, `wp-p3-09-package.yml`; static checks pass; first CI run tracked by `H3-008`) |
+| Packaging workflow under the `D3-008` 10 MiB rule | DONE (`package_artifacts.py`, `wp-p3-09-package.yml`; static checks pass; run 44871649279 green on `main`) |
 | Release-notes template | DONE (`Phase3/templates/RELEASE_NOTES.md`) |
 | Dry-run packaging with the existing files | DONE (`Phase3/evidence/packaging_dryrun_20261121T052507Z.md`, local run, `PASS_WITH_PENDING`) |
 | A review of WP-P3-06 (dashboard) | DONE (complete 2026-11-21; recorded by Member A) |
@@ -202,10 +203,19 @@ D/E review are still open (`H3-008`).
   `Indexing_Report.pdf` (6,599 bytes), the analytics and gold-view evidence files;
   missing: PBIX, dashboard screenshots PDF, insights report, final deck,
   `RELEASE_NOTES.md`. No secret hits.
-- Open: merge the PR, then dispatch the workflow on `main` and record the run ID
-  (`H3-008`); D and E review the package; final `--strict` run after P3-G4 (`H3-009`).
-- Status: `READY_FOR_REVIEW`. `DONE` needs the green run on `main` and the D/E
-  approvals recorded here (`04_acceptance_and_definition_of_done.md`).
+- CI run: [44871649279](https://github.com/HassanNawaz14/AeroGrid/actions/runs/44871649279), workflow `wp-p3-09-package.yml`, manually
+  dispatched on `main` at `01a5ccb` by `x-abdullah-saeed-x`, non-strict; job
+  `Package artifacts under D3-008` succeeded in 18 s with one artifact,
+  `phase3-release-bundle-44871649279` (20.1 KB). No oversize artifact was produced
+  (no file is 10 MiB or larger). The packaging record is inside the bundle artifact.
+  GitHub reported one non-blocking warning: Node.js 20 is deprecated for
+  `actions/checkout@v4`, `actions/setup-python@v5` and `actions/upload-artifact@v4`;
+  the other Phase 3 workflows use the same versions.
+- Reviews: D and E reviewed WP-P3-09; approval recorded by Member A on 2026-11-21.
+- Open: final `--strict` run and `Phase3/RELEASE_NOTES.md` once the BI files exist
+  (`H3-009`); WP-P3-10 is human-owned.
+- Status: `DONE`. Acceptance met: workflow green on `main`, artifacts packaged per
+  `D3-008`, no secret hits in the run, two named reviewers recorded.
 
 ## Human action queue
 
@@ -220,7 +230,7 @@ Stable IDs; agents never simulate these actions.
 | H3-005 | Approve WP-P3-04 gold-view apply after a clean rollback verification | Applying views is a shared-warehouse write; CI needs the `warehouse` environment and the `APPROVE_WP3_GOLD_VIEWS` confirmation | Verify passed in run 44295954164; a human dispatches `apply` on `main` with the token and confirms the reader evidence | CLOSED (Applied and verified by admin) |
 | H3-006 | Dispatch the WP-P3-05 index measurement (verify mode) | The harness needs the `warehouse` credentials; agents cannot dispatch Actions or read secrets. No measured pair exists yet, so no report can be built | Actions -> **WP-P3-05 indexes (verify or apply)** -> Run workflow -> branch `phase3/wp-p3-05-query-optimization` (or `main` after merge) -> `mode=verify`, no token. Download `wp-p3-05-index-evidence-<run_id>`. Pass: `DQ3-A-006: PASS`, three before/after pairs, `persisted: false`, no index left behind | CLOSED 2026-11-19 (run 44397831286 PASS; three pairs, `persisted: false`) |
 | H3-007 | Approve the WP-P3-05 index apply after reviewing the measured pairs | Persisting indexes is a shared-warehouse write; only the protected CI path may apply it | After `H3-006` passes, C/A review the evidence, the PR merges, then Actions -> **WP-P3-05 indexes** -> branch `main` -> `mode=apply`, `confirm=APPROVE_WP3_INDEXES`. Pass: three indexes present, database after < 700 MB, `DQ3-A-006 PASS`. Commit the apply-mode `Indexing_Report.pdf` only if < 10 MB (`D3-008`) | CLOSED 2026-11-19 as not required: all candidates measured NEUTRAL, so the human declined the apply and accepted the verify-mode PDF (`D3-011`) |
-| H3-008 | Dispatch the WP-P3-09 packaging workflow (non-strict) after the PR merges | Manual workflows cannot run until the file exists on `main`; the run proves "workflows green on main" and gives the run ID for the review record | Actions -> **WP-P3-09 package Phase 3 artifacts** -> Run workflow -> branch `main`, `strict` off. Pass: tests green, `result` is `PASS` or `PASS_WITH_PENDING`, bundle artifact uploaded, no secret hits | OPEN |
+| H3-008 | Dispatch the WP-P3-09 packaging workflow (non-strict) after the PR merges | Manual workflows cannot run until the file exists on `main`; the run proves "workflows green on main" and gives the run ID for the review record | Actions -> **WP-P3-09 package Phase 3 artifacts** -> Run workflow -> branch `main`, `strict` off. Pass: tests green, `result` is `PASS` or `PASS_WITH_PENDING`, bundle artifact uploaded, no secret hits | CLOSED 2026-11-21 (run [44871649279](https://github.com/HassanNawaz14/AeroGrid/actions/runs/44871649279) green on `main`, `01a5ccb`; bundle artifact uploaded) |
 | H3-009 | Run the final packaging with `strict` on, then write `Phase3/RELEASE_NOTES.md` from the template | Proves every deliverable is present and routed under `D3-008` before the human closes P3-G5 | After P3-G4: dispatch with `strict` on; copy sizes and SHA-256 values from the manifest into the release notes; commit the notes | BLOCKED_ON_HUMAN (waits for WP-P3-06/07/08 files) |
 
 ## Carried-over open items from Phase 2
