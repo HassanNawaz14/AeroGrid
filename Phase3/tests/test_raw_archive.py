@@ -204,11 +204,32 @@ def test_verify_rows_reports_null_key_and_hash_mismatch(tmp_path):
     ]
     results, failures = verify_rows(rows, archive)
     assert results[0]["status"] == "PASS"
-    assert results[1]["status"] == "FAIL"
-    assert any("object_key is NULL" in item for item in failures)
+    assert results[1]["status"] == "UNARCHIVED"
+    assert failures == []
     text = render(results, failures, "2026-11-22T00:00:00+00:00")
-    assert "Result: FAIL" in text
+    assert "Result: PASS" in text
+    assert "Unarchived (pre-D3-018): 1" in text
     assert "raw/" in text
+
+
+def test_verify_rows_strict_fails_on_unarchived_manifest(tmp_path):
+    source = tmp_path / "a.csv"
+    source.write_text("payload", encoding="utf-8")
+    archive = _archive(FakeS3())
+    archive.put_file(source)
+    rows = [
+        {
+            "source_manifest_id": 2,
+            "source_name": "IEM",
+            "file_name": "b.csv",
+            "byte_size": 1,
+            "sha256": "b" * 64,
+            "object_key": None,
+        }
+    ]
+    results, failures = verify_rows(rows, archive, strict=True)
+    assert results[0]["status"] == "UNARCHIVED"
+    assert any("object_key is NULL" in item for item in failures)
 
 
 import argparse

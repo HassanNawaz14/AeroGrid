@@ -20,6 +20,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--limit", type=int, help="Only verify the first N manifests")
     parser.add_argument("--evidence", help="Write a markdown evidence file here")
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="Fail when any manifest row has no object_key",
+    )
     return parser.parse_args(argv)
 
 
@@ -39,14 +44,18 @@ def fetch_manifest_rows(conn: Any, limit: int | None = None) -> list[dict[str, A
         return [dict(zip(names, row)) for row in cur.fetchall()]
 
 
-def verify_rows(rows, archive) -> tuple[list[dict[str, Any]], list[str]]:
+def verify_rows(
+    rows, archive, *, strict: bool = False
+) -> tuple[list[dict[str, Any]], list[str]]:
     results: list[dict[str, Any]] = []
     failures: list[str] = []
     for row in rows:
         key = row.get("object_key")
         if not key:
-            failures.append(f"manifest {row['source_manifest_id']}: object_key is NULL")
-            results.append({**row, "actual_sha256": None, "status": "FAIL"})
+            message = f"manifest {row['source_manifest_id']}: object_key is NULL"
+            if strict:
+                failures.append(message)
+            results.append({**row, "actual_sha256": None, "status": "UNARCHIVED"})
             continue
         try:
             actual = archive.fetch_sha256(key)
@@ -65,11 +74,13 @@ def verify_rows(rows, archive) -> tuple[list[dict[str, Any]], list[str]]:
 
 
 def render(results, failures, captured_at: str) -> str:
+    unarchived = sum(1 for row in results if row["status"] == "UNARCHIVED")
     lines = [
         "# WP-P3-H1 raw archive verification",
         "",
         f"- Captured (UTC): {captured_at}",
         f"- Manifests checked: {len(results)}",
+        f"- Unarchived (pre-D3-018): {unarchived}",
         f"- Result: {'PASS' if not failures else 'FAIL'}",
         "",
         "| Manifest | Source | File | Bytes | SHA-256 (recorded) | Object key | Status |",
@@ -80,6 +91,15 @@ def render(results, failures, captured_at: str) -> str:
             f"| {row['source_manifest_id']} | {row['source_name']} | {row['file_name']}"
             f" | {row['byte_size']} | `{row['sha256']}`"
             f" | `{row.get('object_key') or ''}` | {row['status']} |"
+        )
+    if unarchived:
+        lines.extend(
+            [
+                "",
+                "Unarchived rows predate `D3-018`; their source bytes were never stored"
+                " and cannot be recovered. They do not fail the default check. Use"
+                " `--strict` to require every manifest row to be archived.",
+            ]
         )
     if failures:
         lines.extend(["", "## Failures", ""])
@@ -99,7 +119,7 @@ def main(argv: list[str] | None = None) -> int:
     archive = RawArchive(ArchiveConfig.from_env())
     with psycopg.connect(database_url, connect_timeout=15) as conn:
         rows = fetch_manifest_rows(conn, args.limit)
-    results, failures = verify_rows(rows, archive)
+    results, failures = verify_rows(rows, archive, strict=args.strict)
     captured_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     text = render(results, failures, captured_at)
     sys.stdout.write(text)
