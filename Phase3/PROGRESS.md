@@ -50,7 +50,7 @@ is closed. The final `--strict` run and release notes remain (`H3-009`).
 | WP-P3-09 | CI packaging + artifacts | A | DONE (2026-11-21; run 44871649279 green on `main`, `01a5ccb`; D and E reviews recorded) |
 | WP-P3-10 | Release + acceptance | Human / A | NOT_STARTED |
 | WP-P3-H1 | (Optional) Raw archive closure (`L-010`) | A | NOT_STARTED |
-| WP-P3-H2 | (Optional) FAA quota mitigation | B | NOT_STARTED |
+| WP-P3-H2 | (Optional) FAA quota mitigation | B (HarveyWebbs) | READY_FOR_REVIEW (2026-11-21; D3-016, cache + backoff + optional-airspace; 6 unit tests green) |
 | WP-P3-H3 | (Optional) SCD Type 2 evaluation | C | NOT_STARTED |
 | WP-P3-H4 | (Optional) Materialized marts + refresh | D | NOT_STARTED |
 
@@ -216,6 +216,22 @@ is closed. The final `--strict` run and release notes remain (`H3-009`).
   (`H3-009`); WP-P3-10 is human-owned.
 - Status: `DONE`. Acceptance met: workflow green on `main`, artifacts packaged per
   `D3-008`, no secret hits in the run, two named reviewers recorded.
+
+## WP-P3-H2 handoff (2026-11-21, Member B)
+
+- Branch: `phase3/wp-p3-h2-member-b`. Track: Hardening; Owner: Member B (`HarveyWebbs` / Abdullah Zia).
+- Work package: `WP-P3-H2: FAA ArcGIS Quota Mitigation & Caching`.
+- Trigger: Member B's source, licensing, and staging audit identified external ArcGIS rate-limit and quota exhaustion risks during repeated ETL and scheduled runs.
+- Decision: `D3-016` recorded in `Phase3/DECISIONS.md`.
+- Changes implemented:
+  - Added `Phase2/etl/quota_mitigation.py`: `ArcGisCache` (file-backed JSON cache for FeatureServer responses with configurable TTL, stale fallback, and cache management), `BackoffBudget` (exponential backoff with jitter and retry budget), and `QuotaMitigationPolicy`.
+  - Updated `Phase2/etl/faa_restrictions.py`: integrated `BackoffBudget` and rate-limit detection in `_http_json` to gracefully handle HTTP 429/503 and ArcGIS error bodies.
+  - Updated `Phase2/etl/fetch.py`: enhanced `fetch_airspace_layer` and `fetch_faa_airspace` with caching, stale fallback, and optional-airspace graceful degradation mode (`AEROGRID_OPTIONAL_AIRSPACE=1`).
+  - Added `Phase3/tests/test_faa_quota_mitigation.py`: 6 unit tests validating quota error detection, exponential backoff delays, cache hit/miss/TTL/stale behavior, and optional airspace fallback.
+  - Added `Phase3/evidence/member_b_source_staging_audit.md`: authoritative audit of Phase 3 source provenance, data dictionary compliance, and zero synthetic data verification.
+  - Added `Phase3/evidence/member_b_review_signoffs.md`: formal Member B review records approving WP-P3-00 and WP-P3-04, and defining review framework for WP-P3-07 / WP-P3-08.
+- Checks: `python -m pytest Phase3/tests -v` -> 76 passed, 2 skipped; `python -m pytest Phase2/tests/test_faa_restrictions.py Phase2/tests/test_wp11_run.py -v` -> 38 passed.
+- Status: `READY_FOR_REVIEW`.
 
 ## Human action queue
 

@@ -103,6 +103,13 @@ owner, reviewers, prerequisites, gate, scope, deliverables, and acceptance.
 | WP | Title | Owner | Prerequisite |
 |---|---|---|---|
 | WP-P3-H1 | Raw archive closure (`L-010`) | A | Decision + human priority |
-| WP-P3-H2 | FAA quota mitigation | B | Repeated scheduled-run failures |
+| WP-P3-H2 | FAA quota mitigation | B (HarveyWebbs) | Repeated scheduled-run failures (implemented under D3-016) |
 | WP-P3-H3 | SCD Type 2 evaluation | C | Decision; Phase 3+ need |
 | WP-P3-H4 | Materialized marts + refresh | D | `D3-007` EXPLAIN evidence |
+
+### WP-P3-H2 — FAA ArcGIS quota mitigation
+
+- **Owner:** B (`HarveyWebbs` / Abdullah Zia). **Track:** Hardening. **Decision:** `D3-016`.
+- **Scope:** Airspace GeoJSON FeatureServer caching (`ArcGisCache`), exponential backoff with jitter and retry budget (`BackoffBudget`), and optional-airspace graceful fallback (`AEROGRID_OPTIONAL_AIRSPACE=1`).
+- **Acceptance:** Tests pass in `Phase3/tests/test_faa_quota_mitigation.py`; caching eliminates redundant REST queries; quota errors retry gracefully.
+- **Status:** `READY_FOR_REVIEW`.
