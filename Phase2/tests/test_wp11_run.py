@@ -384,7 +384,8 @@ def test_render_summary_validate_marks_missing_coverage_and_all_limitations():
     assert "**TOTAL**" in text
     for lim_id, _description, _check in LIMITATIONS:
         assert lim_id in text
-    assert "no DQ check" in text
+    assert "L-010" not in text
+    assert "archives every fetched file" in text
 
 
 def test_render_summary_apply_shows_dq_and_limitation_check_status():
@@ -454,7 +455,7 @@ def test_apply_files_records_manifest_and_loads_iem_rows(tmp_path, monkeypatch):
     cursor = FakeCursor(fetchone_values=[(101,)], key_index=3)
     conn = FakeConn(cursor)
 
-    loads, totals, manifests = apply_files(
+    loads, totals, manifests, _archived = apply_files(
         conn,
         [FetchedFile("weather", "IEM", path, "https://example/iem",
                      station_icao="KBTP")],

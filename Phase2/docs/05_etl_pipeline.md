@@ -62,8 +62,8 @@ Phase2/etl/
 └── verify_wp06_facts.py    # Real Tartan staging + core fact verification
 ```
 
-`util.py` and `storage.py` remain unbuilt: raw-file archival to object storage is the
-accepted gap `L-010`, not a silent omission.
+`util.py` and `storage.py` remain unbuilt; raw-file archival lives in
+`etl/raw_archive.py` under `D3-018` (WP-P3-H1), so `L-010` is closed for apply runs.
 
 ## Run modes
 

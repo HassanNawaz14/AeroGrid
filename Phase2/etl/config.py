@@ -99,7 +99,6 @@ LIMITATIONS: tuple[tuple[str, str, str], ...] = (
     ("L-007", "Corridor views are screening metrics only", "WP-10"),
     ("L-008", "UAS sources are validated but never ingested", "DQ-G-003"),
     ("L-009", "Airspace zones are never staged; OpenSky is unused", "DQ-G-004"),
-    ("L-010", "Fetched raw files are not archived to object storage", "NONE"),
 )
 
 DEFAULT_WINDOW_DAYS = 7

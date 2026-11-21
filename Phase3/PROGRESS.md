@@ -50,7 +50,7 @@ is closed. The final `--strict` run and release notes remain (`H3-009`).
 | WP-P3-08 | Final presentation | E | PENDING (dashboard evidence required) |
 | WP-P3-09 | CI packaging + artifacts | A | DONE (2026-11-21; run 44871649279 green on `main`, `01a5ccb`; D and E reviews recorded) |
 | WP-P3-10 | Release + acceptance | Human / A | NOT_STARTED |
-| WP-P3-H1 | (Optional) Raw archive closure (`L-010`) | A | NOT_STARTED |
+| WP-P3-H1 | (Optional) Raw archive closure (`L-010`) | A | READY_FOR_REVIEW (implemented 2026-11-22 under `D3-018`; live proof `H3-011`) |
 | WP-P3-H2 | (Optional) FAA quota mitigation | B (HarveyWebbs) | DONE (2026-11-21; D3-016, cache + backoff + optional-airspace; 6 unit tests green; review closed) |
 | WP-P3-H3 | (Optional) SCD Type 2 evaluation | C | IN_PROGRESS (2026-11-21; D3-017; probes, harness, workflow and tests ready; evidence run pending `H3-010`) |
 | WP-P3-H4 | (Optional) Materialized marts + refresh | D | NOT_STARTED |
@@ -234,6 +234,35 @@ is closed. The final `--strict` run and release notes remain (`H3-009`).
 - Checks: `python -m pytest Phase3/tests -v` -> 76 passed, 2 skipped; `python -m pytest Phase2/tests/test_faa_restrictions.py Phase2/tests/test_wp11_run.py -v` -> 38 passed.
 - Status: `READY_FOR_REVIEW`.
 
+## WP-P3-H1 handoff (2026-11-22, Member A)
+
+- Branch: `phase3/wp-p3-h1-raw-archive`. Track: Hardening; Owner: Member A.
+- Decision: `D3-018` (content-addressed raw archive, fail closed on apply).
+- Added: `Phase2/etl/raw_archive.py`, `Phase2/etl/verify_raw_archive.py`,
+  `Phase3/tests/test_raw_archive.py`.
+- Updated: `Phase2/etl/run.py`, `Phase2/etl/config.py`,
+  `Phase2/tests/test_wp11_run.py`, `Phase2/etl/README.md`,
+  `Phase2/docs/13_accepted_data_limitations.md`,
+  `Phase3/docs/05_etl_pipeline.md`, `Phase3/docs/13_accepted_data_limitations.md`,
+  `Phase3/DECISIONS.md`, `Phase3/PROGRESS.md`.
+- Behaviour: apply mode uploads each fetched file to `aerogrid-raw` under
+  `raw/<sha256>/<file_name>` and links it from `source_manifest.object_key` before
+  commit; a missing `NEON_S3_*` variable or failed upload rolls the run back.
+  Validate mode writes nothing. Uploads are idempotent; existing objects are skipped.
+- Checks: `python -m pytest -q Phase3/tests/test_raw_archive.py Phase2/tests/test_wp11_run.py`
+  -> 39 passed; full `Phase2/tests Phase3/tests` -> 226 passed; `compileall` on
+  `Phase2/etl` and `Phase3/tests`; `git diff --check` clean.
+- Open: live proof requires one human-dispatched apply run (`H3-011`). The job now
+  passes the existing `NEON_S3_*` secrets, archives before commit, then runs
+  `verify_raw_archive.py` and uploads `wp11-raw-archive-verification`. No new secret
+  is needed.
+- Conflict note: Member C's `phase3/wp-p3-h3-member-c` claims `D3-017`/`H3-010` and
+  edits the same three shared docs. This package uses `D3-018`/`H3-011`. On merge,
+  keep both decision rows and both handoff sections; there is no code-file overlap.
+- Follow-up for Member E: `Phase3/docs/14_power_bi_dashboard_spec.md` still lists
+  `L-010` as `OPEN`; E owns that file, so it was not edited here.
+- Status: `READY_FOR_REVIEW`; `DONE` requires `H3-011` evidence and review.
+
 ## WP-P3-H3 handoff (2026-11-21, Member C)
 
 - Branch: `phase3/wp-p3-h3-member-c`. Track: Hardening; Owner: Member C. Decision: `D3-017`.
@@ -268,6 +297,7 @@ Stable IDs; agents never simulate these actions.
 | H3-007 | Approve the WP-P3-05 index apply after reviewing the measured pairs | Persisting indexes is a shared-warehouse write; only the protected CI path may apply it | After `H3-006` passes, C/A review the evidence, the PR merges, then Actions -> **WP-P3-05 indexes** -> branch `main` -> `mode=apply`, `confirm=APPROVE_WP3_INDEXES`. Pass: three indexes present, database after < 700 MB, `DQ3-A-006 PASS`. Commit the apply-mode `Indexing_Report.pdf` only if < 10 MB (`D3-008`) | CLOSED 2026-11-19 as not required: all candidates measured NEUTRAL, so the human declined the apply and accepted the verify-mode PDF (`D3-011`) |
 | H3-008 | Dispatch the WP-P3-09 packaging workflow (non-strict) after the PR merges | Manual workflows cannot run until the file exists on `main`; the run proves "workflows green on main" and gives the run ID for the review record | Actions -> **WP-P3-09 package Phase 3 artifacts** -> Run workflow -> branch `main`, `strict` off. Pass: tests green, `result` is `PASS` or `PASS_WITH_PENDING`, bundle artifact uploaded, no secret hits | CLOSED 2026-11-21 (run [44871649279](https://github.com/HassanNawaz14/AeroGrid/actions/runs/44871649279) green on `main`, `01a5ccb`; bundle artifact uploaded) |
 | H3-009 | Run the final packaging with `strict` on, then write `Phase3/RELEASE_NOTES.md` from the template | Proves every deliverable is present and routed under `D3-008` before the human closes P3-G5 | After P3-G4: dispatch with `strict` on; copy sizes and SHA-256 values from the manifest into the release notes; commit the notes | BLOCKED_ON_HUMAN (waits for WP-P3-06/07/08 files) |
+| H3-011 | Dispatch one WP-11 apply run | Proves `L-010` closure with real archived bytes; agents cannot dispatch Actions or read secrets | Actions -> **WP-11 ingestion** -> Run workflow -> `mode=apply`, `confirm=APPROVE_WP11_APPLY` on the merged `main`. Pass: job green; the `wp11-raw-archive-verification` artifact says `Result: PASS`; new manifest rows have `object_key` | BLOCKED_ON_HUMAN (waits for merge and human dispatch) |
 
 | H3-010 | Dispatch the WP-P3-H3 SCD2 evaluation workflow and commit its evidence file | The probes read the shared warehouse; the workflow needs the `warehouse` environment and `READONLY_DATABASE_URL`, which agents cannot use | Actions -> **WP-P3-H3 SCD2 evaluation evidence (read-only)** -> Run workflow on `main`. Pass: tests green, role `aerogrid_reader`, verdict present. Download the artifact, commit `Phase3/evidence/scd2_evaluation_<UTC>.md`, record the verdict in `D3-017` | OPEN |
 

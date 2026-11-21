@@ -1,9 +1,10 @@
 # Phase 3 Accepted Data Limitations
 
 **Status:** carried forward. The authoritative register is
-`Phase2/docs/13_accepted_data_limitations.md` (`L-001` … `L-010`, all OPEN as of the
-Phase 2 close). Phase 3 does **not** close them; it must design around them and
-label them in BI artifacts (`D3-009`).
+`Phase2/docs/13_accepted_data_limitations.md` (`L-001` … `L-009` remain `OPEN`;
+`L-010` was closed by `D3-018`/WP-P3-H1 on 2026-11-22, live proof `H3-011`). Phase 3
+does **not** close the rest; it must design around them and label them in BI
+artifacts (`D3-009`).
 
 ## Carry-forward table
 
@@ -18,7 +19,7 @@ label them in BI artifacts (`D3-009`).
 | L-007 | Corridor views are screening-only | No "certified corridor" language anywhere |
 | L-008 | UAS staged but not in facts | UAS slices appear only after a real WP-11 load; label gaps |
 | L-009 | Zones staged, no dependent facts; OpenSky unused | Airspace visuals limited to staged evidence |
-| L-010 | Raw files not archived to object storage | Replayability note in evidence; owned by WP-P3-H1 |
+| L-010 | Raw files archived to `aerogrid-raw` with manifest linkage | Closed by `D3-018` (WP-P3-H1); live proof `H3-011` |
 
 ## New Phase 3 limitations
 

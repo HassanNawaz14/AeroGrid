@@ -158,7 +158,7 @@ Read four lines from the [limitation register](13_accepted_data_limitations.md):
 - One week of Tartan, not a year — free-tier size limit (`L-003` scale, `D-006`).
 - January 2022 flights, November 2026 airspace — never join them (`L-005`).
 - UAS and airspace are staged but have no fact loaders yet (`L-008`, `L-009`).
-- Raw files are hashed but not archived yet (`L-010`).
+- Raw files are archived to `aerogrid-raw` and linked from `source_manifest` (`D3-018`, WP-P3-H1).
 
 Close: "The warehouse is reproducible from a pinned commit, the numbers are stored checks
 rather than slide claims, and every gap has an ID, an owner, and a trigger."

@@ -95,7 +95,7 @@ phase** = deliberately not built yet, with a reason.
 |---|---|---|---|---|
 | 1 | Multiple data sources | Followed | Tartan ADS-B, Nightjar / nominal-io DJI, NOAA AWC + IEM METAR, FAA airspace, OpenSky (optional, not loaded) | Source set fixed by scope and licences |
 | 2 | Pipeline orchestration (extract → validate → transform → load → build marts → test & reconcile) | Followed | GitHub Actions workflow runs tests, then read-only validate or approved apply; steps map 1:1 to the diagram's boxes | GitHub Actions is the free-tier orchestrator; no scheduler server needed |
-| 3 | Bronze layer: raw files + ingestion metadata (batch ID, source, timestamp, loaded-at) | Partial | Raw snapshots are recorded in `source_manifest` with URL, licence, SHA-256, size, fetch time; typed raw-shaped rows sit in `stg_*` tables | Raw file bytes are **not yet archived to object storage** — accepted gap `L-010`. Manifest-only until that is built |
+| 3 | Bronze layer: raw files + ingestion metadata (batch ID, source, timestamp, loaded-at) | Followed | Raw files are uploaded to `aerogrid-raw` under `raw/<sha256>/<file_name>` and linked from `source_manifest` with URL, licence, SHA-256, size, fetch time (`D3-018`); typed raw-shaped rows sit in `stg_*` tables | Historical pre-`D3-018` manifests have no stored bytes; live proof is `H3-011` |
 | 4 | Data quality & validation: row counts, data type, duplicate, business rule, referential | Followed | Row-count reconciliation, type/parse rejects, duplicate detection, business rules (altitude, speed, heading, pairing), referential integrity checks | — |
 | 4a | Reject / quarantine branch (invalid record + reason + source & batch + timestamp) | Followed | `stg_reject` stores reason code, detail, source, `etl_run_id`, timestamp; raw payload kept for replay. Reject catalog is stable (`etl/reject_codes.md`) | — |
 | 5 | Silver: cleaning, standardization, deduplication, business transformations, load logs / DQ results / last updated | Followed in logic, **not as a separate layer** | Cleaning and conformance happen in normalizers and SQL; results land directly in staging/DW. Run log, DQ results and `loaded_at` provide the metadata the diagram shows | A separate silver schema would add storage and a copy step without changing the result at this data volume; staging already acts as the conformed hop |
@@ -122,7 +122,7 @@ phase** = deliberately not built yet, with a reason.
 | Schemas | `project_staging`, `project_dw`, `project_reporting` |
 | Writer role | `aerogrid_etl` — used only by the protected CI job |
 | Reader role | `aerogrid_reader` — `SELECT` only; all team members |
-| Raw archive | Private object-storage bucket `aerogrid-raw` (bucket exists; raw-file archival is gap `L-010`) |
+| Raw archive | Private object-storage bucket `aerogrid-raw` (apply runs archive raw files and link them from `source_manifest`, `D3-018`) |
 | Orchestrator | GitHub Actions: weekly schedule (Monday 06:00 UTC) + manual dispatch |
 
 ### 4.2 Table purposes
@@ -313,7 +313,7 @@ foreign keys, so a real orphan cannot commit in the first place.
 | Question | Model answer |
 |---|---|
 | Why no SCD Type 2? | Phase 2 answers observation questions, not attribute-history questions. History is a recorded future item, not an omission. |
-| Where is the raw data? | Manifests pin every file by SHA-256; raw bytes will be archived to `aerogrid-raw` under gap `L-010`. Raw data is never committed to Git. |
+| Where is the raw data? | Manifests pin every file by SHA-256 and apply runs archive the bytes to `aerogrid-raw` (`D3-018`); pre-`D3-018` manifests are hash-only. Raw data is never committed to Git. |
 | How do you know data is real? | Every fact carries source identity and run ID; every run links to hashed manifests; the legacy synthetic sample is explicitly excluded (`D-017`). |
 | How do you stop a duplicate load? | Natural-key unique constraints plus `ON CONFLICT DO NOTHING`; reruns count as duplicates and insert nothing. |
 | How does one bad row not break a load? | Per-row savepoints; the row becomes a reject with a stable reason code and the batch continues. |
@@ -335,7 +335,7 @@ foreign keys, so a real orphan cannot commit in the first place.
 
 | Gap | Impact | Reason / tracking |
 |---|---|---|
-| Raw files not archived to object storage | No replayable byte-level snapshot yet | `L-010`; manifest evidence exists today |
+| Historical raw manifests have no stored bytes | Pre-`D3-018` runs cannot replay exact bytes; new apply runs can | `L-010` closed by `D3-018`; live proof `H3-011` |
 | No SCD Type 2 history | Cannot answer "how did this attribute change" | Scope decision; documented in `04_data_model.md` |
 | Dimension refresh is insert-only | `last_seen_ts` does not advance after first sight | Idempotent-by-construction choice; revisit with SCD work |
 | No physical marts or BI layer | Views only | Phase 3 scope |

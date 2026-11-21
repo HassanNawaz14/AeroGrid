@@ -40,6 +40,7 @@ from etl.loaders import (
     load_nightjar,
     load_nominal,
 )
+from etl.raw_archive import ArchiveConfig, RawArchive
 from etl.sources.dji_nominal import normalize_nominal_row
 from etl.sources.faa import normalize_airspace_feature
 from etl.sources.metar import normalize_awc_observation, normalize_iem_row
@@ -229,12 +230,19 @@ def apply_files(
     *,
     etl_run_id: int,
     fetched_at: datetime,
-) -> tuple[dict[str, dict[str, Any]], LoadCounts, int]:
+    archive: RawArchive | None = None,
+) -> tuple[dict[str, dict[str, Any]], LoadCounts, int, list[dict[str, Any]]]:
     per_file: dict[str, dict[str, Any]] = {}
     totals = LoadCounts()
     manifests = 0
+    archived_rows: list[dict[str, Any]] = []
     for f in files:
         license_name, attribution = SOURCE_LICENSES[f.system]
+        archived = (
+            archive.put_file(f.path, content_type=_content_type(f.path))
+            if archive is not None
+            else None
+        )
         manifest_id = record_source_manifest(
             conn,
             source_name=f.system,
@@ -243,8 +251,19 @@ def apply_files(
             attribution=attribution,
             fetched_at=fetched_at,
             file_path=f.path,
+            object_key=archived.object_key if archived else None,
             content_type=_content_type(f.path),
         )
+        if archived is not None:
+            archived_rows.append(
+                {
+                    "file": f"{f.source}:{f.path.name}",
+                    "object_key": archived.object_key,
+                    "sha256": archived.sha256,
+                    "byte_size": archived.byte_size,
+                    "uploaded": archived.uploaded,
+                }
+            )
         manifests += 1
         if f.system == "IEM":
             counts = load_iem(
@@ -303,7 +322,7 @@ def apply_files(
             totals.rejects_by_reason[reason] = (
                 totals.rejects_by_reason.get(reason, 0) + count
             )
-    return per_file, totals, manifests
+    return per_file, totals, manifests, archived_rows
 
 
 def _persist_results(conn: Any, etl_run_id: int, results: list[dict[str, Any]]) -> None:
@@ -509,6 +528,23 @@ def render_summary(report: Mapping[str, Any]) -> str:
         lines.append("")
         lines.append(f"Source manifests recorded: {report['manifests']}")
         lines.append("")
+        lines.extend(["## Raw archive", ""])
+        lines.extend(
+            _table(
+                ("Source file", "Object key", "SHA-256", "Bytes", "Upload"),
+                [
+                    (
+                        item["file"],
+                        item["object_key"],
+                        item["sha256"],
+                        item["byte_size"],
+                        "uploaded" if item["uploaded"] else "already present",
+                    )
+                    for item in report.get("archived") or []
+                ],
+            )
+        )
+        lines.append("")
         lines.append(
             "Duplicates are rows already present from an earlier run; they are the"
             " idempotent re-run path, not errors."
@@ -572,8 +608,9 @@ def render_summary(report: Mapping[str, Any]) -> str:
     )
     lines.append("")
     lines.append(
-        "Fetched raw files are transient; no object-storage archive is written"
-        " (L-010). No raw data is committed to Git."
+        "Apply mode archives every fetched file to the private aerogrid-raw bucket"
+        " and links it from source_manifest before commit (D3-018). Validate mode"
+        " writes nothing. No raw data is committed to Git."
     )
     return "\n".join(lines) + "\n"
 
@@ -631,6 +668,7 @@ def run(
     environ: Mapping[str, str] | None = None,
     fetch: Callable[..., list[FetchedFile]] = fetch_sources,
     connect: Callable[..., Any] | None = None,
+    archive: RawArchive | None = None,
 ) -> int:
     environ = os.environ if environ is None else environ
     sources = parse_sources(args.sources)
@@ -675,6 +713,9 @@ def run(
     _pre_file, pre_totals = preview_sources(fetched)
     check_preview_totals(pre_totals)
 
+    if archive is None:
+        archive = RawArchive(ArchiveConfig.from_env(environ))
+
     database_url = environ.get("DATABASE_URL")
     if not database_url:
         raise RuntimeError("DATABASE_URL is missing from the approved CI environment")
@@ -690,11 +731,12 @@ def run(
         with conn.cursor() as cur:
             cur.execute("SET LOCAL statement_timeout = '20min'")
         run_id = start_etl_run(conn, run_mode=args.run_mode, code_version=CODE_VERSION)
-        loads, totals, manifests = apply_files(
+        loads, totals, manifests, archived = apply_files(
             conn,
             fetched,
             etl_run_id=run_id,
             fetched_at=datetime.now(timezone.utc),
+            archive=archive,
         )
         dimensions = refresh_dimensions(conn)
         results = evaluate(conn, run_id, persist=True)
@@ -703,6 +745,7 @@ def run(
             loads=loads,
             load_totals=totals.to_dict(),
             manifests=manifests,
+            archived=archived,
             dimensions=dimensions,
             dq=results,
             dq_summary=dq_summary(results),
