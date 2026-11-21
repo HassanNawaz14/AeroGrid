@@ -53,7 +53,7 @@ is closed. The final `--strict` run and release notes remain (`H3-009`).
 | WP-P3-H1 | (Optional) Raw archive closure (`L-010`) | A | READY_FOR_REVIEW (implemented 2026-11-22 under `D3-018`; live proof `H3-011`) |
 | WP-P3-H2 | (Optional) FAA quota mitigation | B (HarveyWebbs) | DONE (2026-11-21; D3-016, cache + backoff + optional-airspace; 6 unit tests green; review closed) |
 | WP-P3-H3 | (Optional) SCD Type 2 evaluation | C | IN_PROGRESS (2026-11-21; D3-017; probes, harness, workflow and tests ready; evidence run pending `H3-010`) |
-| WP-P3-H4 | (Optional) Materialized marts + refresh | D | NOT_STARTED |
+| WP-P3-H4 | (Optional) Materialized marts + refresh | D | NOT_STARTED (D3-007 unmet — see D3-019; no marts built) |
 
 ## P3-G2 handoff (2026-11-18)
 
@@ -281,6 +281,16 @@ is closed. The final `--strict` run and release notes remain (`H3-009`).
 - Open: dispatch the workflow and commit the evidence file (`H3-010`); record the verdict
   here and in `D3-017`; reviewers C/E per the hardening track.
 - Status: `IN_PROGRESS` until `H3-010` closes.
+
+## WP-P3-H4 handoff (2026-11-22, Member D)
+
+- Branch: `phase3/wp-p3-h4-materialized-marts-eval`. Track: Hardening; Owner: Member D. Decision: `D3-019`.
+- Scope: evaluate whether materialized marts are justified under `D3-007`.
+- Gate evidence: `D3-007` requires WP-P3-05 to show with `EXPLAIN ANALYZE` evidence that plain views are insufficient before materialized views are permitted. WP-P3-05 verify run 44397831286 measured all three candidate indexes as `NEUTRAL` (identical plans and costs; execution-time deltas +0.36% to +0.58%; 992 KiB total footprint); no index was applied (`D3-011`). That run says nothing in favor of materialized marts.
+- Conclusion: `D3-007` precondition is unmet — plain views are sufficient. No materialized marts are built and no refresh orchestration is added. WP-P3-H4 remains optional; revisit only if fact growth or query patterns change the EXPLAIN evidence.
+- Added: `D3-019` in `Phase3/DECISIONS.md`.
+- Checks: reviewed `Phase3/DECISIONS.md` `D3-007`/`D3-011`; reviewed `Phase3/docs/05_etl_pipeline.md` H4 row; `python -m pytest -q Phase2/tests Phase3/tests` passes; `python -m compileall -q Phase2/etl Phase3/tests` OK.
+- Status: `NOT_STARTED` (no implementation work because `D3-007` gate is unmet); evaluation recorded under `D3-019`. Requires review sign-off.
 
 ## Human action queue
 
