@@ -34,7 +34,7 @@ If two authoritative sources still conflict, stop and ask the human. Do not gues
 - At the start of every session, always ask the human: "What is your team member name, and have you selected your team role (A through E)?"
 - If the human has not selected a role yet, ask them to choose one first.
 - Once selected, present a concise progress report from [Phase2/PROGRESS.md](Phase2/PROGRESS.md) and list the exact tasks awaiting them.
-- HassanNawaz14 is Member A (platform, integration, and release lead). Members B-E are recorded in [Phase2/docs/08_team_work_division.md](Phase2/docs/08_team_work_division.md); `H-002` remains deferred by the human.
+- Team member-to-role mapping is kept per phase, not globally: see [Phase2/docs/08_team_work_division.md](Phase2/docs/08_team_work_division.md) for Phase 2 and [Phase3/docs/08_team_work_division.md](Phase3/docs/08_team_work_division.md) for Phase 3. `H-002` remains deferred by the human.
 
 ## Git and repository safety
 

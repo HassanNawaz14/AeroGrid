@@ -112,4 +112,4 @@ owner, reviewers, prerequisites, gate, scope, deliverables, and acceptance.
 - **Owner:** B (`HarveyWebbs` / Abdullah Zia). **Track:** Hardening. **Decision:** `D3-016`.
 - **Scope:** Airspace GeoJSON FeatureServer caching (`ArcGisCache`), exponential backoff with jitter and retry budget (`BackoffBudget`), and optional-airspace graceful fallback (`AEROGRID_OPTIONAL_AIRSPACE=1`).
 - **Acceptance:** Tests pass in `Phase3/tests/test_faa_quota_mitigation.py`; caching eliminates redundant REST queries; quota errors retry gracefully.
-- **Status:** `READY_FOR_REVIEW`.
+- **Status:** `DONE` (2026-11-21; review closed).

@@ -5,7 +5,7 @@ This is the only status board for Phase 3. Decision records live in
 
 ## Headline
 
-`PHASE3_P3G3_DONE_WP06_DONE_WP07_08_PENDING_WP09_DONE` — documentation baseline merged (PR #31) and
+`PHASE3_P3G3_DONE_WP06_IN_PROGRESS_WP07_08_PENDING_WP09_DONE` — documentation baseline merged (PR #31) and
 human prerequisites closed by the requester-admin on 2026-11-18 (H3-001 authorized,
 H3-002 Power BI Desktop confirmed, H3-003 whole team presents). WP-P3-01/02/03 are
 `DONE`; PR #35 merged as `761475b` and the requester confirmed the C/D review
@@ -13,9 +13,10 @@ sign-off on 2026-11-18. P3-G2 is closed on the recorded evidence: 10 of 10 read-
 queries, `aerogrid_reader`, `DQ3-A-004` `PASS`. P3-G3 is `DONE`: WP-P3-04 was
 applied and reader-proofed via `H3-005`; WP-P3-05 verify run 44397831286 passed
 `DQ3-A-006`, measured all three candidates `NEUTRAL`, applied no index (`D3-011`),
-and delivered the verify-mode `reports/Indexing_Report.pdf`. WP-P3-06 (Power BI dashboard, Member E) is `DONE`: the approved
-spec is `Phase3/docs/14_power_bi_dashboard_spec.md`, `D3-012`–`D3-014` are recorded,
-PBIX build completed, screenshots captured. WP-P3-07 (Business insights report) and
+and delivered the verify-mode `reports/Indexing_Report.pdf`. WP-P3-06 (Power BI dashboard, Member E) is `IN_PROGRESS`: spec approved 2026-11-20
+(`D3-012`–`D3-014` recorded); PBIX build and screenshots not yet on disk (the
+2026-11-21 packaging dry-run reports both `MISSING`). A review complete 2026-11-21,
+D review pending. WP-P3-07 (Business insights report) and
 WP-P3-08 (Final presentation) are `PENDING` pending dashboard evidence. WP-P3-09 (CI
 packaging + artifacts, Member A) is `DONE` as of 2026-11-21: artifact layout,
 the `D3-008` packaging script and manual workflow, and the release-notes template are
@@ -44,13 +45,13 @@ is closed. The final `--strict` run and release notes remain (`H3-009`).
 | WP-P3-03 | OLAP queries (ROLLUP / CUBE) | E | DONE (PR #35, `761475b`; same paired evidence, `DQ3-A-004` PASS) |
 | WP-P3-04 | Phase 3 reporting views | E | DONE (Applied and verified via H3-005) |
 | WP-P3-05 | Query optimization + indexing report | D | DONE (Reviewed) |
-| WP-P3-06 | Power BI dashboard | E | DONE (spec approved 2026-11-20; PBIX build completed, screenshots captured; A review complete 2026-11-21, D review pending) |
+| WP-P3-06 | Power BI dashboard | E | IN_PROGRESS (spec approved 2026-11-20; PBIX and screenshots not yet on disk; A review complete 2026-11-21, D review pending) |
 | WP-P3-07 | Business insights report | E | PENDING (dashboard evidence required) |
 | WP-P3-08 | Final presentation | E | PENDING (dashboard evidence required) |
 | WP-P3-09 | CI packaging + artifacts | A | DONE (2026-11-21; run 44871649279 green on `main`, `01a5ccb`; D and E reviews recorded) |
 | WP-P3-10 | Release + acceptance | Human / A | NOT_STARTED |
 | WP-P3-H1 | (Optional) Raw archive closure (`L-010`) | A | NOT_STARTED |
-| WP-P3-H2 | (Optional) FAA quota mitigation | B (HarveyWebbs) | READY_FOR_REVIEW (2026-11-21; D3-016, cache + backoff + optional-airspace; 6 unit tests green) |
+| WP-P3-H2 | (Optional) FAA quota mitigation | B (HarveyWebbs) | DONE (2026-11-21; D3-016, cache + backoff + optional-airspace; 6 unit tests green; review closed) |
 | WP-P3-H3 | (Optional) SCD Type 2 evaluation | C | NOT_STARTED |
 | WP-P3-H4 | (Optional) Materialized marts + refresh | D | NOT_STARTED |
 
@@ -167,7 +168,7 @@ is closed. The final `--strict` run and release notes remain (`H3-009`).
 - DQ checks verified: `DQ3-A-002` (visuals trace to queries), `DQ3-A-003` (numbers match source queries), `DQ3-A-005` (numbers match cited queries)
 - All pages created: executive overview, detailed analysis, decision page
 - Review: A (platform) complete 2026-11-21, recorded by Member A; D (performance) pending
-- WP-P3-06 is `DONE`; WP-P3-07/08 are `PENDING` pending dashboard evidence
+- WP-P3-06 is `IN_PROGRESS`; WP-P3-07/08 are `PENDING` pending dashboard evidence
 
 ## WP-P3-09 handoff (2026-11-21, Member A)
 
@@ -257,5 +258,5 @@ the optional hardening track (WP-P3-H1 … H4) owns them through decisions.
 
 ## Blockers
 
-- No open P3-G3 blockers. WP-P3-06 is `DONE`; WP-P3-07/08 are `PENDING` pending dashboard evidence and D review.
+- No open P3-G3 blockers. WP-P3-06 is `IN_PROGRESS`; WP-P3-07/08 are `PENDING` pending dashboard evidence and D review.
 - WP-P3-09 final `--strict` packaging run (`H3-009`) waits for Member E to commit, or publish as Actions artifacts, the PBIX, dashboard screenshots PDF, insights report and final deck. The 2026-11-21 dry-run found none of these on `main` and reported each as `MISSING`; nothing was created or simulated.
