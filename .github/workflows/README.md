@@ -19,6 +19,7 @@ dimension verification workflow; `WP-06` delivered the fact verification workflo
 | `wp-p3-analytics-verify.yml` | Manual dispatch | `WP-P3-02/03` read-only run of the committed analytics and OLAP SQL through `aerogrid_reader`; uploads Markdown evidence |
 | `wp-p3-gold-views.yml` | Manual dispatch | `WP-P3-04` gold views: `verify` rolls back; `apply` is `main`-only with `APPROVE_WP3_GOLD_VIEWS` in the `warehouse` environment |
 | `wp-p3-05-indexes.yml` | Manual dispatch | `WP-P3-05` index measurement: `verify` rolls back; `apply` is `main`-only with `APPROVE_WP3_INDEXES` in the `warehouse` environment |
+| `wp-p3-h3-scd2-eval.yml` | Manual dispatch | `WP-P3-H3` read-only SCD Type 2 evaluation probes through `aerogrid_reader` in the `warehouse` environment; uploads Markdown evidence; creates nothing |
 | `wp-p3-09-package.yml` | Manual dispatch | `WP-P3-09` packages Phase 3 deliverables under `D3-008`; no database, no secrets, no `warehouse` environment (details below) |
 
 The probe script lives in [`../scripts/platform_probe.py`](../scripts/platform_probe.py).
