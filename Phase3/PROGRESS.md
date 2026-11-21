@@ -52,7 +52,7 @@ is closed. The final `--strict` run and release notes remain (`H3-009`).
 | WP-P3-10 | Release + acceptance | Human / A | NOT_STARTED |
 | WP-P3-H1 | (Optional) Raw archive closure (`L-010`) | A | READY_FOR_REVIEW (implemented 2026-11-22 under `D3-018`; live proof `H3-011`) |
 | WP-P3-H2 | (Optional) FAA quota mitigation | B (HarveyWebbs) | DONE (2026-11-21; D3-016, cache + backoff + optional-airspace; 6 unit tests green; review closed) |
-| WP-P3-H3 | (Optional) SCD Type 2 evaluation | C | NOT_STARTED |
+| WP-P3-H3 | (Optional) SCD Type 2 evaluation | C | IN_PROGRESS (2026-11-21; D3-017; probes, harness, workflow and tests ready; evidence run pending `H3-010`) |
 | WP-P3-H4 | (Optional) Materialized marts + refresh | D | NOT_STARTED |
 
 ## P3-G2 handoff (2026-11-18)
@@ -263,6 +263,25 @@ is closed. The final `--strict` run and release notes remain (`H3-009`).
   `L-010` as `OPEN`; E owns that file, so it was not edited here.
 - Status: `READY_FOR_REVIEW`; `DONE` requires `H3-011` evidence and review.
 
+## WP-P3-H3 handoff (2026-11-21, Member C)
+
+- Branch: `phase3/wp-p3-h3-member-c`. Track: Hardening; Owner: Member C. Decision: `D3-017`.
+- Scope: evaluate SCD Type 2 for `dim_vehicle` with read-only evidence. No Type 2 table is
+  created and the Type 1 dimension and loader are unchanged.
+- Code-level findings (from the repo, not from a run): `dim_vehicle` carries one descriptive
+  attribute, `vehicle_type`, which the loader sets to the constant `'UAS'`; staging holds no
+  model, operator or registration column; the refresh is insert-only, so `last_seen_ts` does
+  not advance after first load.
+- Added: `Phase3/sql/scd2_evaluation/` (4 read-only probes), `Phase3/scripts/evaluate_scd2.py`,
+  `.github/workflows/wp-p3-h3-scd2-eval.yml`, `Phase3/tests/test_scd2_evaluation.py`,
+  `Phase3/docs/WP-P3-H3_scd2_evaluation.md`.
+- Checks: `python -m pytest -q Phase3/tests` passes locally; the four probes and the harness
+  were also run against a local PostgreSQL 16 built from the real Phase 2 DDL with a small
+  synthetic fixture (a test of the SQL only, not evidence).
+- Open: dispatch the workflow and commit the evidence file (`H3-010`); record the verdict
+  here and in `D3-017`; reviewers C/E per the hardening track.
+- Status: `IN_PROGRESS` until `H3-010` closes.
+
 ## Human action queue
 
 Stable IDs; agents never simulate these actions.
@@ -279,6 +298,8 @@ Stable IDs; agents never simulate these actions.
 | H3-008 | Dispatch the WP-P3-09 packaging workflow (non-strict) after the PR merges | Manual workflows cannot run until the file exists on `main`; the run proves "workflows green on main" and gives the run ID for the review record | Actions -> **WP-P3-09 package Phase 3 artifacts** -> Run workflow -> branch `main`, `strict` off. Pass: tests green, `result` is `PASS` or `PASS_WITH_PENDING`, bundle artifact uploaded, no secret hits | CLOSED 2026-11-21 (run [44871649279](https://github.com/HassanNawaz14/AeroGrid/actions/runs/44871649279) green on `main`, `01a5ccb`; bundle artifact uploaded) |
 | H3-009 | Run the final packaging with `strict` on, then write `Phase3/RELEASE_NOTES.md` from the template | Proves every deliverable is present and routed under `D3-008` before the human closes P3-G5 | After P3-G4: dispatch with `strict` on; copy sizes and SHA-256 values from the manifest into the release notes; commit the notes | BLOCKED_ON_HUMAN (waits for WP-P3-06/07/08 files) |
 | H3-011 | Dispatch one WP-11 apply run | Proves `L-010` closure with real archived bytes; agents cannot dispatch Actions or read secrets | Actions -> **WP-11 ingestion** -> Run workflow -> `mode=apply`, `confirm=APPROVE_WP11_APPLY` on the merged `main`. Pass: job green; the `wp11-raw-archive-verification` artifact says `Result: PASS`; new manifest rows have `object_key` | BLOCKED_ON_HUMAN (waits for merge and human dispatch) |
+
+| H3-010 | Dispatch the WP-P3-H3 SCD2 evaluation workflow and commit its evidence file | The probes read the shared warehouse; the workflow needs the `warehouse` environment and `READONLY_DATABASE_URL`, which agents cannot use | Actions -> **WP-P3-H3 SCD2 evaluation evidence (read-only)** -> Run workflow on `main`. Pass: tests green, role `aerogrid_reader`, verdict present. Download the artifact, commit `Phase3/evidence/scd2_evaluation_<UTC>.md`, record the verdict in `D3-017` | OPEN |
 
 ## Carried-over open items from Phase 2
 

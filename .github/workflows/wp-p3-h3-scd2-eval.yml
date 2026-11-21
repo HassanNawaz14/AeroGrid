@@ -1,0 +1,58 @@
+name: WP-P3-H3 SCD2 evaluation evidence (read-only)
+
+# Runs the four read-only probes in Phase3/sql/scd2_evaluation/ against the shared
+# warehouse through the aerogrid_reader role and uploads the generated Markdown
+# evidence. Manual dispatch only. It never writes to the warehouse and creates no
+# Type 2 object. The evidence file is downloaded from the run artifact and committed
+# by a human (H3-010).
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wp-p3-h3-scd2-evidence
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    name: Run SCD2 probes and capture evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: warehouse
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install test and runner dependencies
+        run: >
+          python -m pip install --disable-pip-version-check
+          "pytest>=8,<10" "psycopg[binary]>=3.2,<4" "reportlab>=4,<5"
+
+      - name: Run static tests
+        run: python -m pytest -q Phase3/tests
+
+      - name: Run read-only SCD2 probes
+        env:
+          READONLY_DATABASE_URL: ${{ secrets.READONLY_DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+          python Phase3/scripts/evaluate_scd2.py --require-reader \
+            --output "Phase3/evidence/scd2_evaluation_${stamp}.md"
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wp-p3-h3-scd2-evidence-${{ github.run_id }}
+          path: Phase3/evidence/scd2_evaluation_*.md
+          if-no-files-found: warn
+          retention-days: 30
