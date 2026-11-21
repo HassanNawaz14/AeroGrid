@@ -38,6 +38,7 @@ everything about the warehouse build itself.
 | Data quality and reports | [06_data_quality_and_reports.md](06_data_quality_and_reports.md) | `Phase2/docs/06_data_quality_and_reports.md` |
 | Dashboard specification | [14_power_bi_dashboard_spec.md](14_power_bi_dashboard_spec.md) | [../PROGRESS.md](../PROGRESS.md) |
 | Access, security, artifact handling | [07_operations_access_and_security.md](07_operations_access_and_security.md) | `Phase2/docs/07_operations_access_and_security.md` |
+| Release packaging and notes | [../templates/RELEASE_NOTES.md](../templates/RELEASE_NOTES.md) | [../scripts/package_artifacts.py](../scripts/package_artifacts.py), [../deliverables/README.md](../deliverables/README.md), [../reports/README.md](../reports/README.md) |
 | Team ownership | [08_team_work_division.md](08_team_work_division.md) | Work packages |
 | Agent rules | [09_agent_operating_manual.md](09_agent_operating_manual.md) | [`../AGENTS.md`](../AGENTS.md) |
 | Human actions and verification | [10_human_operating_manual.md](10_human_operating_manual.md) | [../PROGRESS.md](../PROGRESS.md) |

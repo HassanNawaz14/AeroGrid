@@ -16,6 +16,10 @@ that produces it.
   candidates `NEUTRAL`, applied no index (`D3-011`), and delivered the verify-mode
   `reports/Indexing_Report.pdf`. WP-P3-06 (Power BI dashboard) is `IN_PROGRESS`:
   its specification was approved on 2026-11-20 and the PBIX build is starting.
+  WP-P3-09 (CI packaging + artifacts, Member A) is `READY_FOR_REVIEW`: the artifact
+  layout, the `D3-008` packaging script and workflow, and the release-notes template
+  are in place and the dry-run is recorded; the green run on `main` (`H3-008`) and the
+  D/E review are open. P3-G5 is `IN_PROGRESS`.
   P3-G0 is the documentation baseline; P3-G1 was authorized under H3-001.
 - The canonical entry point is [docs/00_documentation_map.md](docs/00_documentation_map.md).
 

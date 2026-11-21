@@ -35,6 +35,15 @@ in `Phase3/reports/` is built from this JSON by
 [`../scripts/generate_index_report.py`](../scripts/generate_index_report.py); never
 hand-edit a pair or copy a number into the report.
 
+`packaging_<mode>_<UTC timestamp>.md` and `.json` are written by
+[`../scripts/package_artifacts.py`](../scripts/package_artifacts.py). Each file records
+the capture time, environment (`local` or `github-actions`), commit, the `D3-008`
+limit, which deliverables are present or `MISSING`, and for every file its size,
+route (`bundle` under 10 MiB, `oversize` otherwise), secret-scan result and SHA-256.
+They need no warehouse access. A `dryrun` file reports without copying anything. A
+`PASS_WITH_PENDING` result means required deliverables are still missing; only a
+`--strict` run with result `PASS` supports the release notes. Never hand-edit one.
+
 A run file is evidence only when it was produced against the shared warehouse through
 `aerogrid_reader` (or a read-only transaction) and the capture date is visible. Never
 hand-edit a generated run file or copy numbers into it.
