@@ -24,6 +24,7 @@ from etl.config import (
     NIGHTJAR_URL,
     study_boxes,
 )
+from etl.quota_mitigation import ArcGisCache, QuotaMitigationPolicy
 
 USER_AGENT = "AeroGrid-WP11-ingest/1.0"
 PAGE_BYTES = 8 * 1024 * 1024
@@ -210,38 +211,84 @@ def arcgis_query_url(layer: str, bbox, *, offset: int) -> str:
     return f"{ARC_GIS_ROOT}/{layer}/FeatureServer/0/query?{urlencode(params)}"
 
 
-def fetch_airspace_layer(layer: str, bbox) -> list[dict]:
+def fetch_airspace_layer(
+    layer: str,
+    bbox,
+    *,
+    cache: ArcGisCache | None = None,
+    policy: QuotaMitigationPolicy | None = None,
+) -> list[dict]:
+    if policy is None:
+        import os
+        enable_cache = os.environ.get("AEROGRID_ENABLE_CACHE") == "1" or cache is not None
+        optional_airspace = os.environ.get("AEROGRID_OPTIONAL_AIRSPACE") == "1"
+        policy = QuotaMitigationPolicy(use_cache=enable_cache, optional_airspace=optional_airspace)
+
+    if cache is None and policy.use_cache:
+        cache = ArcGisCache()
+
+    cache_key = f"{layer}_{bbox[0]:.4f}_{bbox[1]:.4f}_{bbox[2]:.4f}_{bbox[3]:.4f}"
+
+    if cache is not None and policy.use_cache:
+        cached = cache.get(cache_key, max_age_seconds=policy.cache_ttl_seconds)
+        if cached is not None and isinstance(cached.get("features"), list):
+            return cached["features"]
+
     features: list[dict] = []
-    for page in range(MAX_PAGES):
-        payload = _http_json(arcgis_query_url(layer, bbox, offset=page * PAGE_SIZE))
-        if (
-            not isinstance(payload, dict)
-            or payload.get("type") != "FeatureCollection"
-            or not isinstance(payload.get("features"), list)
-        ):
-            raise ValueError("ArcGIS response is not a GeoJSON FeatureCollection")
-        batch = payload["features"]
-        if not batch:
-            # ArcGIS GeoJSON does not report exceededTransferLimit; an empty page is
-            # the only reliable end-of-results signal, so a full last page costs one
-            # extra request rather than silently truncating data.
-            return features
-        for feature in batch:
-            if not isinstance(feature, dict) or feature.get("type") != "Feature":
-                raise ValueError("ArcGIS returned an invalid feature")
-        features.extend(batch)
-        if len(batch) < PAGE_SIZE:
-            return features
-    raise ValueError("ArcGIS pagination limit reached; no partial data accepted")
+    try:
+        for page in range(MAX_PAGES):
+            payload = _http_json(arcgis_query_url(layer, bbox, offset=page * PAGE_SIZE))
+            if (
+                not isinstance(payload, dict)
+                or payload.get("type") != "FeatureCollection"
+                or not isinstance(payload.get("features"), list)
+            ):
+                raise ValueError("ArcGIS response is not a GeoJSON FeatureCollection")
+            batch = payload["features"]
+            if not batch:
+                # ArcGIS GeoJSON does not report exceededTransferLimit; an empty page is
+                # the only reliable end-of-results signal, so a full last page costs one
+                # extra request rather than silently truncating data.
+                if cache is not None and policy.use_cache:
+                    cache.set(cache_key, {"type": "FeatureCollection", "features": features})
+                return features
+            for feature in batch:
+                if not isinstance(feature, dict) or feature.get("type") != "Feature":
+                    raise ValueError("ArcGIS returned an invalid feature")
+            features.extend(batch)
+            if len(batch) < PAGE_SIZE:
+                if cache is not None and policy.use_cache:
+                    cache.set(cache_key, {"type": "FeatureCollection", "features": features})
+                return features
+        raise ValueError("ArcGIS pagination limit reached; no partial data accepted")
+    except Exception as exc:
+        if cache is not None and policy.allow_stale_fallback:
+            stale = cache.get_stale(cache_key)
+            if stale is not None and isinstance(stale.get("features"), list):
+                return stale["features"]
+        if policy.optional_airspace:
+            return []
+        raise
 
 
-def fetch_faa_airspace(dest: Path) -> list[FetchedFile]:
+def fetch_faa_airspace(
+    dest: Path,
+    *,
+    cache: ArcGisCache | None = None,
+    policy: QuotaMitigationPolicy | None = None,
+) -> list[FetchedFile]:
     """One merged file per approved granular service, deduplicated by GLOBAL_ID."""
+    if policy is None:
+        import os
+        enable_cache = os.environ.get("AEROGRID_ENABLE_CACHE") == "1" or cache is not None
+        optional_airspace = os.environ.get("AEROGRID_OPTIONAL_AIRSPACE") == "1"
+        policy = QuotaMitigationPolicy(use_cache=enable_cache, optional_airspace=optional_airspace)
+
     files = []
     for layer, service_name, feature_type in AIRSPACE_SERVICES:
         merged: dict[str, dict] = {}
         for _site, bbox in study_boxes():
-            for feature in fetch_airspace_layer(layer, bbox):
+            for feature in fetch_airspace_layer(layer, bbox, cache=cache, policy=policy):
                 key = str(
                     (feature.get("properties") or {}).get("GLOBAL_ID") or ""
                 ).strip()
@@ -306,7 +353,9 @@ def recent_window(days: int = 7) -> tuple[date, date]:
 
 
 __all__ = [
+    "ArcGisCache",
     "FetchedFile",
+    "QuotaMitigationPolicy",
     "arcgis_query_url",
     "fetch_airspace_layer",
     "fetch_awc_metar",
