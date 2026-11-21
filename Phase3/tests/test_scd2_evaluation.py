@@ -96,8 +96,9 @@ def test_report_has_findings_and_no_connection_string() -> None:
     decision = scd2.decide(_results(stale=1))
     report = scd2.render_report(
         captured_at="2026-11-21T00:00:00+00:00", role="aerogrid_reader", database="neondb",
-        probe_sections=[], decision=decision, failures=[],
+        probe_sections=[], probes_executed=4, decision=decision, failures=[],
     )
+    assert "Probes: 4 of 4 executed" in report
     assert "DEFER_SCD2" in report
     assert "Type 1 gap" in report
     assert "postgres" not in report.lower()
@@ -105,7 +106,7 @@ def test_report_has_findings_and_no_connection_string() -> None:
 
 def test_failed_run_reports_no_verdict() -> None:
     report = scd2.render_report(
-        captured_at="t", role="r", database="d", probe_sections=[], decision=None,
+        captured_at="t", role="r", database="d", probe_sections=[], probes_executed=1, decision=None,
         failures=["connection: OperationalError"],
     )
     assert "no verdict was derived" in report

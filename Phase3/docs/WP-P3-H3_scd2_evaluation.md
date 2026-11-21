@@ -62,9 +62,32 @@ Do not start building. The design questions to settle first:
   aggregate views);
 - how first-seen and last-seen map to `valid_from`, `valid_to` and `is_current`.
 
+## Result (evidence run 2026-11-21)
+
+Evidence: [`../evidence/scd2_evaluation_20261121T200340Z.md`](../evidence/scd2_evaluation_20261121T200340Z.md),
+read-only through `aerogrid_reader`. Verdict: **`DEFER_SCD2`**.
+
+| Probe | Result |
+|---|---|
+| `QW-P3-H3-01` | 158 real members from 3 source systems share a single `vehicle_type`; 1 member has a zero seen span |
+| `QW-P3-H3-02` | Staging holds only 2 UAS serials; neither appears under more than one source; both have more than one launch point (flight-level behaviour) |
+| `QW-P3-H3-03` | Only 2 of 158 members could be compared with staging; none has a stale `last_seen_ts` |
+| `QW-P3-H3-04` | 27,479 tracking rows for 156 vehicles in one observed month (2022-01-01 08:09 to 2022-01-02 03:59 UTC, under one day) |
+
+What this supports: no descriptive attribute varies, and the tracked history is far too
+short to show a version change, so Type 2 would version nothing. Keep Type 1.
+
+Limits of the evidence:
+
+- The `last_seen_ts` check covers 2 of 158 members, because only UAS serials in
+  `stg_uas_position` can be compared. "No stale members" says nothing about the other 156;
+  the insert-only loader gap stays a separate, undecided Type 1 item.
+- The evidence header reads "Probes: 28 of 4 executed". That is a counting bug in the
+  harness (it counted report lines). All four probes ran and all four result tables are in
+  the file. The harness is fixed; the committed run file is not hand-edited.
+
 ## Status
 
-The probes, harness, workflow and static tests are in place and pass. The evidence run
-against the shared warehouse is a human action (`H3-010`); the work package stays
-`IN_PROGRESS` until the evidence file is committed and the verdict is recorded in
-`Phase3/PROGRESS.md` and `D3-017`.
+`READY_FOR_REVIEW`. The probes, harness, workflow, tests and evidence are in place and the
+verdict is recorded in `Phase3/PROGRESS.md` and `D3-017`. `DONE` needs the hardening-track
+review recorded.
