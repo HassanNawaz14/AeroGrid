@@ -117,6 +117,7 @@ def render_report(
     role: str,
     database: str,
     probe_sections: Sequence[str],
+    probes_executed: int,
     decision: Mapping[str, Any] | None,
     failures: Sequence[str],
 ) -> str:
@@ -127,7 +128,7 @@ def render_report(
         f"- Connected role: `{role}`",
         f"- Database: `{database}`",
         "- Transaction mode: `READ ONLY`; no Type 2 object was created",
-        f"- Probes: {len(probe_sections)} of {len(probe_files())} executed",
+        f"- Probes: {probes_executed} of {len(probe_files())} executed",
         "",
     ]
     lines.extend(probe_sections)
@@ -202,7 +203,8 @@ def run(database_url: str, output: Path, require_reader: bool) -> int:
 
     decision = None if failures else decide(results)
     report = render_report(captured_at=captured_at, role=role, database=database,
-                           probe_sections=sections, decision=decision, failures=failures)
+                           probe_sections=sections, probes_executed=len(results),
+                           decision=decision, failures=failures)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(report, encoding="utf-8")
     shown = output.relative_to(REPO_ROOT).as_posix() if output.is_relative_to(REPO_ROOT) else str(output)

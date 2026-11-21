@@ -44,6 +44,13 @@ They need no warehouse access. A `dryrun` file reports without copying anything.
 `PASS_WITH_PENDING` result means required deliverables are still missing; only a
 `--strict` run with result `PASS` supports the release notes. Never hand-edit one.
 
+`scd2_evaluation_<UTC timestamp>.md` is written by
+[`../scripts/evaluate_scd2.py`](../scripts/evaluate_scd2.py) (`WP-P3-H3`, read-only through
+`aerogrid_reader`). It records the four probe results and the derived verdict
+(`DEFER_SCD2`, `REVIEW_SCD2` or `INCONCLUSIVE_NO_DATA`). The first run file,
+`scd2_evaluation_20261121T200340Z.md`, has a header line "Probes: 28 of 4 executed"; that is a
+counting bug since fixed in the harness. All four probes ran and the file is not hand-edited.
+
 A run file is evidence only when it was produced against the shared warehouse through
 `aerogrid_reader` (or a read-only transaction) and the capture date is visible. Never
 hand-edit a generated run file or copy numbers into it.

@@ -52,7 +52,7 @@ is closed. The final `--strict` run and release notes remain (`H3-009`).
 | WP-P3-10 | Release + acceptance | Human / A | NOT_STARTED |
 | WP-P3-H1 | (Optional) Raw archive closure (`L-010`) | A | READY_FOR_REVIEW (implemented 2026-11-22 under `D3-018`; live proof `H3-011`) |
 | WP-P3-H2 | (Optional) FAA quota mitigation | B (HarveyWebbs) | DONE (2026-11-21; D3-016, cache + backoff + optional-airspace; 6 unit tests green; review closed) |
-| WP-P3-H3 | (Optional) SCD Type 2 evaluation | C | IN_PROGRESS (2026-11-21; D3-017; probes, harness, workflow and tests ready; evidence run pending `H3-010`) |
+| WP-P3-H3 | (Optional) SCD Type 2 evaluation | C | READY_FOR_REVIEW (2026-11-22; D3-017; evidence run 2026-11-21T20:03Z, verdict `DEFER_SCD2`; review pending) |
 | WP-P3-H4 | (Optional) Materialized marts + refresh | D | NOT_STARTED |
 
 ## P3-G2 handoff (2026-11-18)
@@ -278,9 +278,17 @@ is closed. The final `--strict` run and release notes remain (`H3-009`).
 - Checks: `python -m pytest -q Phase3/tests` passes locally; the four probes and the harness
   were also run against a local PostgreSQL 16 built from the real Phase 2 DDL with a small
   synthetic fixture (a test of the SQL only, not evidence).
-- Open: dispatch the workflow and commit the evidence file (`H3-010`); record the verdict
-  here and in `D3-017`; reviewers C/E per the hardening track.
-- Status: `IN_PROGRESS` until `H3-010` closes.
+- Evidence: `Phase3/evidence/scd2_evaluation_20261121T200340Z.md` (workflow dispatched by
+  Member C on 2026-11-21; role `aerogrid_reader`, read-only; the run ID is not recorded here,
+  so the evidence file is the record). Verdict: `DEFER_SCD2`. 158 real members share one
+  `vehicle_type`; tracking is 27,479 rows for 156 vehicles inside one observed month (under
+  one day, 2022-01-01 to 2022-01-02 UTC); no Type 2 table was created.
+- Evidence limits: staging holds only 2 UAS serials, so the `last_seen_ts` staleness check
+  compared 2 of 158 members (none stale) and says nothing about the rest. The file header
+  reads "Probes: 28 of 4 executed" because of a counting bug in the harness (fixed); all four
+  probes ran and the run file is not hand-edited.
+- Open: hardening-track review of WP-P3-H3 (C/E).
+- Status: `READY_FOR_REVIEW`; `DONE` needs the review recorded.
 
 ## Human action queue
 
@@ -299,7 +307,7 @@ Stable IDs; agents never simulate these actions.
 | H3-009 | Run the final packaging with `strict` on, then write `Phase3/RELEASE_NOTES.md` from the template | Proves every deliverable is present and routed under `D3-008` before the human closes P3-G5 | After P3-G4: dispatch with `strict` on; copy sizes and SHA-256 values from the manifest into the release notes; commit the notes | BLOCKED_ON_HUMAN (waits for WP-P3-06/07/08 files) |
 | H3-011 | Dispatch one WP-11 apply run | Proves `L-010` closure with real archived bytes; agents cannot dispatch Actions or read secrets | Actions -> **WP-11 ingestion** -> Run workflow -> `mode=apply`, `confirm=APPROVE_WP11_APPLY` on the merged `main`. Pass: job green; the `wp11-raw-archive-verification` artifact says `Result: PASS`; new manifest rows have `object_key` | CLOSED 2026-11-21 (run [44943715029](https://github.com/HassanNawaz14/AeroGrid/actions/runs/44943715029) green; artifact `Result: PASS`; manifest id 19 archived with content-addressed `object_key`) |
 
-| H3-010 | Dispatch the WP-P3-H3 SCD2 evaluation workflow and commit its evidence file | The probes read the shared warehouse; the workflow needs the `warehouse` environment and `READONLY_DATABASE_URL`, which agents cannot use | Actions -> **WP-P3-H3 SCD2 evaluation evidence (read-only)** -> Run workflow on `main`. Pass: tests green, role `aerogrid_reader`, verdict present. Download the artifact, commit `Phase3/evidence/scd2_evaluation_<UTC>.md`, record the verdict in `D3-017` | OPEN |
+| H3-010 | Dispatch the WP-P3-H3 SCD2 evaluation workflow and commit its evidence file | The probes read the shared warehouse; the workflow needs the `warehouse` environment and `READONLY_DATABASE_URL`, which agents cannot use | Actions -> **WP-P3-H3 SCD2 evaluation evidence (read-only)** -> Run workflow on `main`. Pass: tests green, role `aerogrid_reader`, verdict present. Download the artifact, commit `Phase3/evidence/scd2_evaluation_<UTC>.md`, record the verdict in `D3-017` | CLOSED 2026-11-22 (workflow run 2026-11-21T20:03Z; evidence `Phase3/evidence/scd2_evaluation_20261121T200340Z.md`; verdict `DEFER_SCD2`) |
 
 ## Carried-over open items from Phase 2
 
