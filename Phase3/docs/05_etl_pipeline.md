@@ -54,7 +54,9 @@ evaluated/deferred. That run says nothing in favor of materialized marts, so
 | WP-P3-H4 | Materialized marts + refresh orchestration | `EXPLAIN ANALYZE` evidence per `D3-007` |
 
 Each hardening WP requires its own decision row and gate evidence; none may be
-started "in passing."
+started "in passing." WP-P3-H2 was authorized by Member B's source audit and
+implemented under decision `D3-016` (caching, backoff budget, and optional-airspace
+fallback; see `Phase2/etl/quota_mitigation.py` and `Phase3/tests/test_faa_quota_mitigation.py`).
 
 ## Failure behaviour
 
