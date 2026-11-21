@@ -10,7 +10,7 @@ when assigned. Member E is assigned.
 | Member | Account | Phase 3 role |
 |---|---|---|
 | A | (unassigned) | platform / integration / release lead — CI workflows, artifact packaging, release, hardening track lead |
-| B | (unassigned) | sources & staging — source/licence reviews, hardening H2 |
+| B | HarveyWebbs (Abdullah Zia) | sources & staging — source/licence reviews, hardening H2 |
 | C | (unassigned) | schema & dimensions — model reviews, hardening H3 |
 | D | (unassigned) | facts & performance — query optimization + indexing report, hardening H4 |
 | E | HassanNawaz14 | analytics & BI — **all BI deliverables** (see below) |

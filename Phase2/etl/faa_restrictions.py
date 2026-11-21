@@ -17,6 +17,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
+from etl.quota_mitigation import BackoffBudget, is_arcgis_quota_or_rate_error
 from etl.sources.faa import normalize_tfr_feature
 
 TFR_LAYER = (
@@ -84,19 +85,37 @@ def query_params(bbox: tuple[float, float, float, float], *, offset: int = 0, pa
     }
 
 
-def _http_json(url: str) -> Mapping[str, Any]:
+def _http_json(url: str, *, budget: BackoffBudget | None = None) -> Mapping[str, Any]:
     req = Request(url, headers={"User-Agent": "AeroGrid-WP07-readonly/1.0", "Accept": "application/json"})
-    try:
-        with urlopen(req, timeout=25) as response:
-            blob = response.read(MAX_RESPONSE_BYTES + 1)
-    except (HTTPError, URLError, TimeoutError) as exc:
-        raise RuntimeError("FAA source unavailable (network/status error)") from exc
-    if len(blob) > MAX_RESPONSE_BYTES:
-        raise ValueError("FAA page exceeded read limit")
-    try:
-        return json.loads(blob)
-    except (ValueError, UnicodeError) as exc:
-        raise ValueError("FAA returned non-JSON response") from exc
+    budget = budget or BackoffBudget()
+    for attempt in range(1, budget.max_retries + 1):
+        try:
+            with urlopen(req, timeout=25) as response:
+                blob = response.read(MAX_RESPONSE_BYTES + 1)
+            if len(blob) > MAX_RESPONSE_BYTES:
+                raise ValueError("FAA page exceeded read limit")
+            try:
+                data = json.loads(blob)
+            except (ValueError, UnicodeError) as exc:
+                raise ValueError("FAA returned non-JSON response") from exc
+            if is_arcgis_quota_or_rate_error(None, data) and attempt < budget.max_retries:
+                import time
+                time.sleep(budget.calculate_delay(attempt))
+                continue
+            return data
+        except HTTPError as exc:
+            if exc.code in (429, 503) and attempt < budget.max_retries:
+                import time
+                time.sleep(budget.calculate_delay(attempt))
+                continue
+            raise RuntimeError("FAA source unavailable (network/status error)") from exc
+        except (URLError, TimeoutError) as exc:
+            if attempt < budget.max_retries:
+                import time
+                time.sleep(budget.calculate_delay(attempt))
+                continue
+            raise RuntimeError("FAA source unavailable (network/status error)") from exc
+    raise RuntimeError("FAA source unavailable (network/status error)")
 
 
 def fetch_tfr_features(
