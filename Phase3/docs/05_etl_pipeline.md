@@ -48,7 +48,7 @@ evaluated/deferred. That run says nothing in favor of materialized marts, so
 
 | WP | Item | Trigger |
 |---|---|---|
-| WP-P3-H1 | Close `L-010`: archive raw files to `aerogrid-raw` with manifest linkage | Human prioritizes replayability |
+| WP-P3-H1 | Close `L-010`: archive raw files to `aerogrid-raw` with manifest linkage | Implemented under `D3-018`; live proof pending `H3-011` |
 | WP-P3-H2 | FAA ArcGIS quota mitigation (caching, backoff budget, optional-airspace runs) | Repeated scheduled-run failures |
 | WP-P3-H3 | SCD Type 2 evaluation for `dim_vehicle` | A Phase 3+ question needs attribute history |
 | WP-P3-H4 | Materialized marts + refresh orchestration | `EXPLAIN ANALYZE` evidence per `D3-007` |

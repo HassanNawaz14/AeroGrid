@@ -55,7 +55,7 @@ with real staging and dimension rows.
 | `L-007` | Corridor views are screening metrics only | `vw_corridor_capacity_inputs` and `vw_candidate_corridor_cells` each return 808 rows over observed cells | Any use as a validated corridor, capacity decision, or planning input | WP-10 view verification | `OPEN` |
 | `L-008` | UAS sources are validated but never ingested | Run 11 loaded 22,602 accepted UAS positions into `project_staging.stg_uas_position` (Nightjar 12,447; DJI 10,155) and created 2 `dim_vehicle` members. No UAS tracking, journey, or encounter fact exists yet, so the limitation survives the staging load | Any deliverable that reports UAS traffic, UAS-to-manned separation, or combined airspace use | `DQ-G-003` (`WARN`) | `OPEN` |
 | `L-009` | Airspace zones are never staged; OpenSky is unused | Run 11 staged 252 zones (Class 82, Route 170; Special Use 0 inside the study boxes) and created 252 `dim_airspace_zone` members. `project_staging.stg_opensky_state` holds 0 rows; OpenSky is optional under `D-013` and has no loader | Any deliverable that reports zone membership, zone proximity, occupancy inside a zone, or an OpenSky-derived metric | `DQ-G-004` (`WARN`) | `OPEN` |
-| `L-010` | Fetched raw files are not archived to object storage | Every `WP-11` run downloads sources into a transient runner directory. No raw object is written to `aerogrid-raw` and no manifest-linked archive exists, so the exact bytes behind a load cannot be re-read later | Any provenance audit that needs the original bytes, or a re-run that must reproduce past input without network access | None; the run summary states it on every run | `OPEN` |
+| `L-010` | Fetched raw files are not archived to object storage | Every `WP-11` run downloads sources into a transient runner directory. No raw object is written to `aerogrid-raw` and no manifest-linked archive exists, so the exact bytes behind a load cannot be re-read later | Any provenance audit that needs the original bytes, or a re-run that must reproduce past input without network access | None; the run summary states it on every run | `CLOSED` (D3-018) |
 
 `L-008` and `L-009` were 0 rows before the first approved apply. Run 11 filled their
 staging tables and flipped `DQ-G-002`–`DQ-G-004` to `PASS`, but staging coverage does
@@ -126,6 +126,12 @@ Persist each fetched source file to the private `aerogrid-raw` bucket and link i
 on the recorded URL, fetch timestamp, and SHA-256 in `source_manifest`, which proves
 what was read but cannot reproduce the bytes. Do not commit raw files to Git as a
 substitute; that is prohibited by the repository rules.
+
+**Closed 2026-11-22 by `D3-018` (WP-P3-H1).** Apply runs now upload each fetched
+file to `aerogrid-raw` under `raw/<sha256>/<file_name>` and set
+`source_manifest.object_key` before commit. `Phase2/etl/verify_raw_archive.py`
+re-downloads each linked object and compares its SHA-256. Live proof is tracked as
+`H3-011`; nothing in this note claims a run that has not happened.
 
 ## Coverage completion plan
 

@@ -64,8 +64,9 @@ that is always rolled back. Do not use synthetic flight rows.
 - Real public data only; never generate synthetic business rows.
 - No local PostgreSQL, Docker, or dev containers.
 - Use environment variables/secrets; never hard-code credentials.
-- Archive raw data in object storage with a manifest. This is not implemented yet;
-  `L-010` records the gap and every WP-11 run summary states it.
+- Archive raw data in object storage with a manifest. Implemented under `D3-018`
+  (WP-P3-H1): apply runs write each fetched file to `aerogrid-raw` and link it from
+  `source_manifest.object_key`; `verify_raw_archive.py` checks the stored SHA-256.
 - Use idempotent loads and preserve provenance.
 - Fail closed on critical DQ.
 - Do not add a dependency without checking its license and free-tier terms.
