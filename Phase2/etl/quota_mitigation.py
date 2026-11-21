@@ -10,7 +10,7 @@ import json
 import os
 import random
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -44,7 +44,7 @@ def is_arcgis_quota_or_rate_error(status_code: int | None, payload: Any | None =
     return False
 
 
-@dataclass
+@dataclass(frozen=True)
 class BackoffBudget:
     """Calculates bounded exponential backoff delays with random jitter."""
 
@@ -134,4 +134,4 @@ class QuotaMitigationPolicy:
     cache_ttl_seconds: float = DEFAULT_CACHE_TTL_SECONDS
     allow_stale_fallback: bool = True
     optional_airspace: bool = False
-    backoff: BackoffBudget = BackoffBudget()
+    backoff: BackoffBudget = field(default_factory=BackoffBudget)
