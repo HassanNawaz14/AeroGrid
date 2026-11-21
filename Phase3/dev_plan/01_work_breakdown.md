@@ -104,7 +104,7 @@ owner, reviewers, prerequisites, gate, scope, deliverables, and acceptance.
 |---|---|---|---|
 | WP-P3-H1 | Raw archive closure (`L-010`) | A | Decision + human priority |
 | WP-P3-H2 | FAA quota mitigation | B (HarveyWebbs) | Repeated scheduled-run failures (implemented under D3-016) |
-| WP-P3-H3 | SCD Type 2 evaluation | C | Decision; Phase 3+ need |
+| WP-P3-H3 | SCD Type 2 evaluation | C | Decision (`D3-017`); Phase 3+ need. Evaluation only, see [docs](../docs/WP-P3-H3_scd2_evaluation.md) |
 | WP-P3-H4 | Materialized marts + refresh | D | `D3-007` EXPLAIN evidence |
 
 ### WP-P3-H2 — FAA ArcGIS quota mitigation
