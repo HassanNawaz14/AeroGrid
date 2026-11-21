@@ -21,9 +21,16 @@ access model is unchanged and remains authoritative for the warehouse.
 2. **Artifact handling.** `.sql` files live in Git. `.pdf`/`.pptx`/`.pbix`
    deliverables are committed if < 10 MB each; larger files are published as
    GitHub Actions artifacts instead of being committed.
-3. **No Power BI Service publishing** without a human-owned account and an explicit
+3. **Packaging.** `Phase3/scripts/package_artifacts.py` enforces `D3-008` for the
+   release (`D3-015`). Files under 10 MiB go to the `bundle` artifact; files of 10 MiB
+   or more go to a separate `oversize` Actions artifact and must not be committed.
+   The manual `wp-p3-09-package.yml` workflow needs no secrets and no `warehouse`
+   environment. Each run writes a manifest with size, SHA-256, route and secret-scan
+   result; the scan reads uncompressed bytes only, so PDFs and screenshots are still
+   reviewed by eye.
+4. **No Power BI Service publishing** without a human-owned account and an explicit
    decision row (`D3-005`).
-4. **Screenshots** must not show connection strings, hostnames with credentials, or
+5. **Screenshots** must not show connection strings, hostnames with credentials, or
    member PII.
 
 ## Capacity guards (carried forward)

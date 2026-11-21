@@ -14,7 +14,7 @@ evidence. Statuses: `PLANNED` / `IN_PROGRESS` / `READY_FOR_REVIEW` / `DONE` /
 | 6 | Dashboard screenshots (PDF) | — | `Phase3/reports/Dashboard_Screenshots.pdf` | WP-P3-06 | E | per-page captures with data-as-of | IN_PROGRESS (spec approved 2026-11-20) |
 | 7 | Business insights report (PDF) | 5 | `Phase3/reports/Business_Insights_Report.pdf` | WP-P3-07 | E | claim → query → check citation map | PLANNED |
 | 8 | Final presentation (PPT) | — | `Phase3/deliverables/Final_Presentation.pptx` | WP-P3-08 | E | reviewer approvals; citation check | PLANNED |
-| 9 | Repository link | — | repo URL at release tag/branch | WP-P3-09/10 | A | release notes | PLANNED |
+| 9 | Repository link | — | repo URL at release tag/branch | WP-P3-09/10 | A | release notes | IN_PROGRESS (template, packaging workflow and dry-run `READY_FOR_REVIEW` 2026-11-21; final `Phase3/RELEASE_NOTES.md` is written at release, `H3-009`) |
 
 ## Marks guardrail
 
@@ -22,6 +22,15 @@ evidence. Statuses: `PLANNED` / `IN_PROGRESS` / `READY_FOR_REVIEW` / `DONE` /
   artifact is traceable to a WP with two named reviewers.
 - The indexing report and views are unmarked deliverables but gate P3-G3; they are
   not optional.
+
+## Packaging (WP-P3-09, Member A)
+
+- [x] Artifact layout documented (`Phase3/deliverables/README.md`, `Phase3/reports/README.md`)
+- [x] Packaging script and manual workflow enforce `D3-008` (`package_artifacts.py`, `wp-p3-09-package.yml`)
+- [x] Release-notes template (`Phase3/templates/RELEASE_NOTES.md`)
+- [x] Dry-run recorded (`Phase3/evidence/packaging_dryrun_20261121T052507Z.md`)
+- [ ] Workflow run green on `main` (`H3-008`)
+- [ ] Final `--strict` run and `Phase3/RELEASE_NOTES.md` (`H3-009`)
 
 ## Final submission checklist
 

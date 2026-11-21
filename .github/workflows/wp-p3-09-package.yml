@@ -1,0 +1,80 @@
+name: WP-P3-09 package Phase 3 artifacts
+
+# Packages the Phase 3 deliverables under the D3-008 size guard: files under 10 MiB
+# go into the bundle artifact, files of 10 MiB or more go into a separate oversize
+# artifact and must not be committed. Manual dispatch only. No database, no secrets
+# and no warehouse environment: this workflow only reads files already in Git.
+# Use strict=true for the final release run; it fails while a required deliverable
+# is missing.
+
+on:
+  workflow_dispatch:
+    inputs:
+      strict:
+        description: "Fail if a required deliverable is missing (final release run)"
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wp-p3-09-package
+  cancel-in-progress: false
+
+jobs:
+  package:
+    name: Package artifacts under D3-008
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install test dependencies
+        run: >
+          python -m pip install --disable-pip-version-check
+          "pytest>=8,<10" "psycopg[binary]>=3.2,<4" "reportlab>=4,<5"
+
+      - name: Run Phase 3 static tests
+        run: python -m pytest -q Phase3/tests
+
+      - name: Package artifacts
+        env:
+          STRICT: ${{ inputs.strict }}
+        run: |
+          set -euo pipefail
+          stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+          args=""
+          if [ "$STRICT" = "true" ]; then args="--strict"; fi
+          python Phase3/scripts/package_artifacts.py $args \
+            --json-output "dist/phase3/packaging_${stamp}.json" \
+            --md-output "dist/phase3/packaging_${stamp}.md"
+
+      - name: Upload bundle (files under 10 MiB)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase3-release-bundle-${{ github.run_id }}
+          path: |
+            dist/phase3/bundle/
+            dist/phase3/MANIFEST.json
+            dist/phase3/packaging_*.json
+            dist/phase3/packaging_*.md
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Upload oversize artifacts (10 MiB or larger, never committed)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase3-release-oversize-${{ github.run_id }}
+          path: dist/phase3/oversize/
+          if-no-files-found: ignore
+          retention-days: 30
