@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AeroGrid Evaluation & Defense Guide — Abdullah Zia (Member C & Member B)</title>
+<style>
+  @page {
+    size: A4;
+    margin: 12mm 12mm 12mm 12mm;
+  }
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+    color: #1a202c;
+    line-height: 1.4;
+    font-size: 9.2pt;
+    margin: 0;
+    padding: 0;
+  }
+  .header-card {
+    background: linear-gradient(135deg, #0b1e36 0%, #1e3a8a 100%);
+    color: #ffffff;
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  }
+  .header-card h1 {
+    margin: 0 0 4px 0;
+    font-size: 19pt;
+    letter-spacing: -0.5px;
+    font-weight: 700;
+  }
+  .header-card .subtitle {
+    font-size: 10.5pt;
+    color: #93c5fd;
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 8.2pt;
+  }
+  .meta-item strong {
+    display: block;
+    color: #bfdbfe;
+    font-size: 7.2pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+  h2 {
+    color: #0f172a;
+    font-size: 12pt;
+    border-bottom: 2px solid #2563eb;
+    padding-bottom: 3px;
+    margin-top: 14px;
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+  h3 {
+    color: #1e3a8a;
+    font-size: 10pt;
+    margin-top: 10px;
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  p {
+    margin: 0 0 6px 0;
+    text-align: justify;
+  }
+  ul, ol {
+    margin: 0 0 8px 0;
+    padding-left: 18px;
+  }
+  li {
+    margin-bottom: 3px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 10px 0;
+    font-size: 8.2pt;
+    page-break-inside: auto;
+  }
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 5px 7px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    font-weight: 600;
+  }
+  tr:nth-child(even) {
+    background-color: #f8fafc;
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 5px;
+    font-size: 7.2pt;
+    font-weight: 600;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  .badge-blue { background: #dbeafe; color: #1e40af; }
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-purple { background: #f3e8ff; color: #6b21a8; }
+  .badge-amber { background: #fef3c7; color: #92400e; }
+  .callout {
+    background: #f8fafc;
+    border-left: 4px solid #2563eb;
+    padding: 8px 12px;
+    border-radius: 0 6px 6px 0;
+    margin: 8px 0;
+    font-size: 8.5pt;
+  }
+  .callout-title {
+    font-weight: 700;
+    color: #1e3a8a;
+    margin-bottom: 3px;
+  }
+  .qa-block {
+    margin-bottom: 9px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px 10px;
+    page-break-inside: avoid;
+  }
+  .qa-q {
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 9pt;
+    margin-bottom: 3px;
+    display: flex;
+    align-items: baseline;
+  }
+  .qa-q .q-tag {
+    background: #2563eb;
+    color: white;
+    font-size: 7.2pt;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-right: 6px;
+  }
+  .qa-a {
+    color: #334155;
+    font-size: 8.5pt;
+    line-height: 1.38;
+  }
+  .page-break {
+    page-break-before: always;
+  }
+  .grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  code {
+    background: #f1f5f9;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-family: 'Consolas', monospace;
+    font-size: 8.2pt;
+    color: #0f172a;
+  }
+</style>
+</head>
+<body>
+
+<div class="header-card">
+  <h1>AeroGrid Evaluation & Defense Guide</h1>
+  <div class="subtitle">Cloud Data Warehouse for Unmanned Aircraft Systems (UAS) & Advanced Air Mobility (AAM)</div>
+  <div class="meta-grid">
+    <div class="meta-item">
+      <strong>Student / Candidate</strong>
+      Abdullah Zia (HarveyWebbs)
+    </div>
+    <div class="meta-item">
+      <strong>Phase 2 Scope</strong>
+      Member C (Data Model Engineer)
+    </div>
+    <div class="meta-item">
+      <strong>Phase 3 Scope</strong>
+      Member B (Sources, Staging & Hardening)
+    </div>
+    <div class="meta-item">
+      <strong>Platform & DB</strong>
+      Neon Serverless PostgreSQL 18.7
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 1 -->
+<h2>1. Project Overview & Architecture Scope</h2>
+<p>
+  <strong>AeroGrid</strong> is an enterprise-grade cloud data warehouse built for Unmanned Aircraft Systems (UAS / drones) and Advanced Air Mobility (AAM). The system solves a critical operational challenge: commercial drone corridors, vertiports, and low-altitude airspaces operate across completely siloed data streams—flight ADS-B telemetry, meteorological observations, and regulatory airspace restrictions. AeroGrid unifies these streams into a high-performance star schema on <strong>Neon Serverless PostgreSQL</strong>.
+</p>
+
+<div class="grid-2col">
+  <div class="callout">
+    <div class="callout-title">Three-Tier Warehouse Architecture</div>
+    <ul style="margin-bottom: 0;">
+      <li><code>project_staging</code>: Raw ingestion landing buffer, schema normalization, batch reject classification (<code>stg_reject</code>).</li>
+      <li><code>project_dw</code>: Star schema consisting of <strong>6 dimensions</strong> and <strong>4 fact tables</strong> with deterministic surrogate keys.</li>
+      <li><code>project_reporting</code>: Standardized gold analytical views, corridor density metrics, and BI reporting marts.</li>
+    </ul>
+  </div>
+  <div class="callout">
+    <div class="callout-title">Core Non-Negotiable Tenets</div>
+    <ul style="margin-bottom: 0;">
+      <li><strong>100% Real Public Data:</strong> Tartan ADS-B (CMU), NOAA/IEM METAR weather, and FAA UDDS ArcGIS REST. Zero synthetic rows.</li>
+      <li><strong>Fail-Closed DQ:</strong> Reconciles input counts = accepted staging + rejected staging. Idempotent re-runs.</li>
+      <li><strong>Missing Coverage Invariant (<code>D-029</code>, <code>D3-009</code>):</strong> Explicit distinction between measured zero and unobserved sensors.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- SECTION 2 -->
+<h2>2. Phase 2 Contributions — Member C: Data Model Engineer</h2>
+<p>
+  In Phase 2, as <strong>Member C (Data Model Engineer & Schema Lead)</strong>, Abdullah Zia was solely accountable for designing, implementing, and verifying the warehouse's foundational dimensional layer under work package <strong>WP-05</strong>, as well as authoring the formal data dictionary and DBML diagrams.
+</p>
+
+<h3>2.1 Star Schema Dimensions (Work Package WP-05)</h3>
+<p>
+  Implemented all dimension DDL scripts (<code>Phase2/sql/02_dimensions/01_dimensions.sql</code>), idempotent baseline seeds (<code>02_seed.sql</code>), and real Tartan vehicle dimension members (<code>03_seed_real.sql</code>):
+</p>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 20%;">Dimension Table</th>
+      <th style="width: 22%;">Surrogate / Natural Key</th>
+      <th style="width: 42%;">Attributes & Hierarchy</th>
+      <th style="width: 16%;">Unknown Member</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>dim_site</code></td>
+      <td><code>site_key</code> (Identity)<br><code>site_code</code> (Natural)</td>
+      <td>Site name, latitude/longitude center, bounding box coordinates (min/max lat/lon), operational status. Anchors: KBTP, KAGC, Nightjar PA, DJI CO.</td>
+      <td><code>-1</code> (<code>UNKNOWN_SITE</code>)</td>
+    </tr>
+    <tr>
+      <td><code>dim_vehicle</code></td>
+      <td><code>vehicle_key</code> (Identity)<br><code>icao24_hex</code> / <code>reg_id</code></td>
+      <td>Vehicle registration, ICAO24 hex address, manufacturer, model, vehicle category (Fixed Wing, Multi-Rotor, Rotorcraft, eVTOL, Hybrid), operator name.</td>
+      <td><code>-1</code> (<code>UNKNOWN_VEHICLE</code>)</td>
+    </tr>
+    <tr>
+      <td><code>dim_time</code></td>
+      <td><code>time_key</code> (Identity)<br><code>time_utc</code> (Natural)</td>
+      <td>Deterministic hourly spine (2022-01-01 to 2022-01-07; 168 real-derived hourly rows), year, quarter, month, day, hour, day_of_week, is_weekend, peak_period_flag.</td>
+      <td><code>-1</code> (<code>UNKNOWN_TIME</code>)</td>
+    </tr>
+    <tr>
+      <td><code>dim_grid_cell</code></td>
+      <td><code>grid_key</code> (Identity)<br><code>cell_id</code> (Natural)</td>
+      <td>Spatial grid resolution (0.01° ~ 1 km), bounding polygon, cell center coordinates, site spatial reference identifier.</td>
+      <td><code>-1</code> (<code>UNKNOWN_GRID</code>)</td>
+    </tr>
+    <tr>
+      <td><code>dim_weather_condition</code></td>
+      <td><code>weather_key</code> (Identity)<br><code>condition_code</code></td>
+      <td>Aviation weather flight category (VFR, MVFR, IFR, LIFR), wind speed band, visibility band, cloud cover ceiling classification.</td>
+      <td><code>-1</code> (<code>UNKNOWN_WEATHER</code>)</td>
+    </tr>
+    <tr>
+      <td><code>dim_source_system</code></td>
+      <td><code>source_system_key</code><br><code>system_code</code></td>
+      <td>Source name, provider organization, protocol/format (REST, GeoJSON, CSV), license category, ingestion cadence.</td>
+      <td><code>-1</code> (<code>UNKNOWN_SYSTEM</code>)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>2.2 Key Architectural Patterns Implemented by Member C</h3>
+<ul>
+  <li><strong>Database-Generated Identity Surrogate Keys:</strong> Enforced <code>BIGINT GENERATED ALWAYS AS IDENTITY</code> on all dimensions, preventing race conditions and key collisions across parallel ingestion tasks.</li>
+  <li><strong>Unknown Member Pattern (<code>-1</code> Sentinel Rows):</strong> Pre-seeded every dimension with a deterministic <code>-1</code> surrogate key and placeholder strings. When upstream telemetry contains missing, unmapped, or corrupt foreign identifiers, facts link to <code>-1</code> rather than failing or creating dangling references.</li>
+  <li><strong>Dimension Normalization & Verification Pipeline:</strong> Built <code>Phase2/etl/dimensions.py</code> and <code>Phase2/etl/verify_wp05_dimensions.py</code>. Verified zero duplicates, validated foreign key targets, and confirmed idempotent double-apply in CI workflow <code>wp05-dimensions-verify.yml</code> on Neon PostgreSQL.</li>
+  <li><strong>Authoritative Data Modeling Artifacts:</strong> Authored <code>data/data_dictionary.md</code> (column types, nullability, definitions) and <code>data/diagrams/aerogrid_schema.dbml</code> (full visual schema).</li>
+  <li><strong>Milestone Gate G4 Recording:</strong> Officially verified core tracking facts and dimension integrations to record Gate <code>G4</code> closure.</li>
+  <li><strong>Cross-Package Review Sign-Offs:</strong> Reviewed Staging DDL (WP-04), Tracking/Journeys (WP-06), Derived Facts (WP-07), Reporting Views (WP-10), and CI Deployment (WP-11).</li>
+</ul>
+
+<div class="page-break"></div>
+
+<!-- SECTION 3 -->
+<h2>3. Phase 3 Contributions — Member B: Sources, Staging & Hardening Lead</h2>
+<p>
+  In Phase 3, Abdullah Zia transitioned to <strong>Member B (Sources & Staging Engineer, Reviewer, and Hardening Track Lead)</strong>. While Member E authored BI deliverables per the ownership rule (<code>D3-002</code>), Member B led source verification, review governance, and the vital operational resilience track (<strong>WP-P3-H2</strong>).
+</p>
+
+<h3>3.1 Formal Source, Staging & Licensing Audit</h3>
+<p>
+  Authored <code>Phase3/evidence/member_b_source_staging_audit.md</code>, an independent governance audit verifying:
+</p>
+<ul>
+  <li><strong>License Compliance:</strong> Validated open licenses across all sources—Tartan Aviation (ODbL / public domain), NOAA/IEM METAR (U.S. Government Open Data), and FAA UDDS (Federal Open Data approved under <code>D-020</code>). Confirmed zero proprietary or paid data dependencies.</li>
+  <li><strong>Zero Synthetic Data Invariant:</strong> Audited 27,479 tracking facts and 178 journeys in <code>project_dw</code>, proving 100% of rows originate from real Tartan aircraft transmissions around KBTP.</li>
+  <li><strong>Missing-Coverage Enforcement (<code>D3-009</code>):</strong> Audited Phase 3 analytical queries and views to confirm that unobserved periods/sites are labeled <code>NO_COVERAGE</code> rather than falsely presented as zero flight activity.</li>
+</ul>
+
+<h3>3.2 Hardening Track WP-P3-H2: FAA ArcGIS Quota Mitigation & Caching</h3>
+<div class="callout">
+  <div class="callout-title">The Operational Challenge & Root Cause</div>
+  FAA UDDS ArcGIS FeatureServer endpoints enforce rate limits. Repeated CI runs or scheduled ETL pipelines triggered HTTP 429 ("Too Many Requests"), HTTP 503, or JSON error bodies (<code>{"error": {"code": 400, "message": "..."}}</code>). Because regulatory airspace polygons (<code>Class_Airspace</code>, <code>Special_Use_Airspace</code>) are static and only update every 28 days on the FAA AIRAC cycle, repeatedly querying live endpoints was inefficient and risked breaking the entire pipeline.
+</div>
+
+<p><strong>Architecture Implemented by Member B (Decision <code>D3-016</code>):</strong></p>
+<ul>
+  <li><strong><code>ArcGisCache</code> (File-Backed JSON Caching):</strong> Implemented in <code>Phase2/etl/quota_mitigation.py</code>. Caches FeatureCollection responses with configurable TTL (default 24 hours). Uses atomic rename (<code>.tmp -> .json</code>) to prevent partial reads and provides emergency stale-cache fallback if live servers fail.</li>
+  <li><strong><code>BackoffBudget</code> (Bounded Exponential Backoff with Jitter):</strong> Computes dynamic retry delays:
+    <div style="text-align: center; margin: 3px 0; font-family: 'Consolas', monospace; font-size: 8.5pt;">
+      Delay = min(MaxDelay, BaseDelay &times; 2<sup>attempt &minus; 1</sup>) &times; (0.5 + 0.5 &times; rand())
+    </div>
+    Detects HTTP 429, 503, and JSON error bodies, retrying up to a configured budget to prevent API rate spikes.
+  </li>
+  <li><strong>Graceful Degradation / Optional Airspace Mode:</strong> Enhanced <code>Phase2/etl/fetch.py</code> and <code>Phase2/etl/faa_restrictions.py</code>. When <code>AEROGRID_OPTIONAL_AIRSPACE=1</code>, if live FAA endpoints are down and no cache exists, the system logs a structured warning and allows weather and flight telemetry ingestion to succeed.</li>
+  <li><strong>Automated Test Suite:</strong> Created <code>Phase3/tests/test_faa_quota_mitigation.py</code> with 6 unit tests validating cache hits/misses, TTL expiration, stale fallback, backoff delay calculations, and graceful degradation (100% pass rate).</li>
+</ul>
+
+<h3>3.3 Review Governance & 9 Granular Conventional Commits</h3>
+<p>
+  Authored <code>Phase3/evidence/member_b_review_signoffs.md</code> providing official Member B sign-offs for documentation baseline (<code>WP-P3-00</code>) and gold views (<code>WP-P3-04</code>), plus evaluation criteria for the insights report. All 9 commits were authored under <code>Abdullah Zia &lt;harveywebbs907@gmail.com&gt;</code> and pushed to branch <code>phase3/wp-p3-h2-member-b</code>:
+</p>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 14%;">Commit SHA</th>
+      <th style="width: 18%;">Conventional Type</th>
+      <th style="width: 68%;">Description & Deliverable</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><code>5af42c4</code></td><td><span class="badge badge-purple">docs(team)</span></td><td>Assign Member B to <code>HarveyWebbs (Abdullah Zia)</code> in <code>Phase3/docs/08_team_work_division.md</code></td></tr>
+    <tr><td><code>fa98c08</code></td><td><span class="badge badge-purple">docs(audit)</span></td><td>Publish Member B source, licensing, and staging audit evidence (<code>member_b_source_staging_audit.md</code>)</td></tr>
+    <tr><td><code>680c721</code></td><td><span class="badge badge-green">feat(etl)</span></td><td>Create <code>Phase2/etl/quota_mitigation.py</code> (<code>ArcGisCache</code>, <code>BackoffBudget</code>, <code>QuotaMitigationPolicy</code>)</td></tr>
+    <tr><td><code>5fa4b81</code></td><td><span class="badge badge-green">feat(etl)</span></td><td>Add retry budget and rate-limit backoff handling to <code>Phase2/etl/faa_restrictions.py</code></td></tr>
+    <tr><td><code>ace7e48</code></td><td><span class="badge badge-green">feat(etl)</span></td><td>Implement local GeoJSON cache layer and optional-airspace fallback in <code>Phase2/etl/fetch.py</code></td></tr>
+    <tr><td><code>069a7c3</code></td><td><span class="badge badge-blue">test(etl)</span></td><td>Add unit test suite for FAA quota mitigation (<code>Phase3/tests/test_faa_quota_mitigation.py</code>)</td></tr>
+    <tr><td><code>8277e34</code></td><td><span class="badge badge-amber">docs(decisions)</span></td><td>Record Decision <code>D3-016</code> in <code>Phase3/DECISIONS.md</code> and update <code>05_etl_pipeline.md</code></td></tr>
+    <tr><td><code>c0a6721</code></td><td><span class="badge badge-purple">docs(reviews)</span></td><td>Publish Member B formal review sign-offs for WP-P3-00, WP-P3-04, and WP-P3-07 framework</td></tr>
+    <tr><td><code>3121a24</code></td><td><span class="badge badge-purple">docs(progress)</span></td><td>Transition WP-P3-H2 to <code>READY_FOR_REVIEW</code> in <code>Phase3/PROGRESS.md</code> and dev plan</td></tr>
+  </tbody>
+</table>
+
+<!-- SECTION 4 -->
+<h2>4. Architectural Highlights & Project "Bonus Points"</h2>
+<div class="grid-2col">
+  <div class="qa-block">
+    <strong>1. Honest Indexing Verdict (<code>D3-010</code>, <code>D3-011</code>)</strong><br>
+    In WP-P3-05, rather than claiming artificial query speedups, three candidate indexes were measured using <code>EXPLAIN (ANALYZE, BUFFERS)</code> inside rollback transactions. Runtime deltas were +0.36% to +0.58% (neutral). Following engineering integrity, the team applied zero indexes and documented the findings.
+  </div>
+  <div class="qa-block">
+    <strong>2. Explicit Coverage vs. Zero Events (<code>D3-009</code>)</strong><br>
+    The schema and views strictly differentiate between "measured zero" (sensors active, no flights detected) and "missing coverage" (station offline or outside study bounds). Null metrics display as <code>NO_COVERAGE</code>.
+  </div>
+  <div class="qa-block">
+    <strong>3. Strict 10 MiB Artifact Size Guard (<code>D3-008</code>)</strong><br>
+    Automated via <code>Phase3/scripts/package_artifacts.py</code> and CI. Any deliverable &ge; 10 MiB is routed to GitHub Actions release bundles and fails Git commits, preventing repository bloat.
+  </div>
+  <div class="qa-block">
+    <strong>4. Single BI Ownership Rule (<code>D3-002</code>)</strong><br>
+    Eliminated merge conflicts and divergent KPI formulas by assigning sole authorship of BI artifacts (Power BI PBIX, screenshots, report) to Member E, with strict peer review by Members B, A, C, and D.
+  </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- SECTION 5 -->
+<h2>5. High-Yield Viva / Evaluation Defense Q&A</h2>
+<p>
+  The following curated questions represent the most critical technical and architectural concepts an evaluator or professor is likely to examine regarding Member C (Phase 2) and Member B (Phase 3).
+</p>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-tag">Q1</span> Why did Member C implement a `-1` surrogate key in every dimension instead of allowing NULL foreign keys in fact tables?</div>
+  <div class="qa-a">
+    <strong>Answer:</strong> In dimensional modeling (Kimball methodology), NULL foreign keys in fact tables cause outer join overhead, break referential integrity constraints, and result in silent data omission during SQL aggregations and OLAP group-bys. By seeding a deterministic <code>-1</code> row (e.g. <code>UNKNOWN_VEHICLE</code>, <code>UNKNOWN_SITE</code>) in every dimension, every fact record successfully resolves its foreign key. This cleanly separates <em>"unmapped/unidentified source entity"</em> from database query errors and guarantees 100% referential integrity without losing unlinked telemetry.
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-tag">Q2</span> Why did Member C use `BIGINT GENERATED ALWAYS AS IDENTITY` instead of `SERIAL` for surrogate keys?</div>
+  <div class="qa-a">
+    <strong>Answer:</strong> <code>SERIAL</code> in PostgreSQL is a legacy pseudo-type that merely creates an underlying sequence and sets a default value, allowing accidental or unauthorized explicit inserts that bypass the sequence. <code>GENERATED ALWAYS AS IDENTITY</code> complies strictly with SQL:2003 standards, prevents client applications from inadvertently inserting arbitrary surrogate keys, guarantees true monotonically increasing uniqueness, and is fully optimized for Neon PostgreSQL's distributed storage architecture.
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-tag">Q3</span> What are the 4 core fact tables in AeroGrid, and what are their specific analytical grains?</div>
+  <div class="qa-a">
+    <strong>Answer:</strong> (1) <code>fact_tracking_position</code>: Grain is one timestamped ADS-B telemetry message per aircraft; (2) <code>fact_flight_encounter</code>: Grain is one detected pair of airborne vehicles within close proximity thresholds (&le; 0.5 NM horizontal, &le; 500 ft vertical); (3) <code>fact_hourly_airspace_occupancy</code>: Grain is one hour &times; grid cell &times; site recording distinct vehicle counts and total airborne flight minutes; (4) <code>fact_restriction_compliance</code>: Grain is one aircraft flight observation intersecting an active FAA Temporary Flight Restriction (TFR) polygon window.
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-tag">Q4</span> How does `dim_time` work, and why was it generated as a derived hourly spine rather than a standard calendar?</div>
+  <div class="qa-a">
+    <strong>Answer:</strong> Commercial aviation and drone operations function at hourly and sub-hourly temporal granularity, not merely daily. Member C derived <code>dim_time</code> by generating an hourly spine covering the active observation window (2022-01-01 00:00:00 UTC through 2022-01-07 23:00:00 UTC; 168 rows + 1 unknown row = 169 rows). This avoids requiring Neon database superuser calendar extensions, supports direct temporal joins from UTC timestamps, and enables granular peak vs. off-peak flight pattern analysis.
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-tag">Q5</span> How does trajectory journey segmentation work when converting raw ADS-B positions into flights?</div>
+  <div class="qa-a">
+    <strong>Answer:</strong> In Phase 2 (WP-06), trajectory positions for each vehicle are time-ordered. A new journey is segmented whenever (1) a vehicle experiences a temporal gap exceeding 30 minutes without messages, or (2) a vehicle transitions from ground state to airborne state. Each journey receives a deterministic identifier, allowing flight metrics (total journey duration, distance traveled, average speed, max altitude) to be aggregated cleanly.
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-tag">Q6</span> What operational issue triggered Hardening Track WP-P3-H2, and how does your solution solve it?</div>
+  <div class="qa-a">
+    <strong>Answer:</strong> FAA ArcGIS FeatureServers enforce external rate limits and quota caps, frequently returning HTTP 429 ("Too Many Requests") or JSON error bodies during rapid scheduled runs or CI verification workflows. Member B resolved this under Decision <code>D3-016</code> by introducing <code>ArcGisCache</code> and <code>BackoffBudget</code>. Since regulatory airspace boundaries update only once every 28 days on the FAA AIRAC cycle, caching GeoJSON responses for 24 hours eliminates redundant network calls. If live servers fail, the system falls back to stale cache or gracefully degrades without crashing the entire telemetry pipeline.
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-tag">Q7</span> Why did you include randomized jitter in your exponential backoff formula for WP-P3-H2?</div>
+  <div class="qa-a">
+    <strong>Answer:</strong> Standard exponential backoff causes all failed client requests to retry at identical mathematical intervals (e.g., exactly at 2s, 4s, 8s). When multiple batch jobs, CI runners, or workers run concurrently, this produces a "thundering herd" problem, slamming the rate-limited API in synchronized waves. By adding randomized full jitter (scaling between 50% and 100% of the bounded interval), retries are smoothly distributed across time, maximizing recovery probability without overwhelming the upstream server.
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-tag">Q8</span> What does Decision `D3-009` ("empty-means-missing-coverage") mean, and how did Member B verify it?</div>
+  <div class="qa-a">
+    <strong>Answer:</strong> In flight safety and business intelligence, an empty result set or zero count can mean two completely different things: (1) an active sensor observed zero aircraft movements, or (2) the sensor was offline, unconfigured, or out of range. <code>D3-009</code> mandates that zero events must never be assumed when coverage is missing. Member B verified that all analytical SQL queries and gold views use explicit dimension outer joins and case logic, outputting <code>NO_COVERAGE</code> for unmonitored sites (e.g. KAGC, which had weather but no ADS-B receivers in January 2022).
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-tag">Q9</span> What is the BI Ownership Rule (`D3-002`), and how did it affect team coordination?</div>
+  <div class="qa-a">
+    <strong>Answer:</strong> To prevent conflicting KPI calculations, broken Power BI relationships, and Git merge conflicts across binary PBIX files, Decision <code>D3-002</code> assigned sole authorship of all BI deliverables (PBIX dashboard, screenshots, insights report, presentation) to Member E. All other team members (A, B, C, D) acted as formal peer reviewers. Member B reviewed source licensing, staging compatibility, and reporting view schemas, signing off on evidence rather than editing binary report artifacts.
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-tag">Q10</span> Why did the team decide NOT to create indexes in Phase 3 under Decision `D3-011`?</div>
+  <div class="qa-a">
+    <strong>Answer:</strong> In WP-P3-05, the team evaluated three candidate B-Tree indexes on <code>fact_tracking_position</code>. In verify mode, <code>EXPLAIN (ANALYZE, BUFFERS)</code> showed identical query execution plans, identical sequential page scans, and execution time deltas of +0.36% to +0.58% (neutral/within run noise) because the table size (27,479 rows) fits comfortably in Postgres buffer memory. Applying unnecessary indexes would consume write overhead and disk storage without query benefit. Per <code>D3-011</code>, the team honestly documented the neutral verdict and deferred index creation until table size warrants it.
+  </div>
+</div>
+
+<div class="qa-block">
+  <div class="qa-q"><span class="q-tag">Q11</span> How do you prove that no synthetic data or secret credentials were committed?</div>
+  <div class="qa-a">
+    <strong>Answer:</strong> (1) All 27,479 flight tracking facts reconcile back to Tartan Aviation raw trajectory CSVs via deterministic journey segmentation. (2) Zero passwords, tokens, or connection strings are stored in code or repository configs; Neon access is restricted to the <code>aerogrid_reader</code> role in Power BI and protected GitHub Actions secrets. (3) <code>Phase3/scripts/package_artifacts.py</code> executes an automated regex secret scanner before every build, returning <code>PASS</code> with zero violations.
+  </div>
+</div>
+
+<div style="margin-top: 15px; padding-top: 8px; border-top: 1px solid #cbd5e1; text-align: center; font-size: 8pt; color: #64748b;">
+  AeroGrid Project Evaluation Guide &bull; Authored by Abdullah Zia (HarveyWebbs) &bull; DWBI Lab Phase 2 (Member C) & Phase 3 (Member B)
+</div>
+
+</body>
+</html>
